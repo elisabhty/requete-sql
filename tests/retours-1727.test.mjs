@@ -127,7 +127,7 @@ test('réf. 5 : dans la Dynamic Island, l’avancement en pour cent (plus d’an
   assert.ok(!swift.includes('LeconAnneau') && !horsAccueil.includes('.trim(from: 0'));
   const v = swift.slice(swift.indexOf('struct LeconPourcent: View {'), swift.indexOf('/// L’écran verrouillé'));
   for (const k of ['let part: Double = etat.fini ? 1 : min(1, max(0, etat.progression))', 'let pct: Int = Int((part * 100).rounded())',
-    'let texte: String = etat.fini ? "✓" : "\\(pct)\\u{202F}%"', 'let teinte: Color = etat.fini ? dore : braise', 'return Text(texte)\n            .font(police)\n            .monospacedDigit()'])
+    'let texte: String = etat.fini ? "✓" : "\\(pct)\\u{202F}%"', 'let teinte: Color = etat.fini ? dore : braise', 'return Text(traduit(texte))\n            .font(police)\n            .monospacedDigit()'])
     assert.ok(v.includes(k), k);
   assert.ok(swift.includes('@available(iOS 16.1, *)\nstruct LeconPourcent: View {'));
   /* 5 novembre, 6 h 45 : à droite, les moments réussis (« 2/4 ») ; le pour cent reste pour une leçon réussie ou sans moments (retours-0645) */

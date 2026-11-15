@@ -70,6 +70,20 @@ l'anglais :
   (langueFit dans core.js, jusqu'à 72 %) quand elle toucherait le logo ; pour tout le reste, c'est la règle.
 - `francais.mjs` : 0 à 3 images différentes d'un pixel arrivent (le lissage des polices).
 
+## L'iPhone : widgets, Live Activities, raccourcis, rappels
+
+Ce que l'app confie à l'iPhone ne passe pas par la page : l'app le traduit avant de l'envoyer (`natifT`, `natifSql`, `pocheLangue`
+dans index.html) et le widget traduit ses propres textes (`traduit` et la table `motsAnglais` en bas de RequeteWidget.swift ; il lit
+la langue dans le groupe d'apps, clé « langue »).
+
+- `natif.mjs --langue <code>` : les textes envoyés à l'iPhone qui n'ont pas de traduction (les questions de la requête de poche,
+  les rappels, les raccourcis de l'icône, les titres de l'accueil, les `natifT('…')` du code). Écrit `travail/<code>/natif.json`.
+  Les mots-clés SQL qui s'écrivent pareil (« LEFT JOIN », « NoSQL ») y restent : c'est normal.
+- Une autre langue que l'anglais : une table `motsAnglais` de plus dans le Swift (`traduit` choisit selon la langue), puis un
+  build Xcode (le widget n'est pas mis à jour à distance).
+- Les noms SQL des questions de poche hors de la base des cours (ateliers, avis, entrepot…) sont dans `base.defauts` ; les valeurs
+  écrites entre guillemets (`'Inconnu'`, `'Cher'`), dans `base.valeurs`.
+
 ## La voix
 
 `tools/voix/preparer-langue.mjs <cours>` prépare la voix anglaise (Brielle) depuis les légendes traduites ; ses règles de

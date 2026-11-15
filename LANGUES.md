@@ -107,6 +107,17 @@ Pour une nouvelle langue ou une nouvelle vidéo : `recolter.mjs` (les textes man
 Dans le moteur des vidéos, deux filets valent pour toutes les langues : la bulle des sous-titres reste ouverte quand la phrase
 suivante arrive moins de 2,5 s après ; hors français, la pastille du chapitre se resserre (jusqu’à 72 %) si elle toucherait le logo.
 
+## L’iPhone : widgets, Live Activities, raccourcis, rappels (15 novembre)
+
+Les widgets et les Live Activities parlent la langue de l’appli : l’app écrit la langue dans le groupe d’apps (`langue`,
+RequeteWidgetPlugin.maj), le widget traduit ses propres textes (RequeteWidget.swift : `LangueWidget`, `traduit`, `motsAnglais`) et
+reçoit déjà traduit ce que l’app lui envoie (la prochaine leçon, les 318 questions de la requête de poche, la leçon et le défi express,
+la salle, l’accueil). Les raccourcis de l’icône et les rappels (les 24 messages) aussi ; un rappel ajouté en ligne (rappels.json)
+n’est envoyé en anglais qu’une fois sa traduction dans langue-en.js. Le chat du widget s’appelle Requête, partout.
+Limites connues : l’alerte « @léa entre dans la salle » est écrite par le serveur (jeu-ile), en français pour tout le monde ; le nom du
+défi dans l’île des autres joueurs est celui de la langue de celui qui l’envoie. Les titres des App Intents du widget (Raccourcis
+d’iOS) restent en français. Le Swift demande un nouveau build Xcode.
+
 ## Où on en est
 
 - **Fait** : le système ; l’onboarding en anglais (le pilote) ; l’interface (14 novembre, 22 h 51 : « Tout traduire ») : l’accueil,

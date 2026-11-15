@@ -102,8 +102,8 @@ test('le widget lit le genre et l’énoncé : l’étiquette, l’énoncé au-d
   const q = entre(swift, 'struct QuestionPoche: Codable, Hashable {', '\n}\n');
   assert.ok(q.includes('var genre: String? = nil') && q.includes('var enonce: String? = nil'), 'facultatifs : les anciennes questions se lisent encore');
   const r = entre(swift, 'enum PocheRangement {', '\nstruct BoutCode');
-  for (const k of ['case "qcm": return "QCM · " + q.titre', 'case "cas": return "Cas pratique · " + q.titre',
-    'case "erreur": return "Trouve l’erreur · " + q.titre', 'case "erreur": return "Touche la ligne fausse"',
+  for (const k of ['case "qcm": return traduit("QCM · ") + q.titre', 'case "cas": return traduit("Cas pratique · ") + q.titre',
+    'case "erreur": return traduit("Trouve l’erreur · ") + q.titre', 'case "erreur": return "Touche la ligne fausse"',
     'q.choix.count >= 2 && q.bon >= 0 && q.bon < q.choix.count && (!q.code.isEmpty || aEnonce(q))', 'let place: CGFloat = aEnonce(q) ? 35 : 53', 'if q.genre == "erreur" { return false }'])
     assert.ok(r.includes(k), k);
   assert.ok(!r.includes('Quel résultat') && !r.includes('Touche le bon résultat'), '13 novembre : « Quel résultat ? » est parti');

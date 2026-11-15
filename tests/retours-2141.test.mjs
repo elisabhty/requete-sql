@@ -35,7 +35,7 @@ const bac = ({ sessions, freq = 3, faits = [], on = true, heure = '19:00', ob = 
     schedule: async o => { appels.push(['programme', pur(o.notifications)]); },
   };
   const obEl = { classList: { contains: c => c === 'on' && x.ob } };
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     PATTERN, state: { onboarded, plan: sessions === undefined ? { freq } : { freq, sessions } }, draft,
     document: { getElementById: id => (id === 'onboarding' ? obEl : null) },
     rappelOn: () => on, rappelHeure: () => heure, itemDone: id => fait.has(id),
@@ -200,7 +200,7 @@ test('Mon compte : le prochain rappel, et qu’il suit le planning', () => {
   const feuille = (sessions, faits = []) => {
     const body = { innerHTML: '', contains: () => false, querySelector: () => null }, fait = new Set(faits);
     const store = { 'requete-rappel': '1', 'requete-rappel-heure': '19:00' };
-    const ctx = vm.createContext({ obLangue: () => null, obLoc: () => 'fr-FR', obNt: () => '', obPh: (g, v) => (v ? String(g).replace(/\{(\w+)\}/g, (t, k) => (k in v ? v[k] : t)) : String(g)), 
+    const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  obLangue: () => null, obLoc: () => 'fr-FR', obNt: () => '', obPh: (g, v) => (v ? String(g).replace(/\{(\w+)\}/g, (t, k) => (k in v ? v[k] : t)) : String(g)), 
       localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); } }, PATTERN,
       state: { plan: { freq: 3, sessions } }, draft: null, window: {}, navigator: { vibrate() {} }, Notification: { permission: 'granted' },
       itemDone: id => fait.has(id),
@@ -216,5 +216,5 @@ test('Mon compte : le prochain rappel, et qu’il suit le planning', () => {
   const loin = `${t.toLocaleDateString('fr-FR', { weekday: 'long' })} ${t.getDate() === 1 ? '1er' : t.getDate()} ${t.toLocaleDateString('fr-FR', { month: 'long' })} à 19:00`;
   assert.ok(feuille([{ d: J(3), lessons: [1] }]).includes(`Prochain rappel : ${loin}.`), loin);
   assert.ok(feuille([{ d: J(1), lessons: [1] }], [1]).includes('Ton planning ne prévoit plus de séance : pas de rappel pour l’instant.'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3067';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3068';"), 'le cache de l’appli change');
 });

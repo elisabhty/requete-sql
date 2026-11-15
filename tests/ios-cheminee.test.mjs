@@ -42,7 +42,7 @@ const dimensions = f => {
 test('le widget La cheminée : grand, très grand avec iOS 27 (et Xcode 27), dans le paquet, la pièce en fond', () => {
   const w = entre(swift, 'struct RequeteCheminee: Widget {', '\n}\n');
   for (const k of ['let kind = "RequeteCheminee"', 'StaticConfiguration(kind: kind, provider: ChemineeFournisseur()) { entree in',
-    'ChemineeVue(entree: entree)\n                .fondCheminee(PieceVue(entree: entree))', '.configurationDisplayName("La cheminée")',
+    'ChemineeVue(entree: entree)\n                .fondCheminee(PieceVue(entree: entree))', '.configurationDisplayName(traduit("La cheminée"))',
     '.supportedFamilies(famillesCheminee)', '.sansMarges()'])
     assert.ok(w.includes(k), k);
   /* Le très grand n’existe qu’à partir d’iOS 27 : derrière le compilateur de Xcode 27 (Swift 6.4), puis derrière iOS 27 */
@@ -82,7 +82,7 @@ test('la journée de la pièce : le ciel suit l’heure, le feu la séance, le c
   const e = entre(swift, 'struct ChemineeEntree: TimelineEntry {', '\nextension SerieFournisseur {');
   for (const k of ['if fait { return .vif }\n        if repos { return .froid }\n        return heure >= 18 ? .braises : .froid',
     'var attendLeSoir: Bool { !fait && !repos && heure >= 18 }',
-    `if fait { return "Flamme allumée${FINE}!" }`, `if repos { return "Jour de repos${FINE}!" }`, 'if heure < 5 { return "Chut, le chat dort…" }',
+    `if fait { return "Flamme allumée${FINE}!" }`, `if repos { return "Jour de repos${FINE}!" }`, 'if heure < 5 { return "Chut, Requête dort…" }',
     `if heure < 18 { return "Une petite requête${FINE}?" }`, `return flamme.serie > 0 ? "Ta flamme t’attend${FINE}!" : "Allume ta flamme${FINE}!"`,
     'if fait { return lumiere == .nocturne ? "Bonne nuit." : "Bien joué, à demain." }', 'if heure < 12 { return "La cheminée est froide." }',
     'return "Quelques minutes suffisent."',
@@ -95,7 +95,7 @@ test('la journée de la pièce : le ciel suit l’heure, le feu la séance, le c
   assert.ok(v.includes('let fr = Locale(identifier: "fr_FR")') && v.includes('.environment(\\.locale, fr)'));
   /* « 0/1 », puis la coche et « 1/1 » sur l’or ; un jour de repos, pas de puce ; le bouton, le soir seulement */
   for (const k of ['let compte: String = fait ? "1/1" : "0/1"', 'if !entree.repos {\n                puce(u)', 'if entree.attendLeSoir {\n                bouton(u)',
-    'return Link(destination: lienSeance) {', 'Text("Allumer ma flamme")', '.chiffreQuiRoule(valeur)'])
+    'return Link(destination: lienSeance) {', 'Text(traduit("Allumer ma flamme"))', '.chiffreQuiRoule(valeur)'])
     assert.ok(v.includes(k), k);
 });
 
@@ -217,7 +217,7 @@ test('la page range la pièce : stickers gagnés, défis réussis, modules finis
   const src = cut('function widgetCheminee(){', 'if(typeof document!==');
   const essai = ({ prochaine = 20, stickers = { a: 1, b: 2, c: 0, d: 5 } } = {}) => {
     const lecons = [{ id: 0, titre: 'Les bases de données relationnelles' }, { id: 4, titre: 'WHERE' }, { id: 20, titre: 'LEFT JOIN' }, { id: 22, titre: 'NOT' }];
-    const ctx = vm.createContext({
+    const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
       state: { defis: { af1: true, af2: true, af3: false }, lessons: { 0: { done: true, at: 100 }, 4: { done: true, at: 300 }, 22: { done: true, at: 900 } } },
       MODULES: [{ lessons: [lecons[0], lecons[1]] }, { lessons: [lecons[2], lecons[3]] }, { lessons: [] }],
       allLessons: lecons, CARTES: { 0: { k: 'Base relationnelle' }, 4: { k: 'WHERE' }, 20: { k: 'LEFT JOIN' } },
@@ -235,16 +235,16 @@ test('la page range la pièce : stickers gagnés, défis réussis, modules finis
   assert.deepEqual(essai({ prochaine: 'af4' }), { stickers: 3, trophees: 2, diplomes: 1, prochaine: 'Quels vols sont retardés ?', cle: '', defi: true, carte: 'WHERE' }, 'un défi : son titre, sans mot-clé');
   assert.equal(essai({ prochaine: null }).prochaine, '', 'parcours fini : rien sur l’écran');
   /* Ce qui manque laisse sa valeur à zéro, ou vide (la page plus ancienne, un état incomplet) : la mise à jour de la série part quand même */
-  const vide = vm.createContext({});
+  const vide = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', });
   vm.runInContext(src, vide);
   assert.deepEqual(JSON.parse(JSON.stringify(vide.widgetCheminee())), { stickers: 0, trophees: 0, diplomes: 0, prochaine: '', cle: '', defi: false, carte: '' });
-  assert.ok(app.includes('const data={serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche()),semaine:JSON.stringify(widgetSemaine())},k=JSON.stringify(data);'), 'avec la série, en une fois (et la requête de poche)');
+  assert.ok(app.includes('const data={langue:natifLangue(),serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche()),semaine:JSON.stringify(widgetSemaine())},k=JSON.stringify(data);'), 'avec la série, en une fois (et la requête de poche)');
 });
 
 test('« Allumer ma flamme » ouvre la séance du jour ; pendant l’onboarding, un bandeau le dit ; en séance, on y reste', () => {
   const page = ({ onboarded = true, enSeance = false, prochaine = 20 } = {}) => {
     const vu = [];
-    const ctx = vm.createContext({
+    const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
       window: {}, document: { querySelector: sel => (sel === '#scr-lesson.active,#lesson-video' && enSeance ? {} : null) },
       state: { onboarded }, switchTab: t => vu.push(['onglet', t]), mascotRetrouveJusqua: 0, mascotDitRetrouve: () => {},
       setTimeout: (f, ms) => { vu.push(['attend', ms]); f(); }, recommendedSession: () => prochaine == null ? null : { id: prochaine },

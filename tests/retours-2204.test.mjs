@@ -34,7 +34,7 @@ const bac = ({ sessions, freq = 5, faits = [], etapes = {}, vu = '', heure = '10
   };
   const lessons = {};
   for (const [id, e] of Object.entries(etapes)) lessons[id] = { etapes: e };
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     PATTERN, state: { onboarded: true, lessons, plan: sessions === undefined ? { freq } : { freq, sessions } }, draft: {},
     document: { getElementById: () => null }, rappelOn: () => true, rappelHeure: () => heure, itemDone: id => fait.has(id),
     localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); } },
@@ -108,5 +108,5 @@ test('Mon compte : « Prochain rappel : demain à 10:00. », sans la phrase sur 
   const f = cut('function rappelFeuilleHTML(){', 'function rappelPeindre(){');
   assert.ok(f.includes("    :d.on?(prochain?obPh('Prochain rappel\\u00a0: {quand}.',{quand:rappelQuand(prochain)})"));
   assert.ok(!app.includes('Il suit ton planning\\u00a0: les jours de séance seulement'), 'la dernière phrase est partie');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3067';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3068';"), 'le cache de l’appli change');
 });

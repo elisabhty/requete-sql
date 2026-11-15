@@ -14,7 +14,7 @@ const bloc = app.slice(app.indexOf('const RAPPEL_MESSAGES=['), app.indexOf('/* A
 
 function ctx({ store = {}, reponse = null, ok = true } = {}) {
   const appels = [];
-  const c = vm.createContext({
+  const c = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     localStorage: { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); } },
     fetch: async (url, o) => { appels.push([url, o]); return { ok, json: async () => reponse }; },
     rappelAuto: ms => appels.push(['auto', ms]), Date, Math, JSON, Map, Set, Array, String,
@@ -56,7 +56,7 @@ test('la liste en ligne : lue à l’ouverture (deux fois par jour au plus), gar
 });
 
 test('la liste en ligne entre dans l’empreinte des rappels ; le service worker la laisse passer au réseau', () => {
-  assert.ok(app.includes('function rappelSignature(){return [rappelOn()?1:0,rappelHeure(),rappelListeSig(),'));
+  assert.ok(app.includes('function rappelSignature(){return [natifLangue(),rappelOn()?1:0,rappelHeure(),rappelListeSig(),'));
   assert.ok(app.includes('        rappelCharger();   // la liste en ligne (rappels.json)'));
   assert.ok(sw.includes("if (url.pathname.endsWith('/rappels.json')) return;"));
   const a = ctx(), b = ctx({ store: { 'requete-rappels': JSON.stringify([['A', 'a'], ['B', 'b'], ['C', 'c'], ['D', 'd']]) } });

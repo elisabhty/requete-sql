@@ -15,7 +15,7 @@ const ligne = n => { const a = app.indexOf(`function ${n}(`); return app.slice(a
 
 test('le contexte d’une note se lit avec le numéro du parcours, anciennes notes comprises', () => {
   const MODULES = [{ lessons: [{ id: 0, titre: 'Les bases' }, { id: 2, titre: 'Renommer avec AS' }] }, { lessons: [{ id: 4, titre: 'WHERE' }, { id: 13, titre: 'DISTINCT' }] }];
-  const ctx = vm.createContext({ MODULES, allLessons: MODULES.flatMap(m => m.lessons) });
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  MODULES, allLessons: MODULES.flatMap(m => m.lessons) });
   vm.runInContext('const LESSON_POS=new Map();' + fn('lessonPos') + ligne('lessonNumAffiche') + fn('noteCtxLisible'), ctx);
   assert.equal(ctx.noteCtxLisible('Leçon 13 · DISTINCT'), 'Leçon 2 · DISTINCT');
   assert.equal(ctx.noteCtxLisible('Leçon 13 · DISTINCT · Le réflexe à retenir'), 'Leçon 2 · DISTINCT · Le réflexe à retenir');
@@ -29,7 +29,7 @@ test('la fiche de la note, sa carte dans la liste, la recherche et les autres «
   assert.ok(app.includes('${e.ctx?`<span class="cchip">${esc(noteCtxLisible(e.ctx))}</span>`:\'\'}'), 'la note ouverte');
   assert.ok(app.includes('all.filter(n=>SQ.matches(nTok,noteCtxLisible(n.ctx),plain(n),n.sql))'), 'la recherche trouve ce qu’on lit');
   assert.ok(app.includes('<div class="l-kicker">Révision · leçon ${lessonNumAffiche(l.id)}</div>'), 'l’écran de révision');
-  assert.ok(app.includes('titre:l?`Leçon ${lessonNumAffiche(l.id)} · ${l.titre}`'), 'l’île (la prochaine activité)');
+  assert.ok(app.includes("titre:l?`${natifT('Leçon')} ${lessonNumAffiche(l.id)} · ${natifT(l.titre)}`"), 'l’île (la prochaine activité)');
   assert.ok(!/`Leçon \$\{(l|current)\.id\} · \$\{(l|current)\.titre\}`:''/.test(app));
   /* Ce qui s’enregistre ne change pas : une note déjà prise se reconnaît encore */
   assert.ok(app.includes('return `Leçon ${current.id} · ${current.titre}`;') && app.includes('function lvNoteCtx(l){return `Leçon ${l.id} · ${l.titre} · ${REFLEX_TITLE}`;}'));

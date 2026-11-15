@@ -48423,6 +48423,12 @@ const POCHE_ENTRETIEN=[
    7 novembre (« Cheminée + lunettes ») : le widget La cheminée y lit aussi ce qui décore la pièce (widgetCheminee) ; la requête de
    poche, ses questions du jour (widgetPoche) ; ta semaine, ses jours
    (widgetSemaine). */
+/* 15 novembre, 13 h (« on part sur l’anglais ; fini le site, les widgets et tout ») : ce que l’app confie à l’iPhone (widgets, Live
+   Activities, raccourcis de l’icône, rappels) est écrit dans la langue de l’appli ; le widget lit aussi la langue elle-même
+   (« langue » : RequeteWidget.swift, LangueWidget, pour ses propres textes). En français, tout reste tel quel. */
+function natifLangue(){try{const L=window.REQUETE_LANGUE;return L&&L.code||'fr';}catch(e){return 'fr';}}
+function natifT(x){try{const L=window.REQUETE_LANGUE;return x&&L&&L.code!=='fr'?L.t(String(x)):x;}catch(e){return x;}}
+function natifSql(x,contexte){try{const L=window.REQUETE_LANGUE;return x&&L&&L.code!=='fr'?L.sql(String(x),contexte):x;}catch(e){return x;}}
 let widgetDernier='';
 function widgetMaj(){
   try{
@@ -48431,7 +48437,7 @@ function widgetMaj(){
     const t=auj(),jour=dstr(t),fait=jourActif(jour),serie=streakJours(),start=debutPlan();
     let d=fait?addJ(t,1):t;
     for(let i=0;i<30&&jourRepos(dstr(d),start);i++)d=addJ(d,1);
-    const data={serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche()),semaine:JSON.stringify(widgetSemaine())},k=JSON.stringify(data);
+    const data={langue:natifLangue(),serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche()),semaine:JSON.stringify(widgetSemaine())},k=JSON.stringify(data);
     if(k===widgetDernier)return;
     widgetDernier=k;
     Promise.resolve(C.nativePromise('RequeteWidget','maj',data)).catch(()=>{widgetDernier='';});
@@ -48447,8 +48453,8 @@ function widgetCheminee(){
   try{v.diplomes=MODULES.filter(m=>m.lessons.length&&m.lessons.every(l=>itemDone(l.id))).length;}catch(e){}
   try{
     const s=recommendedSession(),id=s?s.id:null;
-    if(id!=null&&isDefiId(id)){const c=CHALLENGES.find(x=>x.id===id);v.defi=true;v.prochaine=c?c.titre:'';}
-    else if(id!=null){const l=allLessons.find(x=>x.id===id);v.prochaine=l?l.titre:'';v.cle=CARTES[id]?CARTES[id].k:'';}
+    if(id!=null&&isDefiId(id)){const c=CHALLENGES.find(x=>x.id===id);v.defi=true;v.prochaine=c?natifT(c.titre):'';}
+    else if(id!=null){const l=allLessons.find(x=>x.id===id);v.prochaine=l?natifT(l.titre):'';v.cle=CARTES[id]?CARTES[id].k:'';}
   }catch(e){}
   try{
     let der=null,quand=-1;
@@ -48497,8 +48503,27 @@ function widgetPoche(){
       if(i<entretien.length)suite.push(entretien[i]);
       if(i<revisions.length&&suite.length<30)suite.push(revisions[i]);
     }
-    return suite;
+    return suite.map(pocheLangue);
   }catch(e){return [];}
+}
+/* Une question de poche dans la langue de l’appli : le module, l’énoncé, les réponses en mots et les explications par la
+   traduction ; le code pour la base de la langue (le trou « ___ » gardé à sa place, un commentaire « -- … » traduit comme un texte),
+   une réponse de code (une colonne, un mot-clé) aussi, dans le contexte de la requête. */
+function pocheLangue(q){
+  if(natifLangue()==='fr'||!q)return q;
+  const code=Array.isArray(q.code)?q.code:[],ctx=code.join(' '),mots=q.genre==='qcm'||q.genre==='entretien';
+  const ligne=x=>{
+    const t=String(x),i=t.indexOf('--'),avant=i<0?t:t.slice(0,i),apres=i<0?'':t.slice(i),m=/^(--\s?)(.*)$/.exec(apres);
+    return avant.split('___').map(p=>natifSql(p,ctx)).join('___')+(m?m[1]+natifT(m[2]):apres);
+  };
+  /* Une réponse : un nom de colonne seul passe par le SQL ; une réponse de code que le SQL laisse telle quelle (« Ligne 2 »), par la
+     traduction ; une réponse en mots (QCM, entretien), par la traduction. */
+  const choix=c=>{
+    if(mots)return /^[a-z_]+$/.test(String(c))?natifSql(c,ctx):natifT(c);
+    const s=natifSql(c,ctx);return s!==c?s:natifT(c);
+  };
+  return Object.assign({},q,{titre:natifT(q.titre),enonce:natifT(q.enonce),code:code.map(ligne),
+    choix:(q.choix||[]).map(choix),oui:natifT(q.oui),non:natifT(q.non)});
 }
 /* Ta semaine, en résultat de requête (le widget de l’app iPhone : RequeteWidget.swift, RequeteSemaine) : les jours actifs des trois
    dernières semaines, les jours de repos du planning (de trois semaines avant à deux semaines après), et le premier jour qui compte
@@ -48541,12 +48566,12 @@ function ileSalleEtat(){
   const phase=v==='final'?'fin':/^(draw|play)\d/.test(v)?'partie':/^res\d/.test(v)?'pause':v==='lobby'||v==='empty'||v==='relance'?'attente':'';
   if(!phase)return null;
   const n=jeuCur(),r=n>=0?J.rounds[n]:null,c=r&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(x=>x.id===r.cid):null;
-  const nom=x=>jeuNom(x)||'Joueur';
+  const nom=x=>jeuNom(x)||natifT('Joueur');
   const joueurs=phase==='attente'
     ?jeuLive().map(p=>({p,n:nom((J.players[p]||{}).name),pts:0,r:0,ok:jeuIsReady(p)}))
     :jeuPlaces(jeuScores()).map(x=>({p:x.pid,n:nom(x.name),pts:Math.max(0,Math.round(+x.pts||0)),r:x.place|0,ok:!!(r&&r.found[x.pid]!=null)}));
   return {phase,joueurs:joueurs.slice(0,JEU_MAX),hote:J.hostPid||'',manche:phase==='attente'?0:n+1,nb:J.nb|0,
-    defi:c?String(c.titre||'').slice(0,80):'',fin:phase==='partie'&&r?Math.round((r.t1+jeuDureeMs((c&&c.niv)||J.niv))/1000):0,nouveau:''};
+    defi:c?String(natifT(c.titre)||'').slice(0,80):'',fin:phase==='partie'&&r?Math.round((r.t1+jeuDureeMs((c&&c.niv)||J.niv))/1000):0,nouveau:''};
 }
 /* Après chaque dessin de la salle (jeuRender), un peu plus tard : les messages du moment sont tous passés. */
 function ileSalleSuivre(){
@@ -48658,12 +48683,12 @@ function flammeDirectHeure(){const h=rappelHeure();return h<'18:00'?'18:00':h;}
 function flammeDirectQuoi(){
   try{
     const s=recommendedSession(),id=s?s.id:null;
-    if(id==null)return {titre:'',action:'Allumer ma flamme'};
+    if(id==null)return {titre:'',action:natifT('Allumer ma flamme')};
     const n=Math.max(1,minutesDe([id],true)||1);
-    if(isDefiId(id)){const c=CHALLENGES.find(x=>x.id===id);return {titre:c?`Défi · ${c.titre}`:'Défi',action:`Défi express · ${n} min`};}
+    if(isDefiId(id)){const c=CHALLENGES.find(x=>x.id===id);return {titre:c?`${natifT('Défi')} · ${natifT(c.titre)}`:natifT('Défi'),action:natifT(`Défi express · ${n} min`)};}
     const l=allLessons.find(x=>x.id===id);
-    return {titre:l?`Leçon ${lessonNumAffiche(l.id)} · ${l.titre}`:'',action:`Leçon express · ${n} min`};   // le numéro du parcours (23 h 09)
-  }catch(e){return {titre:'',action:'Allumer ma flamme'};}
+    return {titre:l?`${natifT('Leçon')} ${lessonNumAffiche(l.id)} · ${natifT(l.titre)}`:'',action:natifT(`Leçon express · ${n} min`)};   // le numéro du parcours (23 h 09)
+  }catch(e){return {titre:'',action:natifT('Allumer ma flamme')};}
 }
 function flammeDirectListe(k,type){try{const v=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(v)?v.filter(x=>typeof x===type):[];}catch(e){return [];}}
 /* Les soirs dont la flamme a déjà démarré ou été programmée (balayée, elle ne revient pas), et les heures que la Live Activity
@@ -48684,7 +48709,7 @@ function flammeDirectJours(max){
     if(jourRepos(iso,start)||jourActif(iso))continue;
     const debut=new Date(d.getFullYear(),d.getMonth(),d.getDate(),h||0,m||0,0,0).getTime(),minuit=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1).getTime();
     if(minuit<=now)continue;
-    const [alerteTitre,alerteTexte]=meme?rappelMessage(new Date(debut)):['Ta flamme t’attend !','Il te reste jusqu’à minuit pour l’allumer.'];
+    const [alerteTitre,alerteTexte]=meme?rappelMessage(new Date(debut)):[natifT('Ta flamme t’attend !'),natifT('Il te reste jusqu’à minuit pour l’allumer.')];
     out.push({jour:iso,debut,minuit,titre:q.titre,action:q.action,nouvelle:!(debut<=now&&vus.includes(iso)),alerteTitre,alerteTexte});
   }
   return out;
@@ -48808,7 +48833,7 @@ const WTU={
       'Touche « Rechercher des widgets », tape « Requête », puis touche l’app.',
       'Touche « Ajouter le widget ».',
       'Place-le où tu veux, puis touche « OK », en haut à droite.'],
-    astuces:['','Pas de « + » ? Selon ta version d’iOS, le bouton s’appelle « Modifier ».','','Le widget « Ta flamme » : ta flamme du jour et le chat.',''],
+    astuces:['','Pas de « + » ? Selon ta version d’iOS, le bouton s’appelle « Modifier ».','','Le widget « Ta flamme » : ta flamme du jour et Requête.',''],
     durees:[3400,3800,4600,3800,3400],
     cles:[.62,.62,.62,.36,.44]   // le moment de chaque geste qui le montre le mieux : l’image fixe quand on réduit les animations
   },
@@ -48880,7 +48905,7 @@ function wtuAccueilHTML(){
             <span class="wtu-cherche" data-cible="cherche"><i class="wtu-loupe"></i><span class="wtu-ph">Rechercher des widgets</span><b class="wtu-tape">Requête</b></span>
             <span class="wtu-res" data-cible="res"><i class="wtu-res-ic">${FLAME_SVG}</i><b>Requête</b><em></em></span>
             <span class="wtu-fiche"><span class="wtu-fiche-app"><i class="wtu-res-ic">${FLAME_SVG}</i><b>Requête</b></span>
-              <span class="wtu-fiche-wg">${wtuTuile()}</span><b class="wtu-fiche-t">Ta flamme</b><small class="wtu-fiche-d">La flamme du jour et le chat</small>
+              <span class="wtu-fiche-wg">${wtuTuile()}</span><b class="wtu-fiche-t">Ta flamme</b><small class="wtu-fiche-d">La flamme du jour et Requête</small>
               <span class="wtu-ajout" data-cible="valider">+ Ajouter le widget</span></span>
           </span>
           <b class="wtu-doigt"></b>
@@ -49009,10 +49034,10 @@ const WGX_COCHE='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d
 const WGX_FLECHE='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const WGX={
   accueil:[
-    {k:'flamme',t:'Ta flamme',f:'Petit',d:'La flamme du jour, et le chat qui change avec la journée.'},
+    {k:'flamme',t:'Ta flamme',f:'Petit',d:'La flamme du jour, et Requête qui change avec la journée.'},
     {k:'poche',t:'La requête de poche',f:'Moyen',d:'Une question SQL : tu réponds dans le widget, sans ouvrir l’app.'},
     {k:'semaine',t:'Ta semaine',f:'Moyen',d:'Ta semaine en résultat de requête : une flamme par jour actif.'},
-    {k:'cheminee',t:'La cheminée',f:'Grand',d:'La pièce du chat : le feu flambe quand ta séance est faite.'}],
+    {k:'cheminee',t:'La cheminée',f:'Grand',d:'La pièce de Requête : le feu flambe quand ta séance est faite.'}],
   verrou:[
     {k:'jour',t:'En journée',f:'',d:'Ta séance du jour, en rond, en bandeau ou sur la ligne de la date.'},
     {k:'soir',t:'Le soir',f:'',d:'Le temps qui reste avant minuit défile tout seul.'},
@@ -49149,7 +49174,7 @@ function ileDebut(l){
   if(!l||!ilePont())return;
   const m=typeof moduleDeLecon==='function'?moduleDeLecon(l.id):null,mi=m&&typeof MODULES!=='undefined'?MODULES.indexOf(m):-1;
   ileEtat={id:l.id,pas:-1,seuil:typeof lvSeuil==='function'?lvSeuil(l):0,vus:null,pause:ilePause()};
-  const data={titre:String(l.titre||'Leçon'),module:m?`Module ${mi+1} · ${m.titre}`:'Cours',progression:ileProgression(),allumee:ileAllumee(),pause:ilePause()},mo=ileMoments();
+  const data={titre:String(natifT(l.titre||'Leçon')),module:m?`Module ${mi+1} · ${natifT(m.titre)}`:natifT('Cours'),progression:ileProgression(),allumee:ileAllumee(),pause:ilePause()},mo=ileMoments();
   if(mo){ ileEtat.vus=mo.reussis; Object.assign(data,mo); }
   ileAppel('leconDebut',data);
 }
@@ -49194,7 +49219,7 @@ function ileObEtat(){
   const etape=['bonjour','stats','welcome','questions'].includes(slide)?0:slide==='ready'?total:i>=0?i+1:(ileOb?ileOb.etape:0);
   const minutes=slide==='ready'?0:Math.max(1,Math.ceil((total-Math.max(0,etape-1))*12/60));   // comme l’en-tête : 12 s par étape ; 0 : le parcours est prêt
   const prenom=String(draft&&draft.name||'').trim().slice(0,24);
-  return {etape,total,titre:ILE_OB_TITRES[slide]||'Ton parcours',bonjour:prenom?`Bienvenue, ${prenom}`:'Bienvenue sur Requête',minutes};
+  return {etape,total,titre:natifT(ILE_OB_TITRES[slide]||'Ton parcours'),bonjour:prenom?`${natifT('Bienvenue')}, ${prenom}`:natifT('Bienvenue sur Requête'),minutes};
 }
 function ileObSync(){
   if(!ilePont()||state.onboarded||(typeof obApercu!=='undefined'&&obApercu)||obLegalMode)return;
@@ -49245,7 +49270,7 @@ function raccourcisBrancher(){
   const C=typeof window!=='undefined'?window.Capacitor:null;
   if(raccourcisBranches||!C||!C.isNativePlatform||!C.isNativePlatform()||typeof C.nativePromise!=='function'||(C.isPluginAvailable&&!C.isPluginAvailable('RequeteWidget')))return;
   raccourcisBranches=true;
-  try{ Promise.resolve(C.nativePromise('RequeteWidget','raccourcis',{items:RACCOURCIS})).catch(()=>{}); }catch(e){}
+  try{ Promise.resolve(C.nativePromise('RequeteWidget','raccourcis',{items:RACCOURCIS.map(x=>Object.assign({},x,{titre:natifT(x.titre),sousTitre:natifT(x.sousTitre)}))})).catch(()=>{}); }catch(e){}
   setTimeout(()=>{try{statWidgetsPoses();}catch(e){}},6000);   // 20 h 04 : les widgets posés, une fois par jour
   /* 13 novembre, 19 h 52, statistiques : un rappel touché (la notification ouvre l’app) */
   const LN=C.Plugins&&C.Plugins.LocalNotifications;
@@ -52022,9 +52047,28 @@ function rappelOrdre(c,len){
   m.set(k,a);return a;
 }
 function rappelMessage(d){
+  if(natifLangue()!=='fr')return rappelMessageLangue(d);
   const L=rappelListe(),len=L.length,n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
   const c=Math.floor(n/len),p=n-c*len,m=L[rappelOrdre(c,len)[p]];
   return typeof accordTexte==='function'&&Array.isArray(m)?m.map(accordTexte):m;
+}
+/* Dans une autre langue que le français : les messages qui ont leur traduction (ceux de l’appli, et ceux ajoutés en ligne une fois
+   traduits dans langue-<code>.js ; « 📉 SELECT motivation » s’écrit pareil, sa seconde ligne suffit) ; un message ajouté en ligne
+   sans traduction n’est pas envoyé. Le même tirage qu’en français. */
+function rappelListeLangue(){
+  const L=window.REQUETE_LANGUE,t=x=>{try{return L.t(x);}catch(e){return x;}},vu=new Set(),out=[];
+  rappelListe().concat(RAPPEL_MESSAGES).forEach(m=>{
+    if(!Array.isArray(m)||m.length<2)return;
+    const k=m[0]+'|'+m[1];if(vu.has(k))return;vu.add(k);
+    const a=t(m[0]),b=t(m[1]);
+    if(a!==m[0]||b!==m[1])out.push([a,b]);
+  });
+  return out.length?out:RAPPEL_MESSAGES;
+}
+function rappelMessageLangue(d){
+  const L=rappelListeLangue(),len=L.length,n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+  const c=Math.floor(n/len),p=n-c*len;
+  return L[rappelOrdre(c,len)[p]];
 }
 /* App iOS : le rappel passe par des notifications locales (plugin LocalNotifications), car les notifications web n’y existent pas.
    Une notification qui se répète garde toujours le même texte : les séances à venir sont donc posées une à une, avec leur message
@@ -52081,7 +52125,7 @@ function rappelSeances(depuis,max,heure){
   return out;
 }
 /* Ce qui est programmé, en une ligne : quand elle change (le planning, une séance faite, l’heure, un nouveau jour), on reprogramme. */
-function rappelSignature(){return [rappelOn()?1:0,rappelHeure(),rappelListeSig(),...rappelJoursPrevus(new Date(),56),typeof flammeDirectPrevus==='function'?flammeDirectPrevus().join(','):''].join('|');}
+function rappelSignature(){return [natifLangue(),rappelOn()?1:0,rappelHeure(),rappelListeSig(),...rappelJoursPrevus(new Date(),56),typeof flammeDirectPrevus==='function'?flammeDirectPrevus().join(','):''].join('|');}
 let rappelSig='',rappelFile=null,rappelAutoT=0;
 /* demander : l’autorisation d’iOS est demandée (l’onboarding, « Enregistrer mes préférences ») ; sinon elle est seulement lue, pour
    qu’une reprogrammation automatique ne fasse jamais surgir la demande en pleine leçon. Les reprogrammations passent l’une après
@@ -53578,7 +53622,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3067';
+  const SW_CACHE='requete-2026-11-15-module-v3068';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

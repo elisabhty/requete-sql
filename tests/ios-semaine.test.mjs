@@ -76,19 +76,19 @@ test('la semaine du widget, du lundi au dimanche : flamme, repos, en attente, NU
 test('le widget : moyen, « SELECT jour, flamme FROM ma_semaine; », sombre ou clair selon l’iPhone', () => {
   const w = entre(swift, 'struct RequeteSemaine: Widget {', '\n}\n');
   for (const k of ['let kind = "RequeteSemaine"', 'StaticConfiguration(kind: kind, provider: SemaineFournisseur()) { entree in', 'SemaineVue(entree: entree).fondSemaine()',
-    '.configurationDisplayName("Ta semaine")', '.supportedFamilies([.systemMedium])', '.sansMarges()'])
+    '.configurationDisplayName(traduit("Ta semaine"))', '.supportedFamilies([.systemMedium])', '.sansMarges()'])
     assert.ok(w.includes(k), k);
   assert.ok(swift.includes('        RequeteCheminee()\n        RequeteSemaine()\n'), 'dans le paquet, sans condition (pas de bouton : iOS 15 suffit)');
   const v = entre(swift, 'struct SemaineVue: View {', '\nstruct RequeteSemaine: Widget {');
-  for (const k of ['mode == .dark ? PaletteSemaine.sombre : PaletteSemaine.claire', 'Text(verbatim: "SELECT").foregroundColor(p.motCle)', 'Text(verbatim: " jour, flamme ")',
-    'Text(verbatim: "FROM")', 'Text(verbatim: " ma_semaine;")', 'Image(systemName: "flame.fill")', 'Image(systemName: "flame")', 'Image(systemName: "moon.fill")',
-    'Text(verbatim: "NULL")', 'Text(verbatim: "·")', 'Text("repos")', 'return attend ? lienSeance : nil', '.widgetURL(lien)'])
+  for (const k of ['mode == .dark ? PaletteSemaine.sombre : PaletteSemaine.claire', 'Text(verbatim: "SELECT").foregroundColor(p.motCle)', 'Text(verbatim: colonnes)',
+    'Text(verbatim: "FROM")', 'Text(verbatim: table)', 'Image(systemName: "flame.fill")', 'Image(systemName: "flame")', 'Image(systemName: "moon.fill")',
+    'Text(verbatim: "NULL")', 'Text(verbatim: "·")', 'Text(traduit("repos"))', 'return attend ? lienSeance : nil', '.widgetURL(lien)'])
     assert.ok(v.includes(k), k);
   assert.ok(swift.includes('if mode == .dark {\n            LinearGradient('), 'le fond sombre, façon terminal');
   /* Sous le tableau : « 7 lignes · 4 flammes » et où en est aujourd’hui, avec l’espace insécable */
   const r = entre(swift, 'enum SemaineRangement {', '\n}\n');
   for (const k of [`if n == 0 { return "7${INS}lignes" }`, `if n == 1 { return "7${INS}lignes · 1${INS}flamme" }`, `return "7${INS}lignes · \\(n)${INS}flammes"`,
-    `case .fait: return nom + "${INS}: flamme allumée"`, `case .attente: return nom + "${INS}: en attente"`, `case .repos: return nom + "${INS}: repos"`,
+    `case .fait: return nom + traduit("${INS}: flamme allumée")`, `case .attente: return nom + traduit("${INS}: en attente")`, `case .repos: return nom + traduit("${INS}: repos")`,
     'static let noms: [String] = ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"]'])
     assert.ok(r.includes(k), k);
   assert.ok(pont.includes('d.set(call.getString("semaine") ?? "", forKey: "semaine")'), 'le pont garde la semaine');

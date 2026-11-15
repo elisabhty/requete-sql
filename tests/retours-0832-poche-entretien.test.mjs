@@ -117,7 +117,7 @@ test('les réponses en mots : une ligne si elles y tiennent à 11 points, deux s
 test('la série : l’entretien d’abord, une révision ensuite ; les quinze parties dès le premier tour, les parties commencées en tête', () => {
   const src = entre(app, 'function widgetPoche(){', 'if(typeof document!==');
   const page = ({ faites, jour = new Date(2026, 10, 13), sans = false }) => {
-    const ctx = vm.createContext({ POCHE, POCHE_PLUS: PLUS, MODULES, allLessons: LECONS, itemDone: id => faites.includes(id), dueList: () => [], auj: () => jour,
+    const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  POCHE, POCHE_PLUS: PLUS, MODULES, allLessons: LECONS, itemDone: id => faites.includes(id), dueList: () => [], auj: () => jour,
       dstr: d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` });
     if (!sans) ctx.POCHE_ENTRETIEN = ENT;
     vm.runInContext(src, ctx);
@@ -158,14 +158,14 @@ test('la série : l’entretien d’abord, une révision ensuite ; les quinze pa
 /* ---------- 4. Le widget ---------- */
 test('le widget : « Entretien · la partie », plus de « Quel résultat ? », une série d’avant en est filtrée', () => {
   const r = entre(swift, 'enum PocheRangement {', '\nstruct BoutCode');
-  tous(r, ['case "entretien": return "Entretien · " + q.titre', 'if q.genre == "resultat" { return false }',
+  tous(r, ['case "entretien": return traduit("Entretien · ") + q.titre', 'if q.genre == "resultat" { return false }',
     'static func prose(_ q: QuestionPoche) -> Bool {\n        q.genre == "qcm" || q.genre == "entretien"\n    }']);
   assert.ok(!r.includes('case "resultat"'));
   /* Sans question rangée : l’entretien n’attend aucune leçon */
   const v = entre(swift, 'struct PocheVue: View {', '\nstruct RequetePoche: Widget {');
-  tous(v, ['Text("Pas encore de question")', 'Text("Ouvre l’app\\u{00A0}: tes questions du jour viendront ici.")']);
+  tous(v, ['Text(traduit("Pas encore de question"))', 'Text(traduit("Ouvre l’app\\u{00A0}: tes questions du jour viendront ici."))']);
   assert.ok(!swift.includes('Rien à réviser pour l’instant') && !swift.includes('Termine une leçon'));
-  assert.ok(swift.includes('.description("Une question SQL, de tes leçons ou d’entretien\\u{00A0}: tu réponds dans le widget, sans ouvrir l’app.")'));
+  assert.ok(swift.includes('.description(traduit("Une question SQL, de tes leçons ou d’entretien\\u{00A0}: tu réponds dans le widget, sans ouvrir l’app."))'));
 });
 
 test('« il y a des trous, il y a des espaces » : trois étages, le milieu prend la place qui reste, le pied garde sa hauteur', () => {

@@ -33,7 +33,7 @@ test('réf. 1 : choisir une source ne fait plus rejouer l’entrée de toutes le
 });
 
 test('réf. 2 : le rappel, les jours du parcours (pendant l’onboarding, ceux de l’étape des jours)', () => {
-  const ctx = vm.createContext({ obLangue: () => null, obLoc: () => 'fr-FR', obNt: () => '', obPh: (g, v) => (v ? String(g).replace(/\{(\w+)\}/g, (t, k) => (k in v ? v[k] : t)) : String(g)), PATTERN, state: { plan: { freq: 5 } }, draft: { freq: 3 }, document: { getElementById: () => ({ classList: { contains: c => c === 'on' } }) } });
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  obLangue: () => null, obLoc: () => 'fr-FR', obNt: () => '', obPh: (g, v) => (v ? String(g).replace(/\{(\w+)\}/g, (t, k) => (k in v ? v[k] : t)) : String(g)), PATTERN, state: { plan: { freq: 5 } }, draft: { freq: 3 }, document: { getElementById: () => ({ classList: { contains: c => c === 'on' } }) } });
   vm.runInContext(rappel.replace('const JOURS_NOMS=', 'var JOURS_NOMS='), ctx);
   assert.deepEqual([...vm.runInContext('rappelJours()', ctx)], [1, 3, 5], 'onboarding ouvert : les jours choisis');
   ctx.document = { getElementById: () => ({ classList: { contains: () => false } }) };
@@ -47,7 +47,7 @@ test('réf. 2 : le rappel, les jours du parcours (pendant l’onboarding, ceux d
 test('réf. 2 : les notifications ne sonnent que les jours de séance, à l’heure choisie', async () => {
   const programme = async (freq, on = true) => {
     const appels = [];
-    const ctx = vm.createContext({ PATTERN, state: { plan: { freq } }, draft: {}, document: { getElementById: () => null },
+    const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  PATTERN, state: { plan: { freq } }, draft: {}, document: { getElementById: () => null },
       rappelOn: () => on, rappelHeure: () => '07:45',
       window: { Capacitor: { isNativePlatform: () => true, Plugins: { LocalNotifications: {
         cancel: async o => { appels.push(['annule', [...o.notifications].map(n => n.id)]); }, requestPermissions: async () => ({ display: 'granted' }),
@@ -101,7 +101,7 @@ test('réf. 2 : la page du rappel, « À quel moment ? » comme dans Mon compte 
   const slotId = cut('function rappelSlotId(h){', '/* Les jours du rappel');
   const conteneur = { innerHTML: '', contains: () => false, querySelector: () => null };
   const cta = { textContent: '' }, appels = [];
-  const ctx = vm.createContext({ PATTERN, JOURS, OB_SLIDES: ['rappel'], obStep: 0, draft: { freq: 3, rappelHeure: '19:00' },
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  PATTERN, JOURS, OB_SLIDES: ['rappel'], obStep: 0, draft: { freq: 3, rappelHeure: '19:00' },
     rappelHeure: () => '19:00', escAttr: s => String(s), rappelJoursTexte: j => j.join('-'), buzz: k => appels.push(k), obCtaLibelle: (b, t) => { b.textContent = t; },
     document: { activeElement: null, getElementById: id => ({ 'ob-rappel-choix': conteneur, 'ob-next': cta })[id] } });
   vm.runInContext((slots + slotId + choix + aides).replace('const RAPPEL_SLOTS=', 'var RAPPEL_SLOTS='), ctx);
@@ -153,7 +153,7 @@ test('réf. 4 : « pas de stress, tu pourras le changer dans ton planning », so
 
 test('réf. 5 : sous le clavier, la couleur du bas de la page plutôt que du noir', () => {
   const f = cut('function couleurHex(c){', 'function obRhythmSummary(){');
-  const ctx = vm.createContext({ innerWidth: 390, innerHeight: 600, getComputedStyle: el => ({ backgroundColor: el.bg }), Math, parseFloat });
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  innerWidth: 390, innerHeight: 600, getComputedStyle: el => ({ backgroundColor: el.bg }), Math, parseFloat });
   vm.runInContext(f, ctx);
   assert.deepEqual(['rgb(69, 41, 204)', 'rgba(255, 255, 255, 0.9)', 'rgba(0, 0, 0, 0)', 'transparent', 'rgb(244 242 252)'].map(c => vm.runInContext(`couleurHex(${JSON.stringify(c)})`, ctx)),
     ['#4529CC', '#FFFFFF', null, null, '#F4F2FC']);

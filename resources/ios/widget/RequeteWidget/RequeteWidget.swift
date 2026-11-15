@@ -10,6 +10,63 @@ import AppIntents
 
 private let groupe = "group.fr.requete.app"
 
+/// 15 novembre, 13 h (« on part sur l’anglais ; fini le site, les widgets et tout ») : les widgets et les Live Activities parlent la
+/// langue de l’appli. L’app l’écrit dans le groupe d’apps (RequeteWidgetPlugin.maj, « langue ») ; « fr » tant qu’elle ne l’a pas
+/// dit. Les textes restent écrits en français dans ce fichier : traduit(_:) les cherche dans motsAnglais (en bas du fichier).
+enum LangueWidget {
+    static var anglais: Bool {
+        return UserDefaults(suiteName: groupe)?.string(forKey: "langue") == "en"
+    }
+
+    /// « sur » dans « 2e sur 4 » : « of » en anglais.
+    static var sur: String {
+        return anglais ? "of" : "sur"
+    }
+
+    /// « 1st », « 2nd », « 3rd », « 4th »… ; « 11th », « 12th », « 13th ».
+    static func ordinal(_ n: Int) -> String {
+        let dizaine: Int = n % 100
+        if dizaine >= 11 && dizaine <= 13 { return "\(n)th" }
+        switch n % 10 {
+        case 1: return "\(n)st"
+        case 2: return "\(n)nd"
+        case 3: return "\(n)rd"
+        default: return "\(n)th"
+        }
+    }
+}
+
+/// Un texte du widget dans la langue de l’appli. La phrase entière d’abord, puis la même avec ses nombres mis de côté
+/// (« Étape 3 sur 5 » se cherche sous « Étape {1} sur {2} »), comme dans l’app (langues.js). Sans traduction, le texte reste tel quel.
+func traduit(_ texte: String) -> String {
+    if !LangueWidget.anglais { return texte }
+    if let t = motsAnglais[texte] { return t }
+    var nombres: [String] = []
+    var cle: String = ""
+    var enCours: String = ""
+    for c in texte {
+        if c.isASCII && c.isNumber {
+            enCours.append(c)
+            continue
+        }
+        if !enCours.isEmpty {
+            nombres.append(enCours)
+            cle += "{\(nombres.count)}"
+            enCours = ""
+        }
+        cle.append(c)
+    }
+    if !enCours.isEmpty {
+        nombres.append(enCours)
+        cle += "{\(nombres.count)}"
+    }
+    guard !nombres.isEmpty, var t = motsAnglais[cle] else { return texte }
+    for (i, n) in nombres.enumerated() {
+        t = t.replacingOccurrences(of: "{\(i + 1)}", with: n)
+    }
+    return t
+}
+
 /// Elisa, 4 novembre, 12 h 14 : « un chat qui change dans la journée : une bulle le matin, la flamme le soir, un saut de joie quand
 /// la séance du jour est faite, avec une transition à chaque changement ». Le moment se lit à l’heure de l’entrée ; le fournisseur en
 /// pose une à minuit, 5 h, midi et 18 h, et l’app recharge le widget en partant, après une séance : c’est le saut de joie.
@@ -274,7 +331,7 @@ struct SerieVue: View {
         .animation(ressort, value: humeur)
         .animation(saut, value: entree.temps)   // la petite scène du retour
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(libelle))
+        .accessibilityLabel(Text(traduit(libelle)))
     }
 
     private func chatVue(_ w: CGFloat, _ h: CGFloat) -> some View {
@@ -295,7 +352,7 @@ struct SerieVue: View {
         let largeur: CGFloat = w * 0.9
         let marge: CGFloat = w * 0.05
         let haut: CGFloat = h * 0.425
-        return Text(phrase)
+        return Text(traduit(phrase))
             .font(police)
             .foregroundColor(couleur)
             .lineLimit(1)
@@ -388,7 +445,7 @@ struct SerieVue: View {
         let chute: CGFloat = w * 0.012
         let ombre: Color = Color.black.opacity(0.15)
         let fond = Bulle(pointe: pointe).fill(Color.white)
-        let texte: Text = Text(phrase).font(police).foregroundColor(violetTexte)
+        let texte: Text = Text(traduit(phrase)).font(police).foregroundColor(violetTexte)
         let cadre = texte
             .multilineTextAlignment(.center)
             .lineLimit(3)
@@ -477,8 +534,8 @@ struct RequeteWidget: Widget {
         StaticConfiguration(kind: kind, provider: SerieFournisseur()) { entree in
             SerieVue(entree: entree).fondRequete()
         }
-        .configurationDisplayName("Ta flamme")
-        .description("La flamme du jour sur Requête, et le chat qui change avec la journée.")
+        .configurationDisplayName(traduit("Ta flamme"))
+        .description(traduit("Ta flamme du jour, et Requête qui change avec la journée."))
         .supportedFamilies([.systemSmall])
         .sansMarges()
     }
@@ -556,7 +613,7 @@ struct VerrouVue: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(libelle))
+        .accessibilityLabel(Text(traduit(libelle)))
     }
 
     /// Le rond : la flamme, et « 0/1 » dessous (un jour de repos, la flamme seule). Le soir, plus petits, dans l’anneau qui se vide.
@@ -615,7 +672,7 @@ struct VerrouVue: View {
                 Text("Requête")
                     .font(titre)
                     .widgetAccentable()
-                Text(phrase)
+                Text(traduit(phrase))
                     .font(texte)
                     .lineLimit(lignes)
                     .minimumScaleFactor(0.8)
@@ -633,7 +690,7 @@ struct VerrouVue: View {
     /// La ligne de la date : la flamme et la séance du jour (un seul choix par ligne, retours-1628).
     private var ligne: some View {
         let texte: String = texteLigne
-        return Label(texte, systemImage: symbole)
+        return Label(traduit(texte), systemImage: symbole)
     }
 
     private var texteLigne: String {
@@ -662,8 +719,8 @@ struct RequeteFlammeVerrou: Widget {
         StaticConfiguration(kind: kind, provider: SerieFournisseur()) { entree in
             VerrouVue(entree: entree).fondVerrou()
         }
-        .configurationDisplayName("Ta flamme")
-        .description("La flamme et la séance du jour, sur l’écran verrouillé.")
+        .configurationDisplayName(traduit("Ta flamme"))
+        .description(traduit("La flamme et la séance du jour, sur l’écran verrouillé."))
         .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
@@ -767,7 +824,7 @@ struct ChemineeEntree: TimelineEntry {
     var titre: String {
         if fait { return "Flamme allumée\u{202F}!" }
         if repos { return "Jour de repos\u{202F}!" }
-        if heure < 5 { return "Chut, le chat dort…" }
+        if heure < 5 { return "Chut, Requête dort…" }
         if heure < 18 { return "Une petite requête\u{202F}?" }
         return flamme.serie > 0 ? "Ta flamme t’attend\u{202F}!" : "Allume ta flamme\u{202F}!"
     }
@@ -1358,7 +1415,7 @@ struct PieceVue: View {
         let flou: CGFloat = 4 * k
         let chute: CGFloat = 4 * k
         let mot: String = noteDuChat(entree.date)
-        return Text(mot)
+        return Text(traduit(mot))
             .font(police)
             .foregroundColor(encreNote)
             .multilineTextAlignment(.leading)
@@ -1390,7 +1447,7 @@ struct PieceVue: View {
                 .font(invite)
                 .foregroundColor(lilas)
             if !mot.isEmpty {
-                Text(quoi)
+                Text(traduit(quoi))
                     .font(etiquette)
                     .foregroundColor(lilasPale)
                     .lineLimit(1)
@@ -1481,7 +1538,7 @@ struct ChemineeVue: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(lu))
+        .accessibilityLabel(Text(traduit(lu)))
     }
 
     private func phrases(_ u: CGFloat) -> some View {
@@ -1495,7 +1552,7 @@ struct ChemineeVue: View {
         let ecart: CGFloat = 2 * u
         let titre: String = entree.titre
         return VStack(alignment: .leading, spacing: ecart) {
-            Text(titre)
+            Text(traduit(titre))
                 .font(grand)
                 .foregroundColor(couleurTitre)
                 .lineLimit(1)
@@ -1513,10 +1570,13 @@ struct ChemineeVue: View {
     private var sousTitre: Text {
         if entree.attendLeSoir {
             let minuit: Date = entree.minuit
+            if LangueWidget.anglais {
+                return Text(minuit, style: .relative) + Text(" left before midnight.")
+            }
             return Text("Encore ") + Text(minuit, style: .relative) + Text(" avant minuit.")
         }
         let phrase: String = entree.sousTitre
-        return Text(phrase)
+        return Text(traduit(phrase))
     }
 
     private var puceFond: Color {
@@ -1589,7 +1649,7 @@ struct ChemineeVue: View {
                 Image(systemName: "flame.fill")
                     .font(symbole)
                     .foregroundColor(braise)
-                Text("Allumer ma flamme")
+                Text(traduit("Allumer ma flamme"))
                     .font(police)
                     .foregroundColor(violetTexte)
                     .lineLimit(1)
@@ -1635,8 +1695,8 @@ struct RequeteCheminee: Widget {
             ChemineeVue(entree: entree)
                 .fondCheminee(PieceVue(entree: entree))
         }
-        .configurationDisplayName("La cheminée")
-        .description("La pièce du chat : le feu de la séance du jour, le ciel de l’heure, tes stickers, tes trophées et tes diplômes.")
+        .configurationDisplayName(traduit("La cheminée"))
+        .description(traduit("La pièce de Requête : le feu de la séance du jour, le ciel de l’heure, tes stickers, tes trophées et tes diplômes."))
         .supportedFamilies(famillesCheminee)
         .sansMarges()
     }
@@ -1708,6 +1768,21 @@ enum PocheRangement {
         non: "Après `GROUP BY`, c’est `HAVING`."
     )
 
+    /// La même question en anglais, pour la galerie des widgets d’un iPhone en anglais (la base des cours en anglais : customers, city).
+    static let exempleAnglais = QuestionPoche(
+        titre: "Aggregates and grouping",
+        code: ["SELECT city, COUNT(*)", "FROM customers GROUP BY city", "___ COUNT(*) >= 2;"],
+        choix: ["WHERE", "HAVING", "ON"],
+        bon: 1,
+        oui: "`HAVING` filters groups.",
+        non: "After `GROUP BY`, it’s `HAVING`."
+    )
+
+    /// La question de la galerie, dans la langue de l’appli.
+    static var apercu: QuestionPoche {
+        return LangueWidget.anglais ? exempleAnglais : exemple
+    }
+
     static func questions() -> [QuestionPoche] {
         let d = UserDefaults(suiteName: groupe)
         guard let texte = d?.string(forKey: "poche"), let donnees = texte.data(using: .utf8) else { return [] }
@@ -1761,11 +1836,11 @@ enum PocheRangement {
     /// « Révision · Agrégats et regroupements » ; « QCM · … », « Cas pratique · … », « Trouve l’erreur · … », « Entretien · … ».
     static func etiquette(_ q: QuestionPoche) -> String {
         switch q.genre ?? "trou" {
-        case "qcm": return "QCM · " + q.titre
-        case "cas": return "Cas pratique · " + q.titre
-        case "erreur": return "Trouve l’erreur · " + q.titre
-        case "entretien": return "Entretien · " + q.titre
-        default: return "Révision · " + q.titre
+        case "qcm": return traduit("QCM · ") + q.titre
+        case "cas": return traduit("Cas pratique · ") + q.titre
+        case "erreur": return traduit("Trouve l’erreur · ") + q.titre
+        case "entretien": return traduit("Entretien · ") + q.titre
+        default: return traduit("Révision · ") + q.titre
         }
     }
 
@@ -2075,14 +2150,14 @@ struct SuivantePoche: AppIntent {
 
 struct PocheFournisseur: TimelineProvider {
     func placeholder(in context: Context) -> PocheEntree {
-        PocheEntree(date: Date(), question: PocheRangement.exemple)
+        PocheEntree(date: Date(), question: PocheRangement.apercu)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (PocheEntree) -> Void) {
         let e = PocheRangement.entree(Date())
         // Dans la galerie des widgets, sans leçon faite : la question de la planche (HAVING).
         if context.isPreview && e.question == nil {
-            completion(PocheEntree(date: Date(), question: PocheRangement.exemple))
+            completion(PocheEntree(date: Date(), question: PocheRangement.apercu))
         } else {
             completion(e)
         }
@@ -2436,7 +2511,7 @@ struct PocheVue: View {
 
     private func consigne(_ u: CGFloat, _ q: QuestionPoche) -> some View {
         let police: Font = Font.system(size: 11.5 * u, weight: .bold, design: .rounded)
-        let texte: String = PocheRangement.consigne(q)
+        let texte: String = traduit(PocheRangement.consigne(q))
         return Text(verbatim: texte)
             .font(police)
             .foregroundColor(gristexte)
@@ -2449,7 +2524,7 @@ struct PocheVue: View {
         let grand: Font = Font.system(size: 12.5 * u, weight: .black, design: .rounded)
         let petit: Font = Font.system(size: 11.5 * u, weight: .bold, design: .rounded)
         let code: Font = Font.system(size: 11 * u, weight: .bold, design: .monospaced)
-        let tete: Text = Text(verbatim: titre + " ").font(grand).foregroundColor(couleur)
+        let tete: Text = Text(verbatim: traduit(titre) + " ").font(grand).foregroundColor(couleur)
         let explication: Text = PocheRangement.explication(pourquoi, petit, code).foregroundColor(sousPoche)
         return (tete + explication)
             .lineLimit(2)
@@ -2468,7 +2543,7 @@ struct PocheVue: View {
                 .background(Circle().fill(violetTexte))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Text("Question suivante"))
+        .accessibilityLabel(Text(traduit("Question suivante")))
     }
 
     /// Aucune question rangée (l’app n’a pas encore été ouverte depuis l’installation du widget) : le chat se pose la question, et
@@ -2489,10 +2564,10 @@ struct PocheVue: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Pas encore de question")
+                Text(traduit("Pas encore de question"))
                     .font(grand)
                     .foregroundColor(encrePoche)
-                Text("Ouvre l’app\u{00A0}: tes questions du jour viendront ici.")
+                Text(traduit("Ouvre l’app\u{00A0}: tes questions du jour viendront ici."))
                     .font(petit)
                     .foregroundColor(sousPoche)
             }
@@ -2515,8 +2590,8 @@ struct RequetePoche: Widget {
             PocheVue(entree: entree)
                 .containerBackground(for: .widget) { fondPoche }
         }
-        .configurationDisplayName("La requête de poche")
-        .description("Une question SQL, de tes leçons ou d’entretien\u{00A0}: tu réponds dans le widget, sans ouvrir l’app.")
+        .configurationDisplayName(traduit("La requête de poche"))
+        .description(traduit("Une question SQL, de tes leçons ou d’entretien\u{00A0}: tu réponds dans le widget, sans ouvrir l’app."))
         .supportedFamilies([.systemMedium])
         .contentMarginsDisabled()
     }
@@ -2639,20 +2714,20 @@ enum SemaineRangement {
     /// « samedi : en attente », « samedi : flamme allumée », « samedi : repos ».
     static func duJour(_ jours: [CaseSemaine]) -> String {
         guard let j = jours.first(where: { $0.aujourdhui }) else { return "" }
-        let nom: String = nomsLongs[j.rang]
+        let nom: String = traduit(nomsLongs[j.rang])
         switch j.etat {
-        case .fait: return nom + "\u{00A0}: flamme allumée"
-        case .attente: return nom + "\u{00A0}: en attente"
-        case .repos: return nom + "\u{00A0}: repos"
+        case .fait: return nom + traduit("\u{00A0}: flamme allumée")
+        case .attente: return nom + traduit("\u{00A0}: en attente")
+        case .repos: return nom + traduit("\u{00A0}: repos")
         case .manque, .avenir: return nom
         }
     }
 
     static func libelle(_ jours: [CaseSemaine]) -> String {
-        var morceaux: [String] = ["Ta semaine."]
+        var morceaux: [String] = [traduit("Ta semaine.")]
         for j in jours {
-            let nom: String = nomsLongs[j.rang].capitalized
-            morceaux.append(nom + "\u{00A0}: " + dit(j.etat) + ".")
+            let nom: String = traduit(nomsLongs[j.rang]).capitalized
+            morceaux.append(nom + traduit("\u{00A0}: ") + traduit(dit(j.etat)) + ".")
         }
         return morceaux.joined(separator: " ")
     }
@@ -2846,10 +2921,12 @@ struct SemaineVue: View {
 
     /// « SELECT jour, flamme FROM ma_semaine; »
     private func requete(_ f: PolicesSemaine, _ p: PaletteSemaine) -> some View {
+        let colonnes: String = LangueWidget.anglais ? " day, flame " : " jour, flamme "
+        let table: String = LangueWidget.anglais ? " my_week;" : " ma_semaine;"
         var ligne: Text = Text(verbatim: "SELECT").foregroundColor(p.motCle)
-        ligne = ligne + Text(verbatim: " jour, flamme ").foregroundColor(p.texte)
+        ligne = ligne + Text(verbatim: colonnes).foregroundColor(p.texte)
         ligne = ligne + Text(verbatim: "FROM").foregroundColor(p.motCle)
-        ligne = ligne + Text(verbatim: " ma_semaine;").foregroundColor(p.texte)
+        ligne = ligne + Text(verbatim: table).foregroundColor(p.texte)
         return ligne
             .font(f.ligneSQL)
             .lineLimit(1)
@@ -2882,7 +2959,7 @@ struct SemaineVue: View {
 
     /// Une colonne : le nom du jour, puis sa case ; aujourd’hui en braise.
     private func colonne(_ j: CaseSemaine, _ derniere: Bool, _ v: CGFloat, _ f: PolicesSemaine, _ p: PaletteSemaine) -> some View {
-        let nom: String = SemaineRangement.noms[j.rang]
+        let nom: String = traduit(SemaineRangement.noms[j.rang])
         let couleur: Color = j.aujourdhui ? p.jourTexte : p.entete
         let fondNom: Color = j.aujourdhui ? p.jourEntete : p.enteteFond
         let fondCase: Color = j.aujourdhui ? p.jourCase : Color.clear
@@ -2928,7 +3005,7 @@ struct SemaineVue: View {
                 Image(systemName: "moon.fill")
                     .font(f.lune)
                     .foregroundColor(p.lune)
-                Text("repos")
+                Text(traduit("repos"))
                     .font(f.repos)
                     .foregroundColor(p.entete)
             }
@@ -2946,7 +3023,7 @@ struct SemaineVue: View {
 
     /// « 7 lignes · 4 flammes », et où en est aujourd’hui.
     private func pied(_ u: CGFloat, _ f: PolicesSemaine, _ p: PaletteSemaine) -> some View {
-        let gauche: String = SemaineRangement.lignes(entree.jours)
+        let gauche: String = traduit(SemaineRangement.lignes(entree.jours))
         let droite: String = SemaineRangement.duJour(entree.jours)
         let couleur: Color = couleurDuJour(p)
         let ecart: CGFloat = 8 * u
@@ -2984,8 +3061,8 @@ struct RequeteSemaine: Widget {
         StaticConfiguration(kind: kind, provider: SemaineFournisseur()) { entree in
             SemaineVue(entree: entree).fondSemaine()
         }
-        .configurationDisplayName("Ta semaine")
-        .description("Ta semaine en résultat de requête\u{00A0}: une flamme par jour actif, la lune les jours de repos.")
+        .configurationDisplayName(traduit("Ta semaine"))
+        .description(traduit("Ta semaine en résultat de requête\u{00A0}: une flamme par jour actif, la lune les jours de repos."))
         .supportedFamilies([.systemMedium])
         .sansMarges()
     }
@@ -3083,7 +3160,7 @@ struct LeconPourcent: View {
         let texte: String = etat.fini ? "✓" : "\(pct)\u{202F}%"
         let teinte: Color = etat.fini ? dore : braise
         let police: Font = Font.system(size: 14, weight: .heavy, design: .rounded)
-        return Text(texte)
+        return Text(traduit(texte))
             .font(police)
             .monospacedDigit()
             .foregroundColor(teinte)
@@ -3211,7 +3288,7 @@ struct LeconVerrouille: View {
                     .minimumScaleFactor(0.8)
                 LeconAvance(etat: etat)
                     .padding(.top, 2)
-                Text(leconPhrase(etat))
+                Text(traduit(leconPhrase(etat)))
                     .font(.system(size: 13, weight: .semibold, design: .rounded))
                     .foregroundColor(Color.white.opacity(0.88))
                     .lineLimit(2)
@@ -3438,7 +3515,7 @@ struct LeconReprendre: View {
             HStack(spacing: 6) {
                 Image(systemName: "play.fill")
                     .font(symbole)
-                Text("Reprendre")
+                Text(traduit("Reprendre"))
                     .font(police)
             }
             .foregroundColor(encre)
@@ -3505,7 +3582,7 @@ struct RequeteLeconActivite: Widget {
                 DynamicIslandExpandedRegion(.bottom) {
                     VStack(spacing: 7) {
                         LeconAvance(etat: context.state)
-                        Text(leconPhrase(context.state))
+                        Text(traduit(leconPhrase(context.state)))
                             .font(.system(size: 13, weight: .semibold, design: .rounded))
                             .foregroundColor(Color.white.opacity(0.85))
                             .lineLimit(1)
@@ -3697,16 +3774,22 @@ struct DirectSousTitre: View {
 
     var body: some View {
         let police: Font = Font.system(size: 13, weight: .bold, design: .rounded)
+        let reste: Text
+        if LangueWidget.anglais {
+            reste = Text(flamme.minuit, style: .relative) + Text(" left")
+        } else {
+            reste = Text("Il te reste ") + Text(flamme.minuit, style: .relative)
+        }
         return Group {
             switch moment {
             case .attend:
-                (Text("Il te reste ") + Text(flamme.minuit, style: .relative))
+                reste
                     .foregroundColor(orangeClair)
             case .allumee:
-                Text("À demain.")
+                Text(traduit("À demain."))
                     .foregroundColor(lilasClair)
             case .passee:
-                Text("Ta prochaine séance rallumera ta flamme.")
+                Text(traduit("Ta prochaine séance rallumera ta flamme."))
                     .foregroundColor(lilasClair)
             }
         }
@@ -3735,7 +3818,7 @@ struct DirectVerrouille: View {
                 .frame(width: 88)
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .top, spacing: 6) {
-                    Text(titre)
+                    Text(traduit(titre))
                         .font(police)
                         .foregroundColor(teinte)
                         .lineLimit(1)
@@ -3854,7 +3937,7 @@ struct DirectFin: View {
                 VStack(alignment: .trailing, spacing: 0) {
                     DirectCompte(flamme: flamme, taille: 22)
                         .frame(maxWidth: 96, alignment: .trailing)
-                    Text("avant minuit")
+                    Text(traduit("avant minuit"))
                         .font(legende)
                         .foregroundColor(lilasPale)
                 }
@@ -3884,13 +3967,13 @@ struct DirectCentre: View {
         let grande: Font = Font.system(size: 16, weight: .heavy, design: .rounded)
         let petite: Font = Font.system(size: 12, weight: .bold, design: .rounded)
         return VStack(alignment: .leading, spacing: 2) {
-            Text(titre)
+            Text(traduit(titre))
                 .font(grande)
                 .foregroundColor(teinte)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
             if !sous.isEmpty {
-                Text(sous)
+                Text(traduit(sous))
                     .font(petite)
                     .foregroundColor(lilasPale)
                     .lineLimit(1)
@@ -4012,7 +4095,7 @@ enum LectureAccueil {
 
     static func phrase(_ e: RequeteAccueil.ContentState, perime: Bool) -> String {
         if e.fini { return "C’est parti\u{202F}! Ta première leçon t’attend." }
-        if perime { return "Le chat garde ta place\u{202F}: reviens quand tu veux." }
+        if perime { return "Requête garde ta place\u{202F}: reviens quand tu veux." }
         let duree: String = "≈\u{00A0}\(max(1, e.minutes))\u{00A0}min"
         if e.etape <= 0 { return "Ton parcours en quelques étapes · " + duree }
         if e.etape >= e.total && e.minutes <= 0 { return "Toutes les étapes sont faites\u{202F}!" }
@@ -4076,7 +4159,7 @@ struct AccueilCentre: View {
                 .font(petit)
                 .foregroundColor(Color.white.opacity(0.6))
                 .lineLimit(1)
-            Text(titre)
+            Text(traduit(titre))
                 .font(grand)
                 .foregroundColor(Color.white)
                 .lineLimit(1)
@@ -4097,7 +4180,7 @@ struct AccueilBas: View {
         let police: Font = Font.system(size: 13, weight: .semibold, design: .rounded)
         return VStack(spacing: 7) {
             LeconBarre(progression: part, fini: etat.fini)
-            Text(phrase)
+            Text(traduit(phrase))
                 .font(police)
                 .foregroundColor(Color.white.opacity(0.85))
                 .lineLimit(1)
@@ -4131,14 +4214,14 @@ struct AccueilVerrouille: View {
                     .font(petit)
                     .foregroundColor(Color.white.opacity(0.7))
                     .lineLimit(1)
-                Text(titre)
+                Text(traduit(titre))
                     .font(grand)
                     .foregroundColor(Color.white)
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
                 LeconBarre(progression: part, fini: etat.fini)
                     .padding(.top, 2)
-                Text(phrase)
+                Text(traduit(phrase))
                     .font(police)
                     .foregroundColor(Color.white.opacity(0.88))
                     .lineLimit(2)
@@ -4243,6 +4326,7 @@ enum LectureSalle {
 
     /// « 1er », « 2e », « 3e »…
     static func rang(_ n: Int) -> String {
+        if LangueWidget.anglais { return LangueWidget.ordinal(n) }
         if n == 1 { return "1er" }
         return "\(n)e"
     }
@@ -4253,7 +4337,7 @@ enum LectureSalle {
 
     /// Le pseudo d’un joueur ; « Toi » pour moi.
     static func nom(_ j: JoueurSalle, _ a: RequeteSalle) -> String {
-        if j.p == a.moi { return "Toi" }
+        if j.p == a.moi { return LangueWidget.anglais ? "You" : "Toi" }
         return j.n
     }
 
@@ -4309,7 +4393,7 @@ enum LectureSalle {
 
     /// « Léa 240 · Toi 210 » à plusieurs ; seul, « Ton score : 240 pts ».
     static func tableau(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
-        if seul(e, a) { return "Ton score\u{202F}: " + points(e, a) }
+        if seul(e, a) { return (LangueWidget.anglais ? "Your score: " : "Ton score\u{202F}: ") + points(e, a) }
         if e.phase == "fin" { return podium(e, a).joined(separator: "   ") }
         return scores(e, a)
     }
@@ -4336,6 +4420,7 @@ enum LectureSalle {
 
     /// En attente : pour l’hôte, qui n’est pas encore prêt ; pour les autres, l’hôte qui lance.
     static func attente(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        if LangueWidget.anglais { return attenteAnglais(e, a) }
         if !hote(e, a) {
             let h: JoueurSalle? = e.joueurs.first { $0.p == e.hote }
             let n: String = h?.n ?? "l’hôte"
@@ -4346,6 +4431,19 @@ enum LectureSalle {
         let attendus: [String] = e.joueurs.filter { !$0.ok && $0.p != a.moi }.map { $0.n }
         if attendus.isEmpty { return "tout le monde est prêt" }
         return "on attend " + attendus.joined(separator: ", ")
+    }
+
+    /// La même chose en anglais : « waiting for Léa to start », « waiting for your friends », « everyone is ready ».
+    static func attenteAnglais(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
+        if !hote(e, a) {
+            let h: JoueurSalle? = e.joueurs.first { $0.p == e.hote }
+            let n: String = h?.n ?? "the host"
+            return "waiting for \(n) to start"
+        }
+        if e.joueurs.count < 2 { return "waiting for your friends" }
+        let attendus: [String] = e.joueurs.filter { !$0.ok && $0.p != a.moi }.map { $0.n }
+        if attendus.isEmpty { return "everyone is ready" }
+        return "waiting for " + attendus.joined(separator: ", ")
     }
 
     /// « Léa 240 · Toi 210 · Max 150 »
@@ -4369,15 +4467,15 @@ enum LectureSalle {
         let p: Int = place(e, a)
         let n: Int = e.joueurs.count
         if p == 1 { return "Victoire\u{202F}!" }
-        return "\(rang(p)) sur \(n)"
+        return "\(rang(p)) \(LangueWidget.sur) \(n)"
     }
 
     /// « Manche 3 sur 5 » ; entre deux manches, « Manche 2 sur 5 terminée ».
     static func manche(_ e: RequeteSalle.ContentState) -> String {
         let m: Int = max(1, e.manche)
         let nb: Int = max(1, e.nb)
-        let texte: String = "Manche \(m) sur \(nb)"
-        if e.phase == "pause" { return texte + " terminée" }
+        let texte: String = LangueWidget.anglais ? "Round \(m) of \(nb)" : "Manche \(m) sur \(nb)"
+        if e.phase == "pause" { return texte + (LangueWidget.anglais ? " done" : " terminée") }
         return texte
     }
 
@@ -4439,7 +4537,7 @@ struct BoutonSalle: View {
         let fond: Color = plein ? braise : Color.white.opacity(0.16)
         let teinte: Color = plein ? encre : Color.white
         return Link(destination: lienSalle(action)) {
-            Text(texte)
+            Text(traduit(texte))
                 .font(police)
                 .foregroundColor(teinte)
                 .lineLimit(1)
@@ -4558,7 +4656,7 @@ struct SalleGauche: View {
         let soloValeur: Int = fin ? points : etat.manche
         return VStack(alignment: .leading, spacing: 0) {
             if etat.phase == "attente" {
-                Text("Salle")
+                Text(traduit("Salle"))
                     .font(petite)
                     .foregroundColor(lilasPale)
                 Text(salle.code)
@@ -4569,7 +4667,7 @@ struct SalleGauche: View {
                     .font(grande)
                     .foregroundColor(soloTeinte)
                     .chiffreQuiRoule(soloValeur)
-                Text(soloBas)
+                Text(traduit(soloBas))
                     .font(petite)
                     .foregroundColor(lilasPale)
             } else {
@@ -4577,7 +4675,7 @@ struct SalleGauche: View {
                     .font(grande)
                     .foregroundColor(teinte)
                     .chiffreQuiRoule(-place)   // une place gagnée : le chiffre monte
-                Text("sur \(etat.joueurs.count)")
+                Text(verbatim: "\(LangueWidget.sur) \(etat.joueurs.count)")
                     .font(petite)
                     .foregroundColor(lilasPale)
             }
@@ -4606,7 +4704,7 @@ struct SalleTemps: View {
                         .font(grande)
                         .foregroundColor(lilasClair)
                         .chiffreQuiRoule(etat.joueurs.count)   // un ami arrive : le compte roule (13 novembre, 8 h 01)
-                    Text("joueurs")
+                    Text(traduit("joueurs"))
                         .font(petite)
                         .foregroundColor(lilasPale)
                 }
@@ -4644,20 +4742,21 @@ struct SalleCentre: View {
         let arrivee: String = LectureSalle.arrivee(etat, salle)
         let fin: Bool = etat.phase == "fin"
         let teinte: Color = fin && LectureSalle.gagne(etat, salle) ? dore : Color.white
-        let accueil: String = arrivee.isEmpty ? "On attend les amis" : arrivee + " arrive\u{202F}!"
+        let arrive: String = LangueWidget.anglais ? " is here!" : " arrive\u{202F}!"
+        let accueil: String = arrivee.isEmpty ? "On attend les amis" : arrivee + arrive
         let haut: String = fin ? LectureSalle.titreFin(etat, salle) : etat.defi
         let bas: String = fin ? etat.defi : LectureSalle.manche(etat)
         return VStack(alignment: .leading, spacing: 3) {
             if etat.phase == "attente" {
-                Text(accueil)
+                Text(traduit(accueil))
                     .font(grande)
                     .foregroundColor(Color.white)
                 AvatarsSalle(joueurs: etat.joueurs, taille: 20)
             } else {
-                Text(haut)
+                Text(traduit(haut))
                     .font(grande)
                     .foregroundColor(teinte)
-                Text(bas)
+                Text(traduit(bas))
                     .font(petite)
                     .foregroundColor(lilasPale)
             }
@@ -4769,12 +4868,12 @@ struct SalleVerrouille: View {
 
     /// « Salle K7P2QX » ; « 2e sur 4 » ; « Victoire ! ».
     static func titre(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> String {
-        if e.phase == "attente" { return "Salle " + a.code }
+        if e.phase == "attente" { return traduit("Salle") + " " + a.code }
         if e.phase == "fin" { return LectureSalle.titreFin(e, a) }
         if LectureSalle.seul(e, a) { return "Défi en solo" }
         if LectureSalle.personneNaMarque(e) { return LectureSalle.manche(e) }   // personne n’a de point : pas de « 1er sur 4 »
         let rang: String = LectureSalle.rang(LectureSalle.place(e, a))
-        return "\(rang) sur \(e.joueurs.count)"
+        return "\(rang) \(LangueWidget.sur) \(e.joueurs.count)"
     }
 
     /// « 2/6 · on attend Max » ; « Le meilleur client · Manche 3 sur 5 » ; « Le meilleur client · 1er sur 4 ».
@@ -4786,7 +4885,7 @@ struct SalleVerrouille: View {
         }
         if e.phase == "fin" && (e.joueurs.count < 2 || LectureSalle.personneNaMarque(e)) { return e.defi }
         let rang: String = LectureSalle.rang(LectureSalle.place(e, a))
-        if e.phase == "fin" { return "\(e.defi) · \(rang) sur \(e.joueurs.count)" }
+        if e.phase == "fin" { return "\(e.defi) · \(rang) \(LangueWidget.sur) \(e.joueurs.count)" }
         if !LectureSalle.seul(e, a) && LectureSalle.personneNaMarque(e) { return e.defi }   // la manche est déjà dans le titre
         let manche: String = LectureSalle.manche(e)
         return "\(e.defi) · \(manche)"
@@ -4807,7 +4906,7 @@ struct SalleVerrouille: View {
                 .frame(width: 80)
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .top, spacing: 6) {
-                    Text(titre)
+                    Text(traduit(titre))
                         .font(grande)
                         .foregroundColor(teinte)
                         .lineLimit(1)
@@ -4815,7 +4914,7 @@ struct SalleVerrouille: View {
                     Spacer(minLength: 0)
                     SalleCoin(salle: salle, etat: etat)
                 }
-                Text(sous)
+                Text(traduit(sous))
                     .font(petite)
                     .foregroundColor(orangeClair)
                     .lineLimit(2)
@@ -4899,3 +4998,119 @@ struct RequeteWidgets: WidgetBundle {
         }
     }
 }
+
+/// Les textes des widgets et des Live Activities en anglais (traduit) : la clé est le texte français tel qu’il est écrit plus haut,
+/// un nombre s’y écrit {1}, {2}… Les noms des leçons, des défis et des modules arrivent déjà traduits de l’app.
+private let motsAnglais: [String: String] = [
+    "Ta flamme": "Your flame",
+    "Ta flamme du jour, et Requête qui change avec la journée.": "Today’s flame, and Requête, who changes through the day.",
+    "La flamme et la séance du jour, sur l’écran verrouillé.": "Today’s flame and session, on your Lock Screen.",
+    "Séance du jour validée : 1 sur 1. Ta flamme est allumée.": "Today’s session done: 1 of 1. Your flame is lit.",
+    "Séance du jour : 0 sur 1.": "Today’s session: 0 of 1.",
+    "Jour de repos.": "Rest day.",
+    "Jour de repos": "Rest day",
+    "Jour de repos\u{202F}!": "Rest day!",
+    "Ta flamme t’attend\u{202F}!": "Your flame is waiting!",
+    "Allume ta flamme\u{202F}!": "Light your flame!",
+    "Une petite requête\u{202F}?": "A quick query?",
+    "Séance du jour validée": "Today’s session done",
+    "Séance du jour\u{00A0}: 0/1": "Today’s session: 0/1",
+    "Séance du jour 0/1": "Today’s session 0/1",
+    "Flamme allumée\u{202F}!": "Flame lit!",
+    "Allumer ma flamme": "Light my flame",
+    "La cheminée": "The fireplace",
+    "La pièce de Requête : le feu de la séance du jour, le ciel de l’heure, tes stickers, tes trophées et tes diplômes.": "Requête’s room: the fire of today’s session, the sky of the hour, your stickers, your trophies and your diplomas.",
+    "Chut, Requête dort…": "Shh, Requête is asleep…",
+    "Bonne nuit.": "Good night.",
+    "Bien joué, à demain.": "Well done, see you tomorrow.",
+    "Ta flamme tient sans séance aujourd’hui.": "Your flame holds without a session today.",
+    "La cheminée est froide.": "The fireplace is cold.",
+    "Quelques minutes suffisent.": "A few minutes is enough.",
+    "Prochain défi": "Next challenge",
+    "Prochaine leçon": "Next lesson",
+    "La cheminée flambe\u{00A0}: séance du jour validée, ta flamme est allumée.": "The fireplace is blazing: today’s session done, your flame is lit.",
+    "La cheminée\u{00A0}: jour de repos.": "The fireplace: rest day.",
+    "La cheminée\u{00A0}: ta flamme t’attend, séance du jour 0 sur 1.": "The fireplace: your flame is waiting, today’s session 0 of 1.",
+    "La cheminée\u{00A0}: séance du jour 0 sur 1.": "The fireplace: today’s session 0 of 1.",
+    "WHERE avant DELETE\u{202F}!": "WHERE before DELETE!",
+    "Un JOIN par jour.": "A JOIN a day.",
+    "GROUP BY, puis HAVING.": "GROUP BY, then HAVING.",
+    "SELECT * FROM croquettes": "SELECT * FROM kibble",
+    "Ranger avec ORDER BY.": "Sort with ORDER BY.",
+    "Une requête ce soir\u{202F}?": "A query tonight?",
+    "Penser à la virgule\u{202F}!": "Mind the comma!",
+    "La requête de poche": "Pocket query",
+    "Une question SQL, de tes leçons ou d’entretien\u{00A0}: tu réponds dans le widget, sans ouvrir l’app.": "A SQL question from your lessons or interviews: answer right in the widget, without opening the app.",
+    "QCM · ": "Quiz · ",
+    "Cas pratique · ": "Case study · ",
+    "Trouve l’erreur · ": "Spot the error · ",
+    "Entretien · ": "Interview · ",
+    "Révision · ": "Review · ",
+    "Touche la ligne fausse": "Tap the wrong line",
+    "Touche la bonne réponse": "Tap the right answer",
+    "Bien vu\u{202F}!": "Nice one!",
+    "Presque\u{202F}!": "Almost!",
+    "Question suivante": "Next question",
+    "Pas encore de question": "No question yet",
+    "Ouvre l’app\u{00A0}: tes questions du jour viendront ici.": "Open the app: today’s questions will show up here.",
+    "Ta semaine": "Your week",
+    "Ta semaine en résultat de requête\u{00A0}: une flamme par jour actif, la lune les jours de repos.": "Your week as a query result: a flame for each active day, the moon on rest days.",
+    "Ta semaine.": "Your week.",
+    "lun": "Mon",
+    "mar": "Tue",
+    "mer": "Wed",
+    "jeu": "Thu",
+    "ven": "Fri",
+    "sam": "Sat",
+    "dim": "Sun",
+    "lundi": "Monday",
+    "mardi": "Tuesday",
+    "mercredi": "Wednesday",
+    "jeudi": "Thursday",
+    "vendredi": "Friday",
+    "samedi": "Saturday",
+    "dimanche": "Sunday",
+    "{1}\u{00A0}lignes": "{1}\u{00A0}rows",
+    "{1}\u{00A0}lignes · {2}\u{00A0}flamme": "{1}\u{00A0}rows · {2}\u{00A0}flame",
+    "{1}\u{00A0}lignes · {2}\u{00A0}flammes": "{1}\u{00A0}rows · {2}\u{00A0}flames",
+    "\u{00A0}: flamme allumée": ": flame lit",
+    "\u{00A0}: en attente": ": waiting",
+    "\u{00A0}: repos": ": rest",
+    "\u{00A0}: ": ": ",
+    "flamme allumée": "flame lit",
+    "en attente": "waiting",
+    "repos": "rest",
+    "pas de séance": "no session",
+    "à venir": "upcoming",
+    "Leçon terminée\u{202F}! Ta flamme du jour est allumée.": "Lesson complete! Today’s flame is lit.",
+    "Moments réussis\u{202F}: {1}/{2} · objectif atteint\u{202F}!": "Your turns: {1}/{2} · goal reached!",
+    "Moments réussis\u{202F}: {1}/{2} · encore {3} pour valider": "Your turns: {1}/{2} · {3} more to pass",
+    "{1}\u{202F}% de la leçon": "{1}% of the lesson",
+    "{1}\u{202F}% · termine-la pour allumer ta flamme": "{1}% · finish it to light your flame",
+    "{1}\u{202F}%": "{1}%",
+    "Reprendre": "Resume",
+    "Minuit est passé": "Midnight has passed",
+    "À demain.": "See you tomorrow.",
+    "À ta prochaine séance\u{202F}!": "See you at your next session!",
+    "Ta prochaine séance rallumera ta flamme.": "Your next session will relight your flame.",
+    "avant minuit": "before midnight",
+    "Ton parcours est prêt": "Your path is ready",
+    "C’est parti\u{202F}! Ta première leçon t’attend.": "Let’s go! Your first lesson is waiting.",
+    "Requête garde ta place\u{202F}: reviens quand tu veux.": "Requête is saving your spot: come back anytime.",
+    "Ton parcours en quelques étapes · ≈\u{00A0}{1}\u{00A0}min": "Your path in a few steps · ≈\u{00A0}{1}\u{00A0}min",
+    "Toutes les étapes sont faites\u{202F}!": "All steps done!",
+    "Étape {1} sur {2} · ≈\u{00A0}{3}\u{00A0}min": "Step {1} of {2} · ≈\u{00A0}{3}\u{00A0}min",
+    "Salle": "Room",
+    "points": "points",
+    "manche": "round",
+    "joueurs": "players",
+    "Partager": "Share",
+    "Lancer": "Start",
+    "Rejouer": "Play again",
+    "Revanche": "Rematch",
+    "Partie terminée\u{202F}!": "Game over!",
+    "Match nul\u{202F}!": "It’s a draw!",
+    "Victoire\u{202F}!": "Victory!",
+    "Défi en solo": "Solo challenge",
+    "On attend les amis": "Waiting for friends"
+]

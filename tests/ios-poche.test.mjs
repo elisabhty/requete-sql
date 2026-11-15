@@ -92,7 +92,7 @@ test('sur la base de l’app : la bonne réponse s’exécute, chaque autre éch
 test('la page range trente questions : une d’entretien, une révision ; les leçons faites (et la première), celles à revoir d’abord, le même ordre toute la journée', () => {
   const src = entre(app, 'function widgetPoche(){', 'if(typeof document!==');
   const essaiPage = ({ faites, dues = [], jour = new Date(2026, 10, 7) }) => {
-    const ctx = vm.createContext({ POCHE, POCHE_PLUS, POCHE_ENTRETIEN, MODULES, allLessons: LECONS, itemDone: id => faites.includes(id),
+    const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  POCHE, POCHE_PLUS, POCHE_ENTRETIEN, MODULES, allLessons: LECONS, itemDone: id => faites.includes(id),
       dueList: () => LECONS.filter(l => dues.includes(l.id)), auj: () => jour,
       dstr: d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` });
     vm.runInContext(src, ctx);
@@ -142,7 +142,7 @@ test('le widget : moyen, iOS 17 (ses boutons), ses réponses passent par App Int
   assert.ok(swift.includes('import AppIntents\n'));
   const w = entre(swift, 'struct RequetePoche: Widget {', '\n}\n');
   for (const k of ['let kind = "RequetePoche"', 'StaticConfiguration(kind: kind, provider: PocheFournisseur()) { entree in', '.containerBackground(for: .widget) { fondPoche }',
-    '.configurationDisplayName("La requête de poche")', '.supportedFamilies([.systemMedium])', '.contentMarginsDisabled()'])
+    '.configurationDisplayName(traduit("La requête de poche"))', '.supportedFamilies([.systemMedium])', '.contentMarginsDisabled()'])
     assert.ok(w.includes(k), k);
   for (const k of ['@available(iOS 17.0, *)\nstruct RequetePoche: Widget {', '@available(iOS 17.0, *)\nstruct PocheVue: View {',
     '@available(iOS 17.0, *)\nstruct RepondrePoche: AppIntent {', '@available(iOS 17.0, *)\nstruct SuivantePoche: AppIntent {',
@@ -163,7 +163,7 @@ test('le widget : moyen, iOS 17 (ses boutons), ses réponses passent par App Int
     'verdict("Bien vu\\u{202F}!", q.oui, vertTexte, u)', 'verdict("Presque\\u{202F}!", q.non, presqueTexte, u)', 'default: return "Touche la bonne réponse"'])
     assert.ok(swift.includes(k), k);
   /* L’étiquette : le module, pas la leçon (son nom donnerait souvent la réponse) */
-  assert.ok(swift.includes('let texte: String = PocheRangement.etiquette(q)') && swift.includes('default: return "Révision · " + q.titre'));
+  assert.ok(swift.includes('let texte: String = PocheRangement.etiquette(q)') && swift.includes('default: return traduit("Révision · ") + q.titre'));
   /* Le chat de la planche : il se pose la question, hoche la tête, encourage */
   for (const [etat, nom, h] of [['question', 'ChatQuestion', 130], ['juste', 'ChatOui', 126], ['presque', 'ChatEffort', 114]]) {
     assert.ok(swift.includes(`case .${etat}: return "${nom}"`) && swift.includes(`case .${etat}: return ${h}`), nom);

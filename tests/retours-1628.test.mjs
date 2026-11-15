@@ -29,7 +29,7 @@ test('la bulle du matin : la phrase, la police et les mesures typées d’abord,
     'let margeH: CGFloat = w * 0.035', 'let margeV: CGFloat = w * 0.03', 'let largeur: CGFloat = w * 0.53',
     'let flou: CGFloat = w * 0.025', 'let chute: CGFloat = w * 0.012', 'let ombre: Color = Color.black.opacity(0.15)',
     'let fond = Bulle(pointe: pointe).fill(Color.white)',
-    'let texte: Text = Text(phrase).font(police).foregroundColor(violetTexte)',
+    'let texte: Text = Text(traduit(phrase)).font(police).foregroundColor(violetTexte)',
     'let cadre = texte\n            .multilineTextAlignment(.center)\n            .lineLimit(3)\n            .minimumScaleFactor(0.7)\n            .padding(.horizontal, margeH)\n            .padding(.vertical, margeV)\n            .frame(width: largeur)',
     'return cadre\n            .padding(.bottom, pointe)\n            .background(fond)\n            .shadow(color: ombre, radius: flou, x: 0, y: chute)'])
     assert.ok(b.includes(k), k);
@@ -45,7 +45,7 @@ test('la même règle pour la phrase du soir, « 0/1 » et l’écart du compteu
   const l = entre(swift, 'private func legende(_ w: CGFloat, _ h: CGFloat) -> some View {', '    /// L’écart entre la flamme');
   for (const k of [`let phrase: String = entree.serie > 0 ? "Ta flamme t’attend${ESPACE}!" : "Allume ta flamme${ESPACE}!"`,
     'let police: Font = Font.system(size: w * 0.072, weight: .bold, design: .rounded)', 'let couleur: Color = Color.white.opacity(0.92)',
-    'let largeur: CGFloat = w * 0.9', 'let marge: CGFloat = w * 0.05', 'let haut: CGFloat = h * 0.425', 'return Text(phrase)'])
+    'let largeur: CGFloat = w * 0.9', 'let marge: CGFloat = w * 0.05', 'let haut: CGFloat = h * 0.425', 'return Text(traduit(phrase))'])
     assert.ok(l.includes(k), k);
   const o = entre(swift, 'private func objectifVue(_ w: CGFloat) -> some View {', '    /// La coche « validé »');
   for (const bout of [l, o]) for (const m of modificateurs(bout)) {

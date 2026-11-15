@@ -19,7 +19,7 @@ test('l’état de la leçon dit la pause ; le pont la lit, l’île et l’écr
   assert.ok(entre(pont, 'static func moments(', '\n    }\n').includes('e.pause = call.getBool("pause")'));
   assert.ok(swift.includes('func leconEnPause(_ e: RequeteLecon.ContentState) -> Bool {\n    return e.pause == true && !e.fini\n}'));
   const bouton = entre(swift, 'struct LeconReprendre: View {', '\n}\n');
-  assert.ok(bouton.includes('Link(destination: lienSalle("lecon-reprendre"))') && bouton.includes('Image(systemName: "play.fill")') && bouton.includes('Text("Reprendre")'));
+  assert.ok(bouton.includes('Link(destination: lienSalle("lecon-reprendre"))') && bouton.includes('Image(systemName: "play.fill")') && bouton.includes('Text(traduit("Reprendre"))'));
   const act = entre(swift, 'struct RequeteLeconActivite: Widget {', '\n}\n');
   assert.ok(act.includes('if leconEnPause(context.state) {\n                            LeconReprendre()'), 'l’île ouverte');
   assert.ok(entre(swift, 'struct LeconVerrouille: View {', '\n}\n').includes('if leconEnPause(etat) {\n                    LeconReprendre()'), 'l’écran verrouillé');

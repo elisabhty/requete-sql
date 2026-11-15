@@ -69,13 +69,13 @@ test('le widget : l’île (ouverte, compacte, minimale), l’écran verrouillé
 
 test('ce que l’île lit de l’état : moi, ma place, « Victoire ! », qui arrive (un clin d’œil), Rejouer ou Revanche', () => {
   const L = entre(swift, 'enum LectureSalle {', '\n}\n');
-  for (const k of ['if n == 1 { return "1er" }\n        return "\\(n)e"', 'if j.p == a.moi { return "Toi" }',
+  for (const k of ['if n == 1 { return "1er" }\n        return "\\(n)e"', 'if j.p == a.moi { return LangueWidget.anglais ? "You" : "Toi" }',
     'if e.nouveau.isEmpty || e.nouveau == a.moi { return "" }', `if e.joueurs.count < 2 { return "Partie terminée${FINE}!" }`,
     `if p == 1 { return "Victoire${FINE}!" }`, 'if gagne(e, a) { return "Rejouer" }\n        return "Revanche"',
     `if personneNaMarque(e) { return "Match nul${FINE}!" }`, 'let p: Int = moi(e, a)?.pts ?? 0\n        return p > 0 && place(e, a) == 1',
     'if e.phase == "fin" {\n            if gagne(e, a) { return .etoiles }\n            return .rieur\n        }\n        if e.phase == "attente" && !arrivee(e, a).isEmpty { return .clin }\n        return .ouvert',
     'if voyelles.contains(initiale) { return "qu’" + n }', 'return "on attend \\(qui) lance"', 'if attendus.isEmpty { return "tout le monde est prêt" }',
-    'if e.phase == "pause" { return texte + " terminée" }'])
+    'if e.phase == "pause" { return texte + (LangueWidget.anglais ? " done" : " terminée") }'])
     assert.ok(L.includes(k), k);
   /* Le clin d’œil : un œil fermé (comme rieur), l’autre ouvert */
   const y = entre(swift, 'private func yeux(_ e: CGFloat, _ paupiere: StrokeStyle) -> some View {', '\n    }\n}');
@@ -133,7 +133,7 @@ const page = ({vue = 'lobby', moi = 'L', hote = 'M', joueurs = ['M', 'L'], prets
     players: Object.fromEntries(['M', 'L', 'X'].map(p => [p, {name: '@' + p.toLowerCase()}])), rounds: [{cid: 'af4', t1: 1_700_000_000_000, found: {}}]};
   const C = {isNativePlatform: () => natif, addListener: (p, e, f) => ecoute.push([p, e, f]),
     nativePromise: (p, m, d) => { appels.push([m, ici(d)]); return Promise.resolve({ok: true}); }};
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     JEU: J, JEU_MAX: 6, jeuDureeMs: k => ({f: 600000, m: 900000, d: 1200000})[k] || 600000, JEU_SB: 'https://exemple.supabase.co', JEU_SB_KEY: 'sb_publishable_x', JSON, Math, Promise, Object, String, Array,
     CHALLENGES: [{id: 'af4', titre: 'Le meilleur client'}],
     jeuView: () => x.vue, jeuCur: () => (x.vue === 'lobby' ? -1 : 0), jeuLive: () => x.joueurs, jeuIsReady: p => p === x.J.hostPid || x.prets.includes(p),

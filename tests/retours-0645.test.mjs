@@ -93,7 +93,7 @@ test('le pont : les moments de la page, puis le nouveau compte une seconde aprè
 /* La page : la même suite que dans l’app, sur une leçon de quatre moments, validée avec trois */
 const lab = () => {
   const appels = [], etat = {ok: 0};
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     window: {Capacitor: {isNativePlatform: () => true, isPluginAvailable: n => n === 'RequeteWidget', nativePromise: (p, m, d) => { appels.push([m, JSON.parse(JSON.stringify(d))]); return Promise.resolve(); }}},
     LV: {id: 12, fin: false, video: {currentTime: 0, duration: 100}},
     MODULES: [{titre: 'Bases'}, {titre: 'Les jointures'}], moduleDeLecon: () => null,

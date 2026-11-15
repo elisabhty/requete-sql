@@ -25,7 +25,7 @@ test('le widget : la flamme du jour seule, plus de nombre de jours', () => {
   for (const k of ['private func flammeVue(_ w: CGFloat) -> some View {\n        ZStack(alignment: .bottomTrailing) {\n            Image(systemName: "flame.fill")',
     '.font(.system(size: w * 0.3, weight: .bold))', 'compteurVue(w)\n                .scaleEffect(humeur == .matin ? 0.55 : 1, anchor: .topLeading)'])
     assert.ok(vue.includes(k), k);
-  assert.ok(widget.includes('.configurationDisplayName("Ta flamme")'), 'son nom dans la galerie');
+  assert.ok(widget.includes('.configurationDisplayName(traduit("Ta flamme"))'), 'son nom dans la galerie');
   assert.ok(!vue.includes('entree.serie)') || vue.includes('entree.serie > 0 ?'), 'la série ne sert plus qu’à choisir la phrase du soir');
 });
 
@@ -121,7 +121,7 @@ test('scripts/ios-widget.mjs : NSSupportsLiveActivities ajouté une fois à l’
 /* La page : la Dynamic Island suit la leçon */
 const ileLab = ({natif = true, allumee = true} = {}) => {
   const appels = [];
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     window: natif ? {Capacitor: {isNativePlatform: () => true, isPluginAvailable: n => n === 'RequeteWidget', nativePromise: (p, m, d) => { appels.push([p, m, JSON.parse(JSON.stringify(d))]); return Promise.resolve(); }}} : {},
     LV: {id: 12, fin: false, video: {currentTime: 0, duration: 100}},
     MODULES: [{titre: 'Bases'}, {titre: 'Les jointures'}], moduleDeLecon: () => null,
@@ -178,7 +178,7 @@ test('les branchements dans le lecteur de la leçon', () => {
 /* La page : l’avis sur la leçon */
 const avisLab = ({reduit = false, rpc} = {}) => {
   const buzz = [], envois = [];
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     state: {avis: {}}, saves: 0, setTimeout, Promise,
     esc: s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]),
     buzz: t => buzz.push(t), prefersReduceMotion: () => reduit, clsCle: () => 'K'.repeat(32),
@@ -263,7 +263,7 @@ test('mouvement réduit : pas d’étincelles ; hors ligne : la note attend, pui
 });
 
 test('la note se garde dans la progression (normalizeState), sans rien d’autre', () => {
-  const ctx = vm.createContext({psForme: s => s});
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', psForme: s => s});
   vm.runInContext(cut(html, 'function normalizeState(raw){', '/* Un nombre écrit en texte'), ctx);
   const s = ctx.normalizeState({avis: {12: {n: 4, le: 1730000000000, envoye: false}, 7: {n: 5, le: 'x'}, 3: {n: 9}, abc: {n: 3}, 8: 'mauvais', 9: {n: 2.7, envoye: true}}});
   assert.deepEqual(JSON.parse(JSON.stringify(s.avis)), {7: {n: 5, le: 0, envoye: true}, 9: {n: 2, le: 0, envoye: true}, 12: {n: 4, le: 1730000000000, envoye: false}});

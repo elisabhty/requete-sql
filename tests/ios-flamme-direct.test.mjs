@@ -67,8 +67,8 @@ test('le compte à rebours et la barre avancent seuls ; « Il te reste 3 h 12 mi
   const barre = entre(swift, 'struct DirectBarre: View {', '\n}\n');
   assert.ok(barre.includes('return ProgressView(timerInterval: periode, countsDown: true) {\n            EmptyView()\n        } currentValueLabel: {\n            EmptyView()\n        }'), 'la barre se vide, sans texte');
   const sous = entre(swift, 'struct DirectSousTitre: View {', '\n}\n');
-  assert.ok(sous.includes('(Text("Il te reste ") + Text(flamme.minuit, style: .relative))'), 'le temps qui reste, en français, défilé par iOS');
-  assert.ok(sous.includes('Text("Ta prochaine séance rallumera ta flamme.")') && sous.includes('Text("À demain.")'));
+  assert.ok(sous.includes('reste = Text("Il te reste ") + Text(flamme.minuit, style: .relative)'), 'le temps qui reste, en français, défilé par iOS');
+  assert.ok(sous.includes('Text(traduit("Ta prochaine séance rallumera ta flamme."))') && sous.includes('Text(traduit("À demain."))'));
   const verrou = entre(swift, 'struct DirectVerrouille: View {', '\n}\n');
   for (const k of ['Image(chat)', 'LunettesChat(regard: regardDirect(moment), largeur: 26)', 'DirectSousTitre(flamme: flamme, moment: moment)',
     'if moment == .attend {\n                    DirectBarre(flamme: flamme)', 'DirectBouton(texte: flamme.action)'])
@@ -151,7 +151,7 @@ const page = ({ maintenant = heure(7, 12), actifs = [], rappel = '19:00', rappel
   };
   const Fige = class extends Date { constructor(...a) { if (a.length) super(...a); else super(x.maintenant); } static now() { return x.maintenant; } };
   const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     Date: Fige, JSON, Math, Promise, Set, Array, Number, String,
     localStorage: { getItem: k => (k in magasin ? magasin[k] : null), setItem: (k, v) => { magasin[k] = String(v); } },
     window: natif ? { Capacitor: C } : {}, navigator: {}, ileEtat,
@@ -322,7 +322,7 @@ test('le rappel du même soir, à la même heure, ne sonne pas en plus : la Live
   const t = new Date(), J = n => new Date(t.getFullYear(), t.getMonth(), t.getDate() + n), iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const pris = new Date(J(1).getFullYear(), J(1).getMonth(), J(1).getDate(), 19, 0).getTime();
   const poses = [];
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     PATTERN, state: { onboarded: true, plan: { freq: 7, sessions: [1, 2, 3].map(n => ({ d: iso(J(n)), lessons: [n] })) } }, draft: {},
     document: { getElementById: () => null }, rappelOn: () => true, rappelHeure: () => '19:00', itemDone: () => false,
     window: { Capacitor: { isNativePlatform: () => true, Plugins: { LocalNotifications: {

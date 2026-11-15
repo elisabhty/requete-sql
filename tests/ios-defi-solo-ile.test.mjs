@@ -37,7 +37,7 @@ test('l’île : « 1/3 » et le chrono à droite ; seul, la manche et les point
     'let m: Int = min(nb, max(1, e.manche))\n        return "\\(m)/\\(nb)"',
     'if p > 1 { return "\\(p)\\u{00A0}pts" }\n        return "\\(p)\\u{00A0}pt"',
     'if e.phase == "attente" { return compte(e, a) }\n        if e.phase != "fin" { return manches(e) }\n        if !aUnePlace(e, a) { return points(e, a) }\n        return rang(place(e, a))',
-    'if seul(e, a) { return "Ton score\\u{202F}: " + points(e, a) }\n        if e.phase == "fin" { return podium(e, a).joined(separator: "   ") }\n        return scores(e, a)',
+    'if seul(e, a) { return (LangueWidget.anglais ? "Your score: " : "Ton score\\u{202F}: ") + points(e, a) }\n        if e.phase == "fin" { return podium(e, a).joined(separator: "   ") }\n        return scores(e, a)',
     /* 13 novembre, 23 h 20 (« 1er sur 1 », « Toi 0 ») : seul dans sa salle, comme seul ; personne n’a de point, pas de place */
     'static func seul(_ e: RequeteSalle.ContentState, _ a: RequeteSalle) -> Bool {\n        return solo(a) || e.joueurs.count < 2',
     'return !e.joueurs.contains { (j: JoueurSalle) -> Bool in j.pts > 0 }',

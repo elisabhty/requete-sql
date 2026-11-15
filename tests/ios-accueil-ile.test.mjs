@@ -65,7 +65,7 @@ test('le widget : les yeux du chat à gauche, l’anneau à droite, l’île ouv
 test('la page : l’accueil, chaque étape, le parcours prêt, la fin ; rien pour l’aperçu ni un compte déjà inscrit', () => {
   const js = entre(app, 'let ileOb=null;', '\nfunction ileObFin(fini){') + '\n' + entre(app, 'function ileObFin(fini){', '\n}\n') + '\n}\n';
   const appels = [];
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     OB_SLIDES: ['welcome', 'name', 'level', 'practice', 'source', 'ready', 'pseudo'], obStep: 0, obApercu: false, obLegalMode: null,
     obFlowSteps: () => ['name', 'level', 'practice', 'source'], draft: {name: ''}, state: {onboarded: false},
     ilePont: () => ({}), ileAppel: (m, d) => appels.push([m, d]),

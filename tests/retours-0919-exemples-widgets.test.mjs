@@ -38,7 +38,7 @@ test('les exemples sont les vrais widgets de l’app : quatre sur l’écran d�
   assert.deepEqual(W.accueil.map(x => x.f), ['Petit', 'Moyen', 'Moyen', 'Grand'], 'leur taille, comme dans la galerie d’iOS');
   assert.deepEqual(W.verrou.map(x => x.k), ['jour', 'soir', 'fait']);
   /* Les noms sont ceux que la galerie de l’iPhone affiche (configurationDisplayName) */
-  for (const x of W.accueil) assert.ok(swift.includes(`.configurationDisplayName("${x.t}")`), x.t);
+  for (const x of W.accueil) assert.ok(swift.includes(`.configurationDisplayName(traduit("${x.t}"))`), x.t);
   tous(swift, ['.supportedFamilies([.systemSmall])', 'return [.systemLarge]', '.supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])']);
   assert.equal((swift.match(/\.supportedFamilies\(\[\.systemMedium\]\)/g) || []).length, 2, 'La requête de poche et Ta semaine : moyens');
   for (const x of W.accueil.concat(W.verrou)) {
@@ -69,7 +69,7 @@ test('les dessins : la galerie, ses points, et chaque widget tel que l’iPhone 
   const se = ctx.wgxSemaineHTML();
   assert.deepEqual([...se.matchAll(/<span class="wgx-se-col is-(\w+)( is-jour)?"><em>(\w+)<\/em>/g)].map(m => m[3] + ':' + m[1] + (m[2] ? '*' : '')), ['lun:fait', 'mar:fait', 'mer:repos', 'jeu:fait', 'ven:fait*', 'sam:avenir', 'dim:avenir']);
   tous(se, ['<b>SELECT</b> jour, flamme <b>FROM</b> ma_semaine;', `<span>7${NB}lignes · 4${NB}flammes</span><b>vendredi${NB}: flamme allumée</b>`, '<small>repos</small>']);
-  tous(swift, ['Text(verbatim: " jour, flamme ")', 'Text(verbatim: " ma_semaine;")', 'return "7\\u{00A0}lignes · \\(n)\\u{00A0}flammes"', 'case .fait: return nom + "\\u{00A0}: flamme allumée"', 'Text("repos")']);
+  tous(swift, ['Text(verbatim: colonnes)', 'Text(verbatim: table)', 'return "7\\u{00A0}lignes · \\(n)\\u{00A0}flammes"', 'case .fait: return nom + traduit("\\u{00A0}: flamme allumée")', 'Text(traduit("repos"))']);
   /* La cheminée : la pièce en image (composée avec les éléments du widget), le titre et la séance écrits par-dessus */
   const ch = ctx.wgxChemineeHTML();
   tous(ch, ['<img src="assets/widget-cheminee.webp" width="676" height="708" alt="" draggable="false">', `<b>Flamme allumée${FINE}!</b><small>Bien joué, à demain.</small>`, '</i>1/1</span>']);

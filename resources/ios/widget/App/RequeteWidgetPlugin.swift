@@ -190,6 +190,8 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         // Ta semaine (RequeteWidget.swift, SemaineRangement) : les jours actifs, les jours de repos du planning, le premier jour.
         d.set(call.getString("semaine") ?? "", forKey: "semaine")
+        // La langue de l’appli (« fr », « en ») : les widgets et les Live Activities parlent la même (RequeteWidget.swift, LangueWidget).
+        d.set(call.getString("langue") ?? "fr", forKey: "langue")
         WidgetCenter.shared.reloadAllTimelines()
         call.resolve()
     }

@@ -66,7 +66,7 @@ test('chaque pose : la bulle du matin, la flamme du soir, le saut de joie, et un
   const vue = entre('struct SerieVue: View {', 'struct Bulle: Shape {');
   for (const k of [
     /* le matin : la flamme se range dans le coin, la bulle sort de la bouche du chat */
-    `let phrase: String = entree.repos ? "Jour de repos${ESPACE}!" : "Une petite requête${ESPACE}?"`, 'Text(phrase)',
+    `let phrase: String = entree.repos ? "Jour de repos${ESPACE}!" : "Une petite requête${ESPACE}?"`, 'Text(traduit(phrase))',
     '.scaleEffect(humeur == .matin ? 0.55 : 1, anchor: .topLeading)', '.frame(width: w * 0.84, alignment: humeur == .matin ? .leading : .center)',
     '.transition(.scale(scale: 0.3, anchor: .bottomLeading).combined(with: .opacity))',
     /* le soir : la flamme grandit et rougeoie */
@@ -80,7 +80,7 @@ test('chaque pose : la bulle du matin, la flamme du soir, le saut de joie, et un
     /* le chat plonge vite, et ressort un peu après : d’un bond, s’il fête la séance */
     'insertion: AnyTransition.move(edge: .bottom).animation((humeur == .fete ? saut : ressort).delay(0.15))',
     'removal: AnyTransition.move(edge: .bottom).animation(.easeIn(duration: 0.2))',
-    '.animation(ressort, value: humeur)', '.accessibilityLabel(Text(libelle))'])
+    '.animation(ressort, value: humeur)', '.accessibilityLabel(Text(traduit(libelle)))'])
     assert.ok(vue.includes(k), k);
   /* Le chat : réveillé le matin, plus bas le soir, en l’air quand c’est fait */
   const haut = Object.fromEntries([...entre('private var hauteurChat: CGFloat {', '}\n\n').matchAll(/case \.(\w+): return ([\d.]+)/g)].map(m => [m[1], +m[2]]));
@@ -114,7 +114,7 @@ test('la bulle du matin commence après le compteur réduit', () => {
 });
 
 test('la galerie et le guide iOS', () => {
-  assert.ok(swift.includes('.description("La flamme du jour sur Requête, et le chat qui change avec la journée.")'));
+  assert.ok(swift.includes('.description(traduit("Ta flamme du jour, et Requête qui change avec la journée."))'));
   assert.ok(swift.includes('completion(SerieEntree(date: Date(), serie: 5, faitAujourdhui: true))'), 'la galerie montre la fête');
   assert.ok(ios.includes('### Le chat change dans la journée (4 novembre, 12 h 14)'));
 });

@@ -47,7 +47,7 @@ const bouton = ({ natif = true, fait = false } = {}) => {
   const haptics = { impact: o => H.push(['impact', o.style]), notification: o => H.push(['notification', o.type]),
     selectionStart: () => H.push(['start']), selectionChanged: () => H.push(['cran']), selectionEnd: () => H.push(['fin']) };
   const draft = {}, pied = [], reveils = [], suivant = el('ob-cta');
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     window: { Capacitor: natif ? { isNativePlatform: () => true, Plugins: { Haptics: haptics } } : undefined },
     document: { getElementById: id => (id === 'ob-hold' ? b : id === 'ob-hold-hint' ? hint : id === 'ob-next' ? suivant : null), querySelector: s => (s === '#ob-body .ob-pact-card' ? carte : null) },
     navigator: { vibrate: ms => H.push(['vibre', ms]) },
@@ -176,7 +176,7 @@ const pont = () => {
   const win = { Capacitor: { isNativePlatform: () => true, getPlatform: () => 'ios', Plugins: { Haptics: {
     impact: o => H.push(['impact', o.style]), notification: o => H.push(['notification', o.type]),
     selectionStart: () => {}, selectionChanged: () => H.push(['selection', 'cran']) } } } };
-  const ctx = vm.createContext({ window: win, navigator: {}, setTimeout: (f, ms) => timers.push([f, ms]),
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  window: win, navigator: {}, setTimeout: (f, ms) => timers.push([f, ms]),
     document: { documentElement: { classList: { add: () => {} } }, querySelector: () => null } });
   vm.runInContext(cut('/* ---------- App iOS (Capacitor) ----------', '  window.nativeAppReady=') + '})();', ctx);
   return { H, timers, win, vibre: p => vm.runInContext(`navigator.vibrate(${JSON.stringify(p)})`, ctx) };
@@ -212,7 +212,7 @@ test('buzz() parle directement au moteur haptique d’iOS : réussite, avertisse
   const f = cut("function buzz(type='light'){", "document.addEventListener('touchstart',()=>{},{passive:true});");
   const natif = (doublon = false) => {
     const H = [];
-    const ctx = vm.createContext({ window: { __toucheDoublon: () => doublon, Capacitor: { isNativePlatform: () => true, Plugins: { Haptics: {
+    const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  window: { __toucheDoublon: () => doublon, Capacitor: { isNativePlatform: () => true, Plugins: { Haptics: {
       impact: o => H.push(o.style), notification: o => H.push(o.type) } } } }, navigator: {} });
     vm.runInContext(f, ctx);
     return { H, ctx };
@@ -225,7 +225,7 @@ test('buzz() parle directement au moteur haptique d’iOS : réussite, avertisse
   for (const t of ['light', 'selection', 'medium', 'success']) vm.runInContext(`buzz('${t}')`, y.ctx);
   assert.deepEqual(y.H, ['MEDIUM', 'SUCCESS'], 'le même toucher : pas deux coups légers');
   /* Sur le web, rien ne change */
-  const v = [], w = vm.createContext({ window: {}, navigator: { vibrate: p => v.push(p), userActivation: { hasBeenActive: true } } });
+  const v = [], w = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  window: {}, navigator: { vibrate: p => v.push(p), userActivation: { hasBeenActive: true } } });
   vm.runInContext(f, w);
   for (const t of ["'light'", "'success'", '12']) vm.runInContext(`buzz(${t})`, w);
   assert.deepEqual(JSON.parse(JSON.stringify(v)), [8, [10, 40, 15], 12]);
@@ -234,7 +234,7 @@ test('buzz() parle directement au moteur haptique d’iOS : réussite, avertisse
 /* ---------- Les raccourcis de l’icône ---------- */
 const page = ({ onboarded = true, enSeance = false, ct = { type: 'bug', msg: '' } } = {}) => {
   const vu = [];
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     window: {}, document: { querySelector: sel => (sel === '#scr-lesson.active,#lesson-video' && enSeance ? {} : null) },
     state: { onboarded }, switchTab: t => vu.push(['onglet', t]), mascotRetrouveJusqua: 0, mascotDitRetrouve: () => vu.push(['bulle']),
     setTimeout: (f, ms) => { vu.push(['attend', ms]); f(); },
@@ -268,7 +268,7 @@ test('« Juge-nous (gentiment) 👀 » ouvre « Contacte-nous » sur « Autre ch
 /* ---------- Les rappels ---------- */
 const rappel = cut('/* Les jours du rappel (Elisa, 4 novembre, 11 h 08, réf. 2)', '/* Le rappel dans Mon compte (Elisa, 5 novembre, 12 h 12');
 const rctx = (freq = 7, extra = {}) => {
-  const ctx = vm.createContext({ PATTERN, state: { plan: { freq } }, draft: {}, document: { getElementById: () => null },
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr',  PATTERN, state: { plan: { freq } }, draft: {}, document: { getElementById: () => null },
     rappelOn: () => true, rappelHeure: () => '07:45', ...extra });
   vm.runInContext(rappel.replace('const JOURS_NOMS=', 'var JOURS_NOMS=').replace('const RAPPEL_MESSAGES=', 'var RAPPEL_MESSAGES='), ctx);
   return ctx;
@@ -314,5 +314,5 @@ test('le rappel sur l’iPhone : une notification par séance à venir, chacune 
   /* 21 h 41 : d’après le planning, et seulement si ce qui est prévu a changé depuis la dernière fois (retours-2141) */
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)"),
     'à l’ouverture de l’appli : les semaines suivantes, sans attendre d’avoir touché au rappel');
-  assert.ok(sw.includes("requete-2026-11-15-module-v3067"), 'le cache de l’appli change');
+  assert.ok(sw.includes("requete-2026-11-15-module-v3068"), 'le cache de l’appli change');
 });

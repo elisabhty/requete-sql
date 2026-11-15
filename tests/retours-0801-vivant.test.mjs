@@ -142,7 +142,7 @@ test('la page : quitter l’app en pleine leçon anime toujours l’île ; en pl
   assert.ok(app.includes("function lvHidden(){ if(!LV)return; if(document.hidden){ LV.video.pause(); ileMaj(true); }"), 'force : seulement quand on quitte l’app');
   const js = entre(app, 'let ileOb=null;', '\nfunction ileObFin(fini){');
   const appels = [], ecoutes = {};
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     OB_SLIDES: ['welcome', 'name', 'level', 'practice', 'source', 'ready'], obStep: 0, obApercu: false, obLegalMode: null,
     obFlowSteps: () => ['name', 'level', 'practice', 'source'], draft: {name: 'Elisa'}, state: {onboarded: false},
     ilePont: () => ({}), ileAppel: (m, d) => appels.push([m, JSON.parse(JSON.stringify(d))]),
@@ -186,7 +186,7 @@ test('les deux fichiers Swift : accolades, parenthèses et crochets équilibrés
 
 /* ---------- La page du widget, dans l’app ---------- */
 test('la tuile est dessinée comme le vrai widget : la flamme et « 0/1 », la coche, la bulle, la phrase du soir, les étincelles, le chat', () => {
-  const ctx = vm.createContext({FLAME_SVG: '<svg class="f"/>', MASCOT_IMG: 'chat.webp'});
+  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', FLAME_SVG: '<svg class="f"/>', MASCOT_IMG: 'chat.webp'});
   vm.runInContext(entre(app, "const OB_WG_ETOILE=", '\nconst OB_WT_TEXTES=') + ';this.tuile=obWidgetTuile;', ctx);
   const t = ctx.tuile('fete');
   assert.ok(t.startsWith('<span class="ob-wg" data-m="fete"><span class="ob-wg-top"><span class="ob-wg-flw"><span class="ob-wg-fl"><svg class="f"/></span><i class="ob-wg-ok">'));
@@ -205,7 +205,7 @@ test('la tuile est dessinée comme le vrai widget : la flamme et « 0/1 », la c
 test('la page du widget joue la journée en boucle : matin, soir, fête ; entre deux, le chat plonge ; sans mouvement, la fête posée', () => {
   const jouer = reduit => {
     const timers = [], journal = [], classes = new Set(), wg = {dataset: {m: 'jour'}, classList: {add: (...c) => { c.forEach(x => classes.add(x)); journal.push('+' + c.join(',')); }, remove: c => { classes.delete(c); journal.push('-' + c); }}};
-    const ctx = vm.createContext({OB_SLIDES: ['widget'], obStep: 0, obDemoTimers: [], prefersReduceMotion: () => reduit, buzz: f => journal.push('buzz'),
+    const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', OB_SLIDES: ['widget'], obStep: 0, obDemoTimers: [], prefersReduceMotion: () => reduit, buzz: f => journal.push('buzz'),
       document: {querySelector: s => (s === '#ob-body .wgx .ob-wg' ? wg : null), body: {contains: () => true}}, setTimeout: (f, d) => { timers.push({f, d}); return timers.length; }});
     vm.runInContext(entre(app, 'const OB_WG_MOMENTS=', '\n/* Les trois étapes du tutoriel, en boucle') + ';this.jouer=obWidgetPromoJouer;', ctx);
     ctx.jouer();
@@ -247,5 +247,5 @@ test('les moments de la tuile sont des états, les passages des transitions ; l�
 
 test('la feuille de style et le cache changent de version', () => {
   assert.ok(app.includes('onboarding-vitrine.css?v=73'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3067';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3068';"));
 });
