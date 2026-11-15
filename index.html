@@ -50833,7 +50833,9 @@ let obTv=null;
    autocollant lavande comme « Tes retours font l’appli » de la vitrine (decouvrir/, section des avis), avec son étoile. */
 const OB_STK_AVIS='<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4l5.6 11.8 12.9 1.6-9.5 8.9 2.4 12.8L24 32.8l-11.4 6.3 2.4-12.8-9.5-8.9 12.9-1.6z" fill="#fff" stroke="#fff" stroke-width="7" stroke-linejoin="round"/><path d="M24 4l5.6 11.8 12.9 1.6-9.5 8.9 2.4 12.8L24 32.8l-11.4 6.3 2.4-12.8-9.5-8.9 12.9-1.6z" fill="#FFC83D" stroke="#1B1640" stroke-width="2.5" stroke-linejoin="round"/><path d="M17.5 21.5c1.2-2 3.6-2.6 5.2-1.4" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>';
 function obTemoinsHtml(){
-  const liste=obTemoinsListe(),r=liste[0],montres=OB_FORMATEURS.slice(0,4);
+  /* 15 novembre, 2 h 57 (Elisa : « on garde cette voix et cette photo pour tous les modules ») : dans une autre langue, une seule
+     formatrice donne tous les cours (la voix anglaise, la photo des modules 1 et 2) ; la page n’en annonce pas huit. */
+  const seule=!!obLangue(),liste=obTemoinsListe(),r=liste[0],montres=OB_FORMATEURS.slice(0,seule?1:4);
   obTv={liste,i:0,raf:0,bars:[],last:-2,lit:null};
   return `<div class="ob-tv" id="ob-tv">
       <span class="ob-stk lav ob-tv-stk">Découvre ce qu’ils en pensent${OB_STK_AVIS}</span>
@@ -50849,7 +50851,7 @@ function obTemoinsHtml(){
       <p class="ob-tv-note">De vrais avis, recueillis sur le site requeteapp.com, lus par une voix de synthèse</p>
       <p class="ob-sr" id="ob-tv-tx"></p>
     </div>
-    <div class="ob-tv-profs"><span class="ob-tv-faces" aria-hidden="true">${montres.map(([f],j)=>`<img src="assets/anim/${f}.webp" width="420" height="420" alt="" style="--i:${j}" draggable="false">`).join('')}<b style="--i:${montres.length}">+${OB_FORMATEURS.length-montres.length}</b></span><p><b>${OB_FORMATEURS.length} formateurs</b> te feront progresser</p></div>`;
+    <div class="ob-tv-profs"><span class="ob-tv-faces" aria-hidden="true">${montres.map(([f],j)=>`<img src="assets/anim/${f}.webp" width="420" height="420" alt="" style="--i:${j}" draggable="false">`).join('')}${seule?'':`<b style="--i:${montres.length}">+${OB_FORMATEURS.length-montres.length}</b>`}</span><p>${seule?'<b>Ta formatrice</b> te fera progresser':`<b>${OB_FORMATEURS.length} formateurs</b> te feront progresser`}</p></div>`;
 }
 /* « l’avis d’Aminata C. », « l’avis de Sofia B. » */
 function obTvDe(n){return (/^[aeiouyàâäéèêëîïôöûü]/i.test(n)?'d’':'de ')+n;}
@@ -53548,7 +53550,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3050';
+  const SW_CACHE='requete-2026-11-15-module-v3051';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

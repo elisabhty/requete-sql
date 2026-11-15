@@ -3017,6 +3017,9 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Offre de bienvenue 🎁": "Welcome offer 🎁",
     "<em>−{pct} %</em> sur ta première année": "<em>{pct}% off</em> your first year",
     "Débloque tout Requête pendant un an.": "Unlock all of Requête for a year.",
-    "Ton accès annuel": "Your yearly access"
+    "Ton accès annuel": "Your yearly access",
+    /* 15 novembre, 2 h 57 : en anglais, une seule formatrice pour tous les cours */
+    "Ta formatrice te fera progresser": "Your instructor will help you progress",
+    "<1>Ta formatrice</1> te fera progresser": "<1>Your instructor</1> will help you progress"
   }
 });

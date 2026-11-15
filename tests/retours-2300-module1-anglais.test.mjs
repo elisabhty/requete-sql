@@ -390,4 +390,11 @@ test('l’onboarding entier en anglais : le paywall, l’offre de bienvenue, le 
     for (const f of fs.readdirSync(OUT).filter(f => f.endsWith('.mp3')).sort()) { HV.update(f); HV.update(fs.readFileSync(path.join(OUT, f))); }
     assert.ok(lire(`assets/anim/en/${c}.js`).includes(`{voix: {dir: '../voix/en/${c}/', v: '${HV.digest('hex').slice(0, 8)}',`), `${c} : la version de ses fichiers`);
   }
+  /* 2 h 57 et 3 h (« on garde cette voix et cette photo pour tous les modules », « je parle de la blonde ») : en anglais, Brielle et
+     la photo de la formatrice blonde des modules 1 et 2 (formatrice.webp) dans toutes les vidéos ; l’onboarding n’annonce plus huit
+     formateurs, mais sa formatrice. */
+  assert.ok(lire('tools/voix/preparer-langue.mjs').includes("const [cours, voixId = '6u6JbqKdaQy89ENzLSju', voixNom = 'Brielle'] = process.argv.slice(2);"));
+  assert.ok(lire('assets/anim/core.css').includes('html[lang="en"]:is(.tr-f,.tr-m) #cap .cap-stk{background:url(formatrice.webp) 50% 0/134px 134px no-repeat,'));
+  assert.ok(app.includes("montres=OB_FORMATEURS.slice(0,seule?1:4);") && app.includes("${seule?'<b>Ta formatrice</b> te fera progresser':`<b>${OB_FORMATEURS.length} formateurs</b> te feront progresser`}"));
+  assert.equal(anglais().L.t('<1>Ta formatrice</1> te fera progresser'), '<1>Your instructor</1> will help you progress');
 });

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Voix off dans une autre langue : prépare tools/voix/<langue>/<cours>.json pour generer.mjs (--langue <langue>), depuis
    tools/voix/<cours>.json (la voix française) et la vidéo traduite (assets/anim/<langue>/<cours>.js).
-   node tools/voix/preparer-langue.mjs <cours> <id de la voix> <nom de la voix>      (lancé par Claude : il ouvre la vidéo dans un
+   node tools/voix/preparer-langue.mjs <cours> [<id de la voix> <nom de la voix>]    (Brielle sans voix donnée ; lancé par Claude : il ouvre la vidéo dans un
    navigateur sans écran, Playwright, servi sur http://localhost:8765 ; PLAYWRIGHT : le chemin du module si besoin)
    - chaque fichier garde l’id du français (ch01, at1, indice1…) ;
    - ses phrases : les légendes anglaises de ses légendes françaises, dans l’ordre (VOICE.caps de la page dit quelle légende va à
@@ -10,7 +10,9 @@
    - la prononciation anglaise du code (DIRE : customer_id se dit « customer underscore ID », * « star »). */
 const { chromium } = await import(process.env.PLAYWRIGHT || '/opt/npm-tools/node_modules/playwright/index.mjs');
 import fs from 'node:fs';
-const [cours, voixId, voixNom] = process.argv.slice(2);
+/* 15 novembre, 2 h 57 (Elisa : « on garde cette voix et cette photo pour tous les modules ») : sans voix donnée, Brielle, la voix
+   anglaise de tous les cours (et, dans les vidéos, la photo de la formatrice des modules 1 et 2 : core.css). */
+const [cours, voixId = '6u6JbqKdaQy89ENzLSju', voixNom = 'Brielle'] = process.argv.slice(2);
 const R = new URL('../../', import.meta.url).pathname;
 const fr = JSON.parse(fs.readFileSync(`${R}tools/voix/${cours}.json`, 'utf8'));
 const b = await chromium.launch(); const ctx = await b.newContext({viewport: {width: 1080, height: 1920}});

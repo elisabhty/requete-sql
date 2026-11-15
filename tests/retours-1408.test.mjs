@@ -40,7 +40,7 @@ const faux = () => {
 };
 const lecteur = (goal, communaute) => {
   const d = faux();
-  const ctx = vm.createContext({ draft: { goal }, document: d.document, Image: function () {}, escAttr: s => String(s).replace(/"/g, '&quot;'), obTypo: s => s,
+  const ctx = vm.createContext({ obLangue: () => null, draft: { goal }, document: d.document, Image: function () {}, escAttr: s => String(s).replace(/"/g, '&quot;'), obTypo: s => s,
     obNombre: n => Number(n).toLocaleString('fr-FR'), cancelAnimationFrame() {}, requestAnimationFrame() {}, obDemoTimers: [], setTimeout: () => 0, buzz() {}, isFinite });
   vm.runInContext((communaute === undefined ? bloc : bloc.replace('const OB_COMMUNAUTE=1000;', `const OB_COMMUNAUTE=${communaute};`)) + ';this.OB_TEMOINS=OB_TEMOINS;this.OB_FORMATEURS=OB_FORMATEURS;this.obTvLire=()=>obTv;', ctx);
   return { ctx, d };

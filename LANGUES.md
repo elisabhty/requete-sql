@@ -142,6 +142,9 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   `LV_DUREES` (index.html) et sur sa vignette, refaite après la voix.
   Les fichiers d’une voix se demandent sous `?v=<version>` (`v` du bloc de voix, tirée de leur contenu par integrer.mjs) : une
   voix refaite sous les mêmes noms n’est jamais servie par un cache (15 novembre, 2 h 47 : l’ancienne voix restait dans l’appli).
+  **Une seule voix et une seule photo pour tous les modules** (Elisa, 15 novembre, 2 h 57 et 3 h : « on garde cette voix et cette
+  photo », « la blonde ») : Brielle (la voix par défaut de preparer-langue.mjs) et la photo de la formatrice blonde des modules 1 et
+  2 (`formatrice.webp`, core.css), quel que soit le formateur du module en français ; l’onboarding anglais présente sa formatrice.
 - **L’onboarding entier** (15 novembre, « bcp de phrases en français encore ») : le paywall, l’offre de bienvenue, le rappel et
   l’avis audio. Une phrase qui porte un montant ou une date se traduit par son gabarit (`obPh('{prix} aujourd’hui, puis {quand}.', …)`,
   le gabarit dans langue-en.js), puis reçoit ses montants, écrits à la manière de la langue (`obLoc()` : « €44.99 », « $39.99 »,
