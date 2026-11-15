@@ -81,7 +81,11 @@ const PARLE = s => s
   /* Module 7 (15 novembre) : les fenêtres. PARTITION BY et ROWS BETWEEN en minuscules comme group by ; un calcul se dit en mots
      (« 0 plus 26, divided by 2, equals 13 days », « minus 23 days ») */
   .replace(/\bOVER \(\)/g, 'OVER').replace(/\bPARTITION BY\b/g, 'partition by').replace(/\bROWS BETWEEN\b/g, 'rows between')
-  .replace(/\((\d+) (?:\+|plus) (\d+)\) ÷ (\d+) (?:=|equals) /g, '$1 plus $2, divided by $3, equals ').replace(/\bntile\b/g, 'N-tile').replace(/ ÷ /g, ' divided by ').replace(/−(\d)/g, 'minus $1');
+  .replace(/\((\d+) (?:\+|plus) (\d+)\) ÷ (\d+) (?:=|equals) /g, '$1 plus $2, divided by $3, equals ').replace(/\bntile\b/g, 'N-tile').replace(/ ÷ /g, ' divided by ').replace(/−(\d)/g, 'minus $1')
+  /* Module 8 (15 novembre) : les relations (« 1 to N », « N to N », pas « 1 gives N ») et les multiplicités UML dites signe par
+     signe (« zero dot dot star », « one dot dot star », « zero dot dot one ») */
+  .replace(/\b([1N]) [→↔] ([1N])\b/g, '$1 to $2')
+  .replace(/\b([01])\.\.(\*|[01])/g, (t, a, b) => ['zero', 'one'][a] + ' dot dot ' + (b === '*' ? 'star' : ['zero', 'one'][b]));
 const DIRE = s => PARLE(s.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&'))
   /* Comme les retouches de la voix française : « Prix en euros », « l’euro entre parenthèses », « le numéro de la page moins un » */
   .replace(/Price \(€\)/g, 'Price in euros').replace(/\(€\)/g, 'the euro in parentheses')
@@ -109,7 +113,7 @@ const SAY = {bienvu: 'Nice one!', rattrape: 'Nice save!', presque: 'Not quite. R
 const tag = el => (/^\[(\w+)\]/.exec(el.texte) || [, 'cheerful'])[1];
 const out = {cours, titre: fr.titre, note: `La voix anglaise de « ${fr.titre} » (module 1 : 14 novembre ; module 2 : 15 novembre) : chaque fichier garde l’id du français ; phrases : les légendes anglaises dites à voix haute ; cles : la légende française de chaque phrase (vkey).`,
   voix: {id: voixId, nom: voixNom}, modele: fr.modele, langue: 'en', format: fr.format, elements: []};
-const manque = [], horsAppli = [];
+const manque = [], horsAppli = [], sansIndice = [];
 for (const el of fr.elements) {
   let phrases = [], cles = null;
   if (el.id === 'ch00') phrases = [`${/^Premier cours/.test(el.texte.replace(/^\[\w+\]\s*/, '')) ? 'First' : 'New'} lesson: ${D.sub.toLowerCase()}.`, D.bulle];
@@ -122,7 +126,12 @@ for (const el of fr.elements) {
     phrases = cles.map(k => { if (!D.caps[k]) manque.push(el.id + ':' + k); return D.caps[k] || ''; });
   }
   else if (/^at\d$/.test(el.id)) phrases = ['Your turn! ' + D.M[+el.id.slice(2) - 1].prompt];
-  else if (/^indice\d$/.test(el.id)) phrases = [D.M[+el.id.slice(6) - 1].tip];
+  else if (/^indice\d$/.test(el.id)) {
+    /* L’indice joué après deux erreurs : celui qui s’affiche (tip, moments.js). 15 novembre (module 8) : un moment qui n’en a pas
+       (un tri à glisser, seulement une aide sur le geste) n’affiche rien et ne joue rien : pas de fichier. */
+    if (!D.M[+el.id.slice(6) - 1].tip) { sansIndice.push(el.id); continue; }
+    phrases = [D.M[+el.id.slice(6) - 1].tip];
+  }
   else if (/^touche\d$/.test(el.id)) phrases = [D.O[+el.id.slice(6) - 1]];
   else if (el.id === 'lienapres') phrases = [D.apres];
   else if (el.id === 'lienavant') phrases = [D.avant];
@@ -139,4 +148,4 @@ for (const el of fr.elements) {
 const ch = out.elements.filter(e => e.phrases && /^ch/.test(e.id));
 ch.forEach((e, i) => { if (i) e.avant = ch[i - 1].phrases.at(-1); if (i < ch.length - 1) e.apres = ch[i + 1].phrases[0]; });
 fs.writeFileSync(`${R}tools/voix/en/${cours}.json`, JSON.stringify(out, null, 2) + '\n');
-console.log('manque', manque, 'hors appli', horsAppli, 'caracteres', out.elements.reduce((a, e) => a + e.texte.length, 0));
+console.log('manque', manque, 'hors appli', horsAppli, 'sans indice', sansIndice, 'caracteres', out.elements.reduce((a, e) => a + e.texte.length, 0));

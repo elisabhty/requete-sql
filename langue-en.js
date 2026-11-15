@@ -3037,6 +3037,21 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     /* 15 novembre, 2 h 57 : en anglais, une seule formatrice pour tous les cours */
     "Ta formatrice te fera progresser": "Your instructor will help you progress",
     "<1>Ta formatrice</1> te fera progresser": "<1>Your instructor</1> will help you progress",
+    /* Les fiches des cours du module 8 (Modéliser : le projet des ateliers, 15 novembre) */
+    "Tout regrouper dans <1>une seule table</1> entraîne des répétitions et peut provoquer des erreurs lors des ajouts, modifications ou suppressions.": "Putting everything in <1>a single table</1> leads to repetition and can cause errors when adding, changing or deleting data.",
+    "<1>Normaliser</1>, c’est répartir les informations dans des tables reliées, en suivant les trois <2>formes normales</2> ({1}FN, {2}FN, {3}FN).": "<1>Normalizing</1> means spreading the information across linked tables, following the three <2>normal forms</2> ({1}NF, {2}NF, {3}NF).",
+    "La <1>table inscriptions</1> relie les clients aux ateliers.": "The <1>enrollments table</1> links customers to workshops.",
+    "Elle contient aussi la date de chaque inscription, car cette date concerne la participation d’un client à un atelier précis.": "It also holds the date of each enrollment, because this date is about a customer taking part in a specific workshop.",
+    "La <1>clé primaire</1> identifie chaque ligne d’une table. Elle est unique et ne peut pas être vide (<2/>).": "The <1>primary key</1> identifies each row of a table. It’s unique and can’t be empty (<2/>).",
+    "La <1>clé étrangère</1> fait référence à une clé d’une autre table pour relier les données.": "The <1>foreign key</1> refers to a key in another table to link the data.",
+    "Les relations peuvent être de trois types :": "Relationships come in three types:",
+    ": une clé étrangère unique.<1/><2>{1} → N</2> : une clé étrangère du côté « plusieurs ».<3/><4>N ↔ N</4> : une table d’association, avec une ligne par lien.": ": a unique foreign key.<1/><2>{1} → N</2>: a foreign key on the “many” side.<3/><4>N ↔ N</4>: an association table, with one row per link.",
+    "Le <1>diagramme de classes UML</1> représente les classes, leurs attributs et les associations entre elles.": "The <1>UML class diagram</1> shows the classes, their attributes and the associations between them.",
+    "Il sert de référence pour créer la base de données.": "It’s the reference for creating the database.",
+    "Les <1>multiplicités</1> indiquent combien d’éléments peuvent être associés à un élément de l’autre classe.": "<1>Multiplicities</1> say how many items can be associated with one item of the other class.",
+    "Par exemple, <1>{1}..*</1> côté Atelier signifie qu’un coach peut animer zéro, un ou plusieurs ateliers.": "For example, <1>{1}..*</1> on the Workshop side means a coach can lead zero, one or several workshops.",
+    "Pour passer aux <1>tables</1>, chaque classe devient une table et ses attributs deviennent des colonnes.": "To move to <1>tables</1>, each class becomes a table and its attributes become columns.",
+    "<1>Un à un</1> → clé étrangère avec <2/>.<3/><4>Un à plusieurs</4> → clé étrangère côté « plusieurs ».<5/><6>Plusieurs à plusieurs</6> → table d’association.": "<1>One-to-one</1> → foreign key with <2/>.<3/><4>One-to-many</4> → foreign key on the “many” side.<5/><6>Many-to-many</6> → association table.",
     /* Les fiches des cours du module 7 (Fonctions de fenêtre, 15 novembre) */
     "Calculer en conservant chaque ligne": "Calculating while keeping each row",
     "Une fonction de fenêtre effectue un calcul sur un ensemble de lignes tout en gardant le détail de chacune. <1/> affiche le nombre total sur chaque ligne.": "A window function runs a calculation over a set of rows while keeping the detail of each one. <1/> shows the total number on every row.",

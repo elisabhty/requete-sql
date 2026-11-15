@@ -159,6 +159,13 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   cumul : running_total, gamme : tier…) ; le « délai » entre deux commandes se dit « gap ». Le code hors des cartes est écrit pour
   la base (`codeSel` : l'étiquette « GROUP BY categorie », le tri des commandes, la requête du total) ; `FIRST_VALUE(nom)` porte
   `data-en` (le nom d'un produit, pas d'un client).
+- **Le module 8** (15 novembre, « suite ») : Modéliser, le projet des ateliers bien-être (Normaliser les inscriptions, Clés et
+  relations, Modéliser avec UML). La base du projet a ses tables pour ces trois pages (`base` de chaque `assets/anim/en/<cours>.js`) :
+  ateliers : workshops, inscriptions : enrollments, coachs : coaches, cartes : cards ; `date_inscription` y est `enrollment_date`
+  (chez un client, `signup_date`) : `<body data-table="inscriptions">` met cette table en premier. Les ateliers : Recovery, Healthy
+  cooking, Pilates, Meditation, Morning yoga ; les classes UML : Customer, Coach, Workshop, Card, Enrollment ; 1FN : 1NF. Les titres
+  des couvertures, lettre par lettre, ont leurs lettres anglaises (`data-en` : NORMALIZE, KEYS). Les requêtes de « Clés et
+  relations » sont écrites pour la base avant d’être découpées en caractères pour la frappe (`LG.ecrireCode` dans `dom()`).
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
@@ -191,6 +198,10 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   14 400 caractères) ; les fonctions se disent comme on les lit (« row number », « dense rank », « lag of order underscore date »,
   « N-tile of 3 », « first value of name »), partition by et rows between en minuscules comme group by, un calcul en mots
   (« 0 plus 26, divided by 2, equals 13 days », « minus 23 days »).
+  Module 8 (15 novembre) : les trois fichiers sont prêts (`projet-normaliser.json`, `projet-cles.json`, `projet-uml.json`, environ
+  12 400 caractères) ; « 1 → N » se dit « 1 to N » (pas « gives »), « 0..* » « zero dot dot star ». Un moment sans indice affiché
+  (un tri à glisser : seulement une aide sur le geste) n’a pas de fichier d’indice : l’appli ne joue l’indice qu’avec le `tip`
+  qu’elle affiche après deux erreurs (moments.js).
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

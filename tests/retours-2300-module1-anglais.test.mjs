@@ -705,7 +705,7 @@ test('le module 7 en entier : chaque vidéo charge ses textes anglais, gardés n
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(/<body data-table="(produits|commandes)">/.test(pg), c);
   }
-  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7].map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7].map(c => `'${c}'`).join(',') + ','));
   /* Le code hors des cartes : l'étiquette « GROUP BY categorie », le tri des commandes, la requête du total */
   for (const [c, sel] of [['over', "'.mini, .lst-t.mono'"], ['fonctions-rang', "'.mini, .ob'"], ['fenetres-glissantes', "'.mini, .sm2-q'"], ['lag-lead', "'.mini'"], ['first-last-ntile', "'.mini'"]])
     assert.ok(lire(`assets/anim/${c}.html`).includes(`Course({codeSel: ${sel}, duration: DURATION,`), c);
@@ -758,4 +758,69 @@ test('la voix anglaise du module 7 : Brielle, les ids du français, les fonction
     total += en.elements.reduce((a, e) => a + e.texte.length, 0);
   }
   assert.ok(total > 12500 && total < 16500, `${total} caractères (autant de crédits)`);
+});
+
+/* Module 8 (« Modéliser », 15 novembre) : le projet des ateliers bien-être, ses trois vidéos en anglais, leurs tables, leur voix préparée */
+const M8 = ['projet-normaliser', 'projet-cles', 'projet-uml'];
+test('le module 8 en entier : les ateliers deviennent workshops, les inscriptions enrollments ; le code tapé écrit pour la base', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  for (const c of M8) {
+    const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X').replace('? workshop', '')), `${c} : la typographie anglaise : ${v}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
+    /* la table des inscriptions d'abord : date_inscription y est enrollment_date (signup_date chez un client) */
+    assert.ok(pg.includes('<body data-table="inscriptions">'), c);
+    assert.equal(textes['date_inscription'], 'enrollment_date', c);
+    const {L, ctx} = anglais();
+    vm.runInNewContext(lire(`assets/anim/en/${c}.js`), ctx);
+    /* ligne par ligne, comme l'éditeur : chaque texte avec la requête entière pour contexte, la table des inscriptions d'abord */
+    const req = 'CREATE TABLE inscriptions ( id INTEGER PRIMARY KEY, client_id INTEGER, atelier_id INTEGER, date_inscription DATE, FOREIGN KEY (client_id) REFERENCES clients(id) )';
+    assert.deepEqual(['CREATE TABLE inscriptions (', '  client_id INTEGER,', '  date_inscription DATE,', '    REFERENCES clients(id),'].map(l => L.sql(l, 'inscriptions ' + req)),
+      ['CREATE TABLE enrollments (', '  customer_id INTEGER,', '  enrollment_date DATE,', '    REFERENCES customers(id),'], c);
+    assert.equal(L.sql('CREATE TABLE cartes ( client_id INTEGER UNIQUE, seances INTEGER ) ; FOREIGN KEY (coach_id) REFERENCES coachs(id) ; ateliers', 'cartes'),
+      'CREATE TABLE cards ( customer_id INTEGER UNIQUE, sessions INTEGER ) ; FOREIGN KEY (coach_id) REFERENCES coaches(id) ; workshops', c);
+  }
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8].map(c => `'${c}'`).join(',') + ']};'));
+  /* Les titres des couvertures, lettre par lettre : NORMALIZE, KEYS */
+  assert.ok(lire('assets/anim/projet-normaliser.html').includes('<span>I</span><span data-en="Z">S</span><span>E</span><span data-en="">R</span></div>'));
+  assert.ok(lire('assets/anim/projet-cles.html').includes('<span data-en="K">C</span><span data-en="E">L</span><span data-en="Y">É</span><span>S</span>'));
+  /* Les requêtes de « Clés et relations » s'écrivent pour la base avant d'être découpées pour la frappe */
+  const cles = lire('assets/anim/projet-cles.html');
+  assert.ok(cles.indexOf("$$('.sq .ln').forEach(el => LG.ecrireCode(el));") > 0 && cles.indexOf("$$('.sq .ln').forEach(el => LG.ecrireCode(el));") < cles.indexOf("$$('.sq .ln').forEach(splitChars);"));
+  const {L} = anglais();
+  for (const [fr, en] of [['<1>Normaliser</1>, c’est répartir les informations dans des tables reliées, en suivant les trois <2>formes normales</2> (1FN, 2FN, 3FN).',
+    '<1>Normalizing</1> means spreading the information across linked tables, following the three <2>normal forms</2> (1NF, 2NF, 3NF).']])
+    assert.equal(L.t(fr), en, fr);
+});
+
+test('la voix anglaise du module 8 : Brielle, les ids du français, les relations et les multiplicités dites en mots', () => {
+  const br = JSON.parse(lire('tools/voix/en/bases-relationnelles.json')), prep = lire('tools/voix/preparer-langue.mjs');
+  const DIRE = new Function(prep.slice(prep.indexOf('const B = '), prep.indexOf('const parFichier')) + '\nreturn DIRE;')();
+  for (const [x, dit] of [['The rule: in a 1 → N relationship, the foreign key goes on the “many” side.', 'The rule: in a 1 to N relationship, the foreign key goes on the “many” side.'],
+    ['It’s a “many-to-many” relationship, written N ↔ N.', 'It’s a “many-to-many” relationship, written N to N.'],
+    ['Likewise, 1..* means “at least one” and 0..1 “zero or one”.', 'Likewise, one dot dot star means “at least one” and zero dot dot one “zero or one”.'],
+    ['With x → y, the result changes.', 'With x gives y, the result changes.']])
+    assert.equal(DIRE(x), dit, x);
+  let total = 0;
+  for (const c of M8) {
+    const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.equal(en.langue, 'en'); assert.equal(en.cours, c); assert.deepEqual(en.voix, br.voix, c); assert.equal(en.modele, fr.modele);
+    const ids = fr.elements.map(e => e.id), chs = ids.filter(i => /^ch/.test(i));
+    assert.deepEqual(en.elements.map(e => e.id), ids.filter(i => en.elements.some(e => e.id === i)), `${c} : l’ordre du français`);
+    assert.ok(!en.elements.some(e => e.id === chs[chs.length - 1]), `${c} : le « Pour finir » n’est pas joué dans l’appli`);
+    /* un tri à glisser n'a pas d'indice affiché (moments.js : hint(i) lit tip) : pas de fichier d'indice */
+    assert.deepEqual(fr.elements.map(e => e.id).filter(i => /^indice/.test(i) && !en.elements.some(e => e.id === i)), {'projet-normaliser': ['indice4'], 'projet-cles': ['indice6'], 'projet-uml': ['indice2', 'indice6']}[c], c);
+    for (const e of en.elements) {
+      const t = e.texte.replace(/^\[\w+\]\s*/, '');
+      assert.ok(t.length > 3, `${c} ${e.id} : vide`);
+      assert.ok(!/[«»<>=≠→↔⇔|+*%_×÷−'"@]|\.\.|\w\(|[A-Za-z_]\.[A-Za-z]|&[a-z]+;|Pour finir|idées à retenir|atelier|inscription|\b(SELECT|FROM|WHERE|JOIN)\b/.test(t), `${c} ${e.id} : ${t}`);
+      if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
+    }
+    total += en.elements.reduce((a, e) => a + e.texte.length, 0);
+  }
+  assert.ok(total > 10500 && total < 14500, `${total} caractères (autant de crédits)`);
 });
