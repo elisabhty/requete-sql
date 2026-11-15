@@ -208,6 +208,8 @@
       if (p >= 0 && L[p].v === '.') {
         var q = precedent(p), prefixe = q >= 0 && L[q].g === 'nom' ? L[q].v.toLowerCase() : '';
         table = L[q] && L[q].table ? L[q].table : alias[prefixe] || '';
+        /* Un schéma devant une table (15 novembre, module 9 : boutique.commandes, bien_etre.inscriptions) : la table elle-même */
+        if (!table && Object.prototype.hasOwnProperty.call(T, nom)) { e.v = casse(e.v, T[nom][0]); continue; }
         /* Préfixe inconnu (une sous-requête nommée, un alias posé sur une autre carte) : la table du contexte qui a cette colonne */
         if (!table) { for (j = 0; j < autour.length && !table; j++) if (Object.prototype.hasOwnProperty.call(T[autour[j]][1], nom)) table = autour[j]; }
         /* … sinon le nom seul (une colonne calculée d'une CTE : totaux.nb_commandes) */
@@ -359,7 +361,11 @@
     (function tour(p) {
       for (var n = p.firstChild; n; n = n.nextSibling) {
         if (n.nodeType === 1) tour(n);
-        else if (n.nodeType === 3 && fait.get(n) !== n.nodeValue) { var v = sql(n.nodeValue, contexte); if (v !== n.nodeValue) n.nodeValue = v; fait.set(n, v); }
+        else if (n.nodeType === 3 && fait.get(n) !== n.nodeValue) {
+          /* Un commentaire SQL (« -- Vider la copie », 15 novembre, module 9) : une phrase, traduite comme les textes */
+          var v = /^\s*--/.test(n.nodeValue) ? n.nodeValue.replace(/^(\s*--\s*)(.*?)(\s*)$/, function (m, a, x, b) { return a + t(x) + b; }) : sql(n.nodeValue, contexte);
+          if (v !== n.nodeValue) n.nodeValue = v; fait.set(n, v);
+        }
       }
     })(el);
   }

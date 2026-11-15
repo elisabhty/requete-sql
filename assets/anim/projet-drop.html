@@ -5,6 +5,7 @@
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
 <title>Requête · Projet : DROP TABLE</title>
+<script src="../../langues.js?v=4" data-textes="{langue}/projet-drop.js?v=1"></script>
 <link rel="stylesheet" href="core.css">
 <style>
 #s0 .sub{font-size:66px}
@@ -144,7 +145,7 @@
 #s7 .rtxt .rs{margin-top:2px;font-size:31px}
 </style>
 </head>
-<body>
+<body data-table="inscriptions">
 <div id="stage">
   <div class="blob b1"></div>
   <div class="blob b2"></div>
@@ -356,7 +357,9 @@ function row([k, kc, emo, name, n, cols]){
   const chips = cols.map(([c, t, tgt], j) => {
     const ico = t === 'pk' ? '<span class="emo">🔑</span>' : t === 'fk' ? '<span class="emo">🔗</span>' : '';
     const ring = t === 'fk' && tgt === 'k-cl' ? ' style="--rc:#6A4DF4;--rb:rgba(106,77,244,.18)"' : '';
-    return `<span id="ch-${k}-${j}"${t === 'fk' ? ` class="fk ${tgt}"` : ''}>${ico}${c}<i class="rg"${ring}></i></span>`;
+    /* la date d’inscription d’un client : signup_date en anglais (celle d’une inscription : enrollment_date) */
+    const nom = k === 'cl' && c === 'date_inscription' ? '<span data-en="signup_date">date_inscription</span>' : c;
+    return `<span id="ch-${k}-${j}"${t === 'fk' ? ` class="fk ${tgt}"` : ''}>${ico}${nom}<i class="rg"${ring}></i></span>`;
   }).join('');
   const nb = k === 'xl' ? `<b class="nb" id="nb-xl"><span class="n1">${n} lignes</span><span class="n0">0 ligne</span></b>` : `<b class="nb"><span>${n} lignes</span></b>`;
   const label = k === 'xl' ? `inscriptions<span class="sfx">_excel<i class="rg"></i></span>` : name;
@@ -422,6 +425,7 @@ function dom(){
   // la suite : la prochaine leçon
   $('#sk').innerHTML = '<div class="abs keyc" id="keyc" style="top:760px"><span><span class="emo">🗂️</span>Prochaine leçon · Les schémas</span></div>';
   // les requêtes, découpées en caractères pour la frappe
+  if (typeof LG !== 'undefined' && LG && LG.ecrireCode) $$('.sq .ln').forEach(el => LG.ecrireCode(el));   // dans une autre langue : écrites pour sa base avant la frappe
   $$('.sq .ln').forEach(splitChars);
 }
 

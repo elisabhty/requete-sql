@@ -166,6 +166,16 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   cooking, Pilates, Meditation, Morning yoga ; les classes UML : Customer, Coach, Workshop, Card, Enrollment ; 1FN : 1NF. Les titres
   des couvertures, lettre par lettre, ont leurs lettres anglaises (`data-en` : NORMALIZE, KEYS). Les requêtes de « Clés et
   relations » sont écrites pour la base avant d’être découpées en caractères pour la frappe (`LG.ecrireCode` dans `dom()`).
+- **Le module 9** (15 novembre, « continu ») : Créer et faire évoluer les tables (CREATE TABLE, ALTER TABLE, DROP, les schémas),
+  toujours le projet des ateliers. Les noms : places : spots, seances_restantes : sessions_left, cartes_membre : membership_cards,
+  telephone : phone, ancien_telephone : old_phone, email_pro : work_email ; la copie du fichier Excel inscriptions_excel devient
+  enrollments_excel (le nom de la table des inscriptions reste son début : « oublier la fin du nom » garde son sens) ; les schémas
+  boutique : shop, bien_etre : wellness. Le moteur a appris :
+  - un schéma devant une table (`boutique.commandes` : `shop.orders`) ;
+  - un commentaire SQL dans le code (`-- Vider la copie`) : une phrase, traduite comme les textes ;
+  - la date d’inscription d’un client reste `signup_date` à côté de celle d’une inscription (`data-en` sur sa colonne).
+  Les requêtes tapées des quatre vidéos sont écrites pour la base avant d’être découpées en caractères (`LG.ecrireCode` dans
+  `dom()`) ; la couverture « SCHÉMAS » devient « SCHEMAS ».
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
@@ -202,6 +212,7 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   12 400 caractères) ; « 1 → N » se dit « 1 to N » (pas « gives »), « 0..* » « zero dot dot star ». Un moment sans indice affiché
   (un tri à glisser : seulement une aide sur le geste) n’a pas de fichier d’indice : l’appli ne joue l’indice qu’avec le `tip`
   qu’elle affiche après deux erreurs (moments.js).
+  Module 9 (15 novembre) : les quatre fichiers sont prêts (`projet-create.json` à `projet-schemas.json`, environ 12 500 caractères).
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

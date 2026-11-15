@@ -784,7 +784,7 @@ test('le module 8 en entier : les ateliers deviennent workshops, les inscription
     assert.equal(L.sql('CREATE TABLE cartes ( client_id INTEGER UNIQUE, seances INTEGER ) ; FOREIGN KEY (coach_id) REFERENCES coachs(id) ; ateliers', 'cartes'),
       'CREATE TABLE cards ( customer_id INTEGER UNIQUE, sessions INTEGER ) ; FOREIGN KEY (coach_id) REFERENCES coaches(id) ; workshops', c);
   }
-  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8].map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8].map(c => `'${c}'`).join(',') + ','));
   /* Les titres des couvertures, lettre par lettre : NORMALIZE, KEYS */
   assert.ok(lire('assets/anim/projet-normaliser.html').includes('<span>I</span><span data-en="Z">S</span><span>E</span><span data-en="">R</span></div>'));
   assert.ok(lire('assets/anim/projet-cles.html').includes('<span data-en="K">C</span><span data-en="E">L</span><span data-en="Y">É</span><span>S</span>'));
@@ -818,6 +818,67 @@ test('la voix anglaise du module 8 : Brielle, les ids du français, les relation
       const t = e.texte.replace(/^\[\w+\]\s*/, '');
       assert.ok(t.length > 3, `${c} ${e.id} : vide`);
       assert.ok(!/[«»<>=≠→↔⇔|+*%_×÷−'"@]|\.\.|\w\(|[A-Za-z_]\.[A-Za-z]|&[a-z]+;|Pour finir|idées à retenir|atelier|inscription|\b(SELECT|FROM|WHERE|JOIN)\b/.test(t), `${c} ${e.id} : ${t}`);
+      if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
+    }
+    total += en.elements.reduce((a, e) => a + e.texte.length, 0);
+  }
+  assert.ok(total > 10500 && total < 14500, `${total} caractères (autant de crédits)`);
+});
+
+/* Module 9 (« Créer et faire évoluer les tables », 15 novembre) : quatre vidéos du projet, le code tapé écrit pour la base */
+const M9 = ['projet-create', 'projet-alter', 'projet-drop', 'projet-schemas'];
+test('le module 9 en entier : CREATE, ALTER, DROP, les schémas ; requêtes, commentaires et schémas écrits pour la base', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  for (const c of M9) {
+    const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(Object.keys(textes).length > 100, `${c} : ${Object.keys(textes).length} textes`);
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
+    assert.ok(pg.includes('<body data-table="inscriptions">'), c);
+    /* les lignes des requêtes, écrites pour la base avant d'être découpées en caractères pour la frappe */
+    assert.ok(/if \(typeof LG !== 'undefined' && LG && LG\.ecrireCode\) \$\$\('[^']*\.sq \.ln[^']*'\)\.forEach\(el => LG\.ecrireCode\(el\)\);/.test(pg), c);
+    const {L, ctx} = anglais();
+    vm.runInNewContext(lire(`assets/anim/en/${c}.js`), ctx);
+    for (const [q, en] of [['ALTER TABLE ateliers ADD COLUMN places INTEGER DEFAULT 12;', 'ALTER TABLE workshops ADD COLUMN spots INTEGER DEFAULT 12;'],
+      ['ALTER TABLE cartes RENAME COLUMN seances TO seances_restantes;', 'ALTER TABLE cards RENAME COLUMN sessions TO sessions_left;'],
+      ['ALTER TABLE cartes RENAME TO cartes_membre', 'ALTER TABLE cards RENAME TO membership_cards'],
+      ['ALTER TABLE coachs RENAME COLUMN telephone TO ancien_telephone', 'ALTER TABLE coaches RENAME COLUMN phone TO old_phone'],
+      ['DROP TABLE IF EXISTS inscriptions_excel;', 'DROP TABLE IF EXISTS enrollments_excel;'],
+      ['CREATE SCHEMA bien_etre; ALTER TABLE clients SET SCHEMA boutique; SELECT * FROM boutique.commandes; SELECT * FROM bien_etre.inscriptions;',
+        'CREATE SCHEMA wellness; ALTER TABLE customers SET SCHEMA shop; SELECT * FROM shop.orders; SELECT * FROM wellness.enrollments;']])
+      assert.equal(L.sql(q, 'inscriptions'), en, `${c} : ${q}`);
+  }
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9].map(c => `'${c}'`).join(',') + ']};'));
+  /* « Les requêtes d'une page » : un commentaire SQL se traduit comme une phrase ; un schéma devant une table */
+  assert.ok(MOTEUR.includes("var v = /^\\s*--/.test(n.nodeValue) ? n.nodeValue.replace(/^(\\s*--\\s*)(.*?)(\\s*)$/, function (m, a, x, b) { return a + t(x) + b; }) : sql(n.nodeValue, contexte);"));
+  assert.ok(MOTEUR.includes("if (!table && Object.prototype.hasOwnProperty.call(T, nom)) { e.v = casse(e.v, T[nom][0]); continue; }"));
+  assert.equal(textesDe('projet-schemas')['Même nom, deux tables'], 'Same name, two tables');
+  assert.equal(textesDe('projet-drop')['inscriptions<1>_excel<2></2></1>'], 'enrollments<1>_excel<2></2></1>');
+  /* la date d'inscription d'un client (signup_date) n'est pas celle d'une inscription (enrollment_date) */
+  for (const c of ['projet-alter', 'projet-drop']) assert.ok(lire(`assets/anim/${c}.html`).includes(`'<span data-en="signup_date">date_inscription</span>'`), c);
+  assert.ok(lire('assets/anim/projet-schemas.html').includes('<span>H</span><span data-en="E">É</span><span>M</span>'));
+  assert.ok(lire('assets/anim/projet-schemas.html').includes("Course({codeSel: '.rc', duration: DURATION,"));
+});
+
+test('la voix anglaise du module 9 : Brielle, les ids du français, pas de fichier pour un indice qui ne s’affiche pas', () => {
+  const br = JSON.parse(lire('tools/voix/en/bases-relationnelles.json')), prep = lire('tools/voix/preparer-langue.mjs');
+  const DIRE = new Function(prep.slice(prep.indexOf('const B = '), prep.indexOf('const parFichier')) + '\nreturn DIRE;')();
+  assert.equal(DIRE('With ALTER TABLE … SET SCHEMA, each table joins its space.'), 'With ALTER TABLE, then SET SCHEMA, each table joins its space.');
+  let total = 0;
+  for (const c of M9) {
+    const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.equal(en.langue, 'en'); assert.equal(en.cours, c); assert.deepEqual(en.voix, br.voix, c); assert.equal(en.modele, fr.modele);
+    const ids = fr.elements.map(e => e.id), chs = ids.filter(i => /^ch/.test(i));
+    assert.deepEqual(en.elements.map(e => e.id), ids.filter(i => en.elements.some(e => e.id === i)), `${c} : l’ordre du français`);
+    assert.ok(!en.elements.some(e => e.id === chs[chs.length - 1]), `${c} : le « Pour finir » n’est pas joué dans l’appli`);
+    assert.ok(fr.elements.every(e => en.elements.some(x => x.id === e.id) || /^indice/.test(e.id) || e.id === chs[chs.length - 1]), `${c} : seuls les indices sans texte et le « Pour finir » manquent`);
+    for (const e of en.elements) {
+      const t = e.texte.replace(/^\[\w+\]\s*/, '');
+      assert.ok(t.length > 3, `${c} ${e.id} : vide`);
+      assert.ok(!/[«»<>=≠→↔⇔|+*%_×÷−'"@…]|\.\.|\w\(|[A-Za-z_]\.[A-Za-z]|&[a-z]+;|Pour finir|idées à retenir|atelier|inscription|séance|boutique|bien_etre/.test(t), `${c} ${e.id} : ${t}`);
       if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
     }
     total += en.elements.reduce((a, e) => a + e.texte.length, 0);

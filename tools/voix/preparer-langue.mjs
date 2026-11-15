@@ -85,7 +85,9 @@ const PARLE = s => s
   /* Module 8 (15 novembre) : les relations (« 1 to N », « N to N », pas « 1 gives N ») et les multiplicités UML dites signe par
      signe (« zero dot dot star », « one dot dot star », « zero dot dot one ») */
   .replace(/\b([1N]) [→↔] ([1N])\b/g, '$1 to $2')
-  .replace(/\b([01])\.\.(\*|[01])/g, (t, a, b) => ['zero', 'one'][a] + ' dot dot ' + (b === '*' ? 'star' : ['zero', 'one'][b]));
+  .replace(/\b([01])\.\.(\*|[01])/g, (t, a, b) => ['zero', 'one'][a] + ' dot dot ' + (b === '*' ? 'star' : ['zero', 'one'][b]))
+  /* Module 9 (15 novembre) : « ALTER TABLE … SET SCHEMA » se dit en deux temps */
+  .replace(/\bALTER TABLE … SET SCHEMA\b/g, 'ALTER TABLE, then SET SCHEMA');
 const DIRE = s => PARLE(s.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&'))
   /* Comme les retouches de la voix française : « Prix en euros », « l’euro entre parenthèses », « le numéro de la page moins un » */
   .replace(/Price \(€\)/g, 'Price in euros').replace(/\(€\)/g, 'the euro in parentheses')
