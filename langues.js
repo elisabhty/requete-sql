@@ -133,7 +133,8 @@
   }
   function noter(cle) {
     if (TRAD && dejaTraduit(cle)) return;
-    if (manque.size < MANQUE_MAX && /[A-Za-zÀ-ÿ]{2}/.test(cle.replace(/<[^>]*>/g, '')) && !SQL_RE.test(cle)) manque.set(cle, (manque.get(cle) || 0) + 1);
+    var nu = cle.replace(/<[^>]*>/g, '');
+    if (manque.size < MANQUE_MAX && (/[A-Za-zÀ-ÿ]{2}/.test(nu) || /(^|[\s\d])[àÀ](?=[\s\d:\u00a0]|$)/.test(nu)) && !SQL_RE.test(cle)) manque.set(cle, (manque.get(cle) || 0) + 1);
   }
   /* Pour un texte fabriqué en JavaScript qui ne passe pas par la page (une notification, un texte envoyé au widget). */
   function t(texte) {
@@ -264,7 +265,9 @@
   var obs = null;
 
   /* Un texte à traduire : des mots, ou un prix seul (« 39,90 € » s'écrit « €39.90 » en anglais) */
-  function lettres(s) { s = String(s).replace(/<[^>]*>/g, ''); return /[A-Za-zÀ-ÿ]{2}/.test(s) || /\d\s?€/.test(s); }
+  /* Un texte à traduire a deux lettres de suite (ou un prix) ; aussi la préposition « à » seule (15 novembre, revue des vidéos :
+     « 1 à 20 » sous la liste des factures, « À : » dans un e-mail, restaient en français) */
+  function lettres(s) { s = String(s).replace(/<[^>]*>/g, ''); return /[A-Za-zÀ-ÿ]{2}/.test(s) || /\d\s?€/.test(s) || /(^|[\s\d])[àÀ](?=[\s\d:\u00a0]|$)/.test(s); }
   function saute(el) { return !el || SAUTE[el.nodeName] || (el.hasAttribute && el.hasAttribute('data-notrad')) || el.isContentEditable === true; }
   function dansSaute(el) { for (var p = el; p && p.nodeType === 1; p = p.parentNode) if (saute(p)) return true; return false; }
   function simple(el) {   // un morceau mis en forme, sans rôle propre : il se traduit avec sa phrase

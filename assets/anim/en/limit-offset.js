@@ -200,7 +200,8 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "0 ligne": "0 rows",
     "{1} €": "€{1}",
     "0 ligne dans le résultat": "0 rows in the result",
-    "rien": "nothing"
+    "rien": "nothing",
+    "{1} à {2}": "{1} to {2}"
   }
 });
 /* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende

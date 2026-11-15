@@ -249,6 +249,8 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "<1>JOIN</1> élargit": "<1>JOIN</1> widens",
     "<1>UNION</1> rallonge": "<1>UNION</1> lengthens",
     "élargit": "widens",
-    "rallonge": "lengthens"
+    "rallonge": "lengthens",
+    "Aucun": "None",
+    "À :": "To:"
   }
 });

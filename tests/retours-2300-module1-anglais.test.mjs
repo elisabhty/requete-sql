@@ -221,7 +221,7 @@ test('un prix seul se traduit (« 39,90 € » : « €39.90 ») ; les fiches du
   const {L} = anglais();
   assert.equal(L.t('39,90 €'), '€39.90');
   assert.equal(L.t('3 842,00 €'), '€3,842.00');
-  assert.ok(MOTEUR.includes("return /[A-Za-zÀ-ÿ]{2}/.test(s) || /\\d\\s?€/.test(s);"));
+  assert.ok(MOTEUR.includes("return /[A-Za-zÀ-ÿ]{2}/.test(s) || /\\d\\s?€/.test(s) ||"));
   for (const [fr, en] of [['sert à <1>filtrer les lignes</1> selon une condition.', 'is used to <1>filter rows</1> based on a condition.'],
     ['<1>range</1> le résultat selon une colonne.', '<1>sorts</1> the result by a column.'],
     ['Une pagination demande un <1>classement stable</1> : termine <2/> par une colonne unique comme <3/>.', 'Pagination needs a <1>stable ranking</1>: end <2/> with a unique column like <3/>.']])

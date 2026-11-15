@@ -118,6 +118,21 @@ const thFit = () => {
     if (large > dispo && dispo > 0) d.style.fontSize = (Math.floor(parseFloat(cs.fontSize) * dispo / large * 2) / 2) + 'px';
   });
 };
+/* 15 novembre (Elisa : « regarde que ça déborde pas », « un bon modèle pour la suite ») : dans une autre langue, la puce du chapitre
+   (« 6 / 7 · The plan or the measurement? ») peut passer sous « Requête », en haut à gauche. Elle rapetisse alors juste assez pour
+   laisser 16 px (jusqu'à 72 % de sa taille ; au-delà, le titre du chapitre est à raccourcir dans la traduction). Le français ne passe
+   jamais ici. Les cases et les badges trop longs, eux, bougent avec la vidéo (une colonne qui s'élargit) : ils se repèrent avec
+   tools/langue/verifier.mjs et se règlent par une règle html[lang="…"] dans la vidéo (tools/langue/README.md). */
+const langueFit = () => {
+  if (!LG) return;
+  const marque = $('#header .brand'), M = marque && marque.getBoundingClientRect();
+  if (!M || !M.width) return;
+  $$('#chapter .chip').forEach(ch => {
+    const C = ch.getBoundingClientRect(); if (!C.width || C.left >= M.right + 16) return;
+    const f = (C.right - M.right - 16) / C.width; if (f < 0.72) return;
+    [ch, ...ch.querySelectorAll('*')].forEach(e => { e.style.fontSize = (Math.floor(parseFloat(getComputedStyle(e).fontSize) * f * 2) / 2) + 'px'; });
+  });
+};
 function fr(h){
   if (LG) return LG.html(h);
   return frSource(h);
@@ -674,7 +689,11 @@ function chromeTimeline(chapters, captions, duration){
     tl.to(stk, {scale: 1, rotation: -8, duration: 0.62, ease: 'back.out(2.2)'}, captions[0][0] - 0.05); capKeep([stk, {scale: 1, rotation: -8}]);
   }
   $$('#cap .c:not(.c-pont)').forEach((el, i) => {
-    const [a, b] = captions[i];
+    const a = captions[i][0];
+    /* 15 novembre (Elisa : « améliore l'UX des vidéos ») : entre deux phrases proches (2,5 s au plus), la bulle ne reste plus vide
+       (un bouton qu'on appuie, un résultat qui s'affiche) : la phrase reste jusqu'à l'arrivée de la suivante, qui la remplace comme
+       deux phrases qui se suivent. Un blanc plus long (un mail à lire, une démonstration) garde sa respiration. */
+    const suite = captions[i + 1], b = suite && suite[0] - captions[i][1] > 0 && suite[0] - captions[i][1] <= 2.5 ? suite[0] : captions[i][1];
     gsap.set(el, {autoAlpha: 0, y: 26});
     tl.to(el, {autoAlpha: 1, y: 0, duration: 0.5, ease: 'power3.out'}, a);
     /* Les mots arrivent l’un après l’autre (en une demi-seconde au plus), puis le jaune passe sous les mots en gras, comme au surligneur */
@@ -1478,6 +1497,7 @@ function Course(cfg){
     smsFit();
     codeFit();
     thFit();
+    langueFit();
     chromeTimeline(chapters, captions, duration);
     cfg.build();
     let rest = [];

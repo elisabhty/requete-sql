@@ -99,6 +99,14 @@ l’endroit se règle sur l’élément (`data-en="name"`), une image qui porte 
 NutriBoost) ; 5. sa vignette en anglais (`assets/anim/en/<cours>-thumb.webp`, la première image de la vidéo en anglais) et son
 nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des clients restent tels quels.
 
+**Les outils (15 novembre)** : tout ce qui précède est outillé dans `tools/langue/` (mode d’emploi : `tools/langue/README.md`).
+Pour une nouvelle langue ou une nouvelle vidéo : `recolter.mjs` (les textes manquants, code et commentaires compris) →
+`cles.mjs` (les fichiers à traduire) → `construire.mjs` (les fichiers `assets/anim/<langue>/<cours>.js`) → `verifier.mjs`
+(du français resté visible, un texte qui sort de son cadre) → `francais.mjs` (le français n’a pas bougé) → `planches.mjs`,
+`vignettes.mjs`, `fiches.mjs`. Toutes prennent `--langue <code>` et une liste de vidéos ou `toutes`.
+Dans le moteur des vidéos, deux filets valent pour toutes les langues : la bulle des sous-titres reste ouverte quand la phrase
+suivante arrive moins de 2,5 s après ; hors français, la pastille du chapitre se resserre (jusqu’à 72 %) si elle toucherait le logo.
+
 ## Où on en est
 
 - **Fait** : le système ; l’onboarding en anglais (le pilote) ; l’interface (14 novembre, 22 h 51 : « Tout traduire ») : l’accueil,
