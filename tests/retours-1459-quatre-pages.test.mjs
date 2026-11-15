@@ -20,7 +20,8 @@ test('« Ton parcours est prêt » : chaque ligne a son libellé, chaque barre s
   assert.ok(r.includes('<div><small>Ton objectif</small>') && r.includes('<div><small>Ton niveau, ton rythme</small><b>${nivLabel} · ${obRythmeMinutes(ryt)} min par séance</b></div>') && r.includes('<div><small>Première leçon</small>'), 'trois lignes, trois libellés');
   assert.ok(r.includes("const jourCourt=i=>i?JOURS_C[addJ(d0,i).getDay()]:'Auj.';") && r.includes("const JOURS_C=['dim.','lun.','mar.','mer.','jeu.','ven.','sam.']"), 'le premier jour est aujourd’hui, les autres par leur nom court');
   assert.ok(r.includes('<div class="ob-ready-jours" aria-hidden="true">${week.map((on,i)=>`<span class="${on?\'on\':\'\'}" style="--i:${i}">${jourCourt(i)}</span>`).join(\'\')}</div>'), 'une étiquette sous chaque barre, celles des séances marquées');
-  assert.ok(r.includes("sur les ${NB_JOURS_VUS} prochains jours${nWeek?'\\u00a0: '+joursOn.join(', '):''}") && !r.includes('sur les sept prochains jours'), 'lu : « 2 séances sur les 6 prochains jours : aujourd’hui, lundi » (plus « sept »)');
+  /* 15 novembre : la phrase et chaque jour se traduisent à part (obJoursLabel) ; en français, la même phrase */
+  assert.ok(r.includes('aria-label="${escAttr(obJoursLabel(nWeek,joursOn))}"') && html.includes("return t(`${plur(n,'séance')} sur les ${NB_JOURS_VUS} prochains jours`)+(n?(L&&L.code!=='fr'?': ':'\\u00a0: ')+jours.map(t).join(', '):'');") && !r.includes('sur les sept prochains jours'), 'lu : « 2 séances sur les 6 prochains jours : aujourd’hui, lundi » (plus « sept »)');
   assert.ok(obv.includes('html #onboarding.ob-vitrine .ob-ready-jours{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:5px}'), 'la même grille que les barres');
   assert.ok(obv.includes('html #onboarding.ob-vitrine .ob-ready-jours span.on{color:var(--v-ink);font-weight:800}'));
   /* Les jours se calculent bien à partir d’aujourd’hui. */

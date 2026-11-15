@@ -55,7 +55,7 @@ test('la page du résultat, sans « Bravo » : le résultat se déplie, puis la 
   const jouer = ({ reduit = false, quitter = false, echec = false } = {}) => {
     const vers = [], minuteurs = [], appels = [];
     const ctx = vm.createContext({
-      draft: {}, OB_SLIDES: ['practice', 'account'], obStep: 0, obLock: false, obDemoTimers: [],
+      draft: {}, OB_SLIDES: ['practice', 'account'], obStep: 0, obLock: false, obDemoTimers: [], obSqlL: t => t,
       db: { exec: () => { if (echec) throw new Error('pas de moteur'); return [{ values: [[1, 'Léa', 'Paris'], [4, 'Hugo', 'Paris']] }]; } },
       prefersReduceMotion: () => reduit, buzz: k => appels.push('buzz ' + k), paintOb: () => appels.push('repeint'), obGoto: t => vers.push(t), obAfterPractice: () => 'account',
       setTimeout: (f, ms) => { minuteurs.push([f, ms]); return minuteurs.length; }, requestAnimationFrame() {}, performance: { now: () => 0 },

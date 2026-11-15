@@ -49370,7 +49370,7 @@ function obRunPractice(){
 }
 function obPracticeRun(){
   try{
-    const result=db.exec("SELECT id, prenom, ville FROM clients WHERE ville = 'Paris' ORDER BY id;")[0];
+    const result=db.exec(obSqlL("SELECT id, prenom, ville FROM clients WHERE ville = 'Paris' ORDER BY id;"))[0];
     draft.practiceRows=result&&Array.isArray(result.values)?result.values:[];
     draft.practiceDone=draft.practiceRows.length>0;
   }catch(e){
@@ -49461,11 +49461,19 @@ function obNamePreview(){
    et son résultat sont maintenant posés dès la première image, à leur place : l’écriture n’est plus qu’un dévoilement, ligne par
    ligne (CSS, comme la première requête), et le résultat s’allume sans rien pousser. La page garde sa taille du début à la fin. */
 /* Même forme que la console du cours : une clause par ligne. */
+/* Le code de l’accueil dans la langue de l’appli (15 novembre : customers, first_name, city) ; en français, tel quel. */
+/* « 3 séances sur les 6 prochains jours : aujourd’hui, lundi, jeudi » (VoiceOver, page du parcours prêt) : la phrase et chaque jour
+   se traduisent à part, la liste des jours changeant d’un parcours à l’autre ; en français, la même phrase qu’avant. */
+function obJoursLabel(n,jours){
+  const L=window.REQUETE_LANGUE,t=x=>{try{return L&&L.code!=='fr'?L.t(x):x;}catch(e){return x;}};
+  return t(`${plur(n,'séance')} sur les ${NB_JOURS_VUS} prochains jours`)+(n?(L&&L.code!=='fr'?': ':'\u00a0: ')+jours.map(t).join(', '):'');
+}
+function obSqlL(t){try{const L=window.REQUETE_LANGUE;return L&&L.code!=='fr'?L.sql(t,'clients'):t;}catch(e){return t;}}
 const OB_DEMO_TOKENS=[['SELECT ','k'],['prenom, ville\n','o'],['FROM ','k'],['clients\n','o'],['WHERE ','k'],['ville = ','o'],["'Paris';",'s']];
 const OB_DEMO_T0=.55;
 function obDemoCode(){
   const lines=[[]];
-  OB_DEMO_TOKENS.forEach(([t,c])=>t.split('\n').forEach((p,i)=>{if(i)lines.push([]);if(p)lines[lines.length-1].push([p,c]);}));
+  OB_DEMO_TOKENS.map(([t,c])=>[c==='o'?obSqlL(t):t,c]).forEach(([t,c])=>t.split('\n').forEach((p,i)=>{if(i)lines.push([]);if(p)lines[lines.length-1].push([p,c]);}));
   let dl=OB_DEMO_T0;
   const html=lines.filter(l=>l.length).map(l=>{
     const n=l.reduce((a,[p])=>a+p.length,0),t=Math.round(n*22)/1000;
@@ -51359,7 +51367,7 @@ function paintOb(){
     const typing=!draft.practiceDone&&obJustEntered&&!prefersReduceMotion();
     const rowsN=(draft.practiceRows||[]).length;
     const practiceRows=(draft.practiceRows||[]).map((row,ri)=>row.map((value,ci)=>`<span${ci===2?' class="is-hit"':''} style="--rd:${220+ri*120}ms">${esc(String(value))}</span>`).join('')).join('');
-    const result=draft.practiceDone?`<div class="ob-practice-result${fresh?' is-new':''}" role="status"><div><span><i class="ob-practice-ok" aria-hidden="true"></i>Requête réussie</span><span><b class="ob-practice-n" data-n="${rowsN}">${rowsN}</b> ${rowsN>1?'lignes':'ligne'}</span></div><div class="ob-practice-table"><span class="head">id</span><span class="head">prenom</span><span class="head">ville</span>${practiceRows}</div></div>`
+    const result=draft.practiceDone?`<div class="ob-practice-result${fresh?' is-new':''}" role="status"><div><span><i class="ob-practice-ok" aria-hidden="true"></i>Requête réussie</span><span><b class="ob-practice-n" data-n="${rowsN}">${rowsN}</b> ${rowsN>1?'lignes':'ligne'}</span></div><div class="ob-practice-table"><span class="head">id</span><span class="head">${esc(obSqlL('prenom'))}</span><span class="head">${esc(obSqlL('ville'))}</span>${practiceRows}</div></div>`
       :`<button type="button" class="ob-practice-run" id="ob-practice-run" onclick="obRunPractice()"><span class="ob-practice-play" aria-hidden="true">▶</span><span class="ob-practice-lbl">Exécuter la requête</span></button>`;
     /* 23 h 21 (Elisa, d’après une reformulation qu’elle a retenue) : « À toi de lancer ta première requête ! », « Une seule action
        suffit… », « …les clients qui habitent à Paris dans la table clients », et un retour après l’exécution : « Bravo, ta
@@ -51379,9 +51387,9 @@ function paintOb(){
       <p class="ob-lead">Une seule action suffit pour découvrir comment SQL retrouve les données.</p>
       ${draft.practiceFailed?obMascotQuestion('Le moteur SQL n’a pas pu démarrer ici : tu essaieras dans ta première leçon.'):obMascotDit('Clique sur « Exécuter » pour afficher les clients qui habitent à Paris dans la table clients.','presente',true)}`;
     html=`<div class="ob-screen ob-profile ob-practice${done?' is-result':''}${fresh?' is-fresh':''}">${obFlowHeader(slide)}${head}
-      <div class="ob-practice-card${typing?' is-typing':''}${fresh?' is-flip-in':''}"><div class="ob-practice-head"><span>requete.sql</span><span>base du cours</span></div><pre class="ob-practice-code"><span class="ob-tl" style="--n:24;--t:.53s;--dl:.32s"><span class="kw">SELECT</span> <span class="field">id, prenom, ville</span></span>
-<span class="ob-tl" style="--n:12;--t:.27s;--dl:.92s"><span class="kw">FROM</span> clients</span>
-<span class="ob-tl" style="--n:22;--t:.49s;--dl:1.26s"><span class="kw">WHERE</span> ville = <span class="str">'Paris'</span>;</span></pre>${result}</div></div>`;
+      <div class="ob-practice-card${typing?' is-typing':''}${fresh?' is-flip-in':''}"><div class="ob-practice-head"><span>requete.sql</span><span>base du cours</span></div><pre class="ob-practice-code"><span class="ob-tl" style="--n:${7+obSqlL('id, prenom, ville').length};--t:.53s;--dl:.32s"><span class="kw">SELECT</span> <span class="field">${obSqlL('id, prenom, ville')}</span></span>
+<span class="ob-tl" style="--n:${5+obSqlL('clients').length};--t:.27s;--dl:.92s"><span class="kw">FROM</span> ${obSqlL('clients')}</span>
+<span class="ob-tl" style="--n:${17+obSqlL('ville').length};--t:.49s;--dl:1.26s"><span class="kw">WHERE</span> ${obSqlL('ville')} = <span class="str">'Paris'</span>;</span></pre>${result}</div></div>`;
     const canGo=!!(draft.practiceDone||draft.practiceFailed);
     obSetFooter(canGo?'Continuer':'Lance la requête pour découvrir le résultat',()=>obGoto(obAfterPractice()),'','','',!canGo);
   }else if(slide==='source'){
@@ -51533,7 +51541,7 @@ function paintOb(){
       <div class="ob-ready-summary"><div class="ob-ready-row" style="--i:0"><span class="ob-ready-ico">◎</span><div><small>Ton objectif</small><b>${esc(goalLabel)}</b></div></div>
         <div class="ob-ready-row" style="--i:1"><span class="ob-ready-ico">✓</span><div><small>Ton niveau, ton rythme</small><b>${nivLabel} · ${obRythmeMinutes(ryt)} min par séance</b></div></div>
         <div class="ob-ready-row" style="--i:2"><span class="ob-ready-ico">&gt;_</span><div><small>Première leçon</small><b>${esc(first?first.titre:'SELECT')}</b></div></div></div>
-      <div class="ob-ready-path"><div class="ob-ready-path-head"><span>Tes ${NB_JOURS_VUS} prochains jours</span><span>${obRythmeMinutes(ryt)} min / séance</span></div><div class="ob-ready-days" role="img" aria-label="${escAttr(`${plur(nWeek,'séance')} sur les ${NB_JOURS_VUS} prochains jours${nWeek?'\u00a0: '+joursOn.join(', '):''}`)}">${week.map((on,i)=>`<i class="${on?'on':'rest'}" style="--i:${i}" aria-hidden="true"></i>`).join('')}</div><div class="ob-ready-jours" aria-hidden="true">${week.map((on,i)=>`<span class="${on?'on':''}" style="--i:${i}">${jourCourt(i)}</span>`).join('')}</div><small>${nWeek} séance${nWeek>1?'s':''} courte${nWeek>1?'s':''} pour lancer l’habitude · planning modifiable à tout moment.</small></div></div>`;
+      <div class="ob-ready-path"><div class="ob-ready-path-head"><span>Tes ${NB_JOURS_VUS} prochains jours</span><span>${obRythmeMinutes(ryt)} min / séance</span></div><div class="ob-ready-days" role="img" aria-label="${escAttr(obJoursLabel(nWeek,joursOn))}">${week.map((on,i)=>`<i class="${on?'on':'rest'}" style="--i:${i}" aria-hidden="true"></i>`).join('')}</div><div class="ob-ready-jours" aria-hidden="true">${week.map((on,i)=>`<span class="${on?'on':''}" style="--i:${i}">${jourCourt(i)}</span>`).join('')}</div><small>${nWeek} séance${nWeek>1?'s':''} courte${nWeek>1?'s':''} pour lancer l’habitude · planning modifiable à tout moment.</small></div></div>`;
     /* Invité par un ami (5 novembre, 14 h) : l’inscription finie, on rejoint sa salle ; le parcours attend le retour. */
     if(inv)obSetFooter('Rejoindre la salle',()=>obApresPret('salle'),'','',(draft.accountMode||state.accountMode)==='connected'?'Compte connecté · progression synchronisable':'');
     /* Revenu de Mon compte (« Personnalisation ») : on enregistre et on y revient (audit de Mon compte, 6 novembre) */
@@ -53509,7 +53517,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3046';
+  const SW_CACHE='requete-2026-11-15-module-v3047';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

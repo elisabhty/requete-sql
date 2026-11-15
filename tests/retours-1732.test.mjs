@@ -147,7 +147,8 @@ test('« On construit ton parcours » : l’effet waouh', () => {
 });
 
 test('« À la requête, mets une animation » : la requête se tape, « Exécuter » palpite, tourne, puis le résultat se déplie', () => {
-  const p = slide('practice', "}else if(slide==='rhythm'){");
+  /* 15 novembre : le code de la page s’écrit dans la langue de l’appli (obSqlL) ; en français, tel quel : on lit la page française */
+  const p = slide('practice', "}else if(slide==='rhythm'){").replace(/\$\{(\d+)\+obSqlL\('([^']*)'\)\.length\}/g, (m, a, b) => String(+a + b.length)).replace(/\$\{obSqlL\('([^']*)'\)\}/g, '$1');
   /* Chaque ligne se tape en autant de pas que de caractères */
   const lignes = [...p.matchAll(/<span class="ob-tl" style="--n:(\d+);--t:[\d.]+s;--dl:[\d.]+s">([\s\S]*?)<\/span>\n?(?=<span class="ob-tl"|<\/pre>)/g)];
   assert.equal(lignes.length, 3);
@@ -273,7 +274,7 @@ test('22 h 55, « en entrant dans la page, ça saute trop avec l’animation d�
   assert.ok(!w.includes('id="ob-demo-res" hidden'), 'plus de résultat caché qui pousse la page en apparaissant');
   /* Chaque ligne se dévoile en autant de pas que de caractères, l’une après l’autre ; le résultat s’allume juste après */
   const code = fn('obDemoCode', 'function obRunWelcomeDemo(');
-  const ctx = vm.createContext({ esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;') });
+  const ctx = vm.createContext({ esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'), obSqlL: t => t });
   vm.runInContext(app.match(/const OB_DEMO_TOKENS=[^\n]+\n/)[0] + app.match(/const OB_DEMO_T0=[^\n]+\n/)[0] + code + ';var out=obDemoCode();', ctx);
   const out = ctx.out, lignes = [...out.html.matchAll(/<span class="ob-tl" style="--n:(\d+);--t:([\d.]+)s;--dl:([\d.]+)s">([\s\S]*?)<\/span>(?=\n|$)/g)];
   assert.deepEqual(lignes.map(l => l[4].replace(/<[^>]+>/g, '')), ['SELECT prenom, ville', 'FROM clients', "WHERE ville = 'Paris';"]);

@@ -297,3 +297,22 @@ test('la voix anglaise des modules 1 et 2 : chaque vidéo a la sienne, calée su
   }
   assert.ok(app.includes("const LV_DUREES={en:{'bases-relationnelles':'10 min 44',") && app.includes("if(k&&d[k[1]])l.video.duree=d[k[1]];"), 'la durée de la vidéo anglaise');
 });
+
+/* Elisa, 15 novembre, 1 h 25 : « la page tu nous aides à améliorer Requête est pas trad ». Les pages de l’onboarding ajoutées le
+   14 novembre après la traduction de l’interface (les statistiques, les widgets, le témoignage lu) et la première requête, écrite
+   pour la base anglaise (customers, first_name, city) et exécutée sur elle. */
+test('l’onboarding ajouté le 14 novembre en anglais, et sa première requête sur la base anglaise', () => {
+  const {L} = anglais();
+  for (const [fr, en] of [['Tu nous aides à <1>améliorer</1> Requête ?', 'Will you help us <1>improve</1> Requête?'], ['Oui, avec plaisir', 'Yes, happy to'],
+    ['Non merci', 'No thanks'], ['Requête sur ton<1/><2>écran d’accueil</2>', 'Requête on your<1/><2>Home Screen</2>'], ['Pas maintenant', 'Not now'],
+    ['C’est fait !', 'Done!'], ['Requête réussie', 'Query succeeded'], ['3 séances sur les 6 prochains jours', '3 sessions over the next 6 days'], ['demain', 'tomorrow']])
+    assert.equal(L.t(fr), en, fr);
+  assert.ok(L.t('Avis de Sofia B., Data Analyst junior, septembre 2026 : « J’ai décroché mon premier poste dans la data 🥹 ! Requête m’a énormément aidée à apprendre SQL mais surtout à pratiquer. J’ai beaucoup utilisé les entraînements aux entretiens avant mes candidatures et certaines questions étaient très proches de ce qu’on m’a demandé en entretien. Aujourd’hui je suis Data Analyst, donc forcément je recommande ! » Un vrai avis, recueilli sur le site requeteapp.com.')
+    .startsWith('Review from Sofia B., Junior Data Analyst, September 2026, translated from French:'));
+  assert.equal(L.sql("SELECT id, prenom, ville FROM clients WHERE ville = 'Paris' ORDER BY id;", 'clients'), "SELECT id, first_name, city FROM customers WHERE city = 'Paris' ORDER BY id;");
+  assert.equal(L.sql('prenom, ville\n', 'clients'), 'first_name, city\n');
+  for (const k of ["function obSqlL(t){try{const L=window.REQUETE_LANGUE;return L&&L.code!=='fr'?L.sql(t,'clients'):t;}catch(e){return t;}}",
+    "OB_DEMO_TOKENS.map(([t,c])=>[c==='o'?obSqlL(t):t,c])", `db.exec(obSqlL("SELECT id, prenom, ville FROM clients WHERE ville = 'Paris' ORDER BY id;"))`,
+    "--n:${7+obSqlL('id, prenom, ville').length}", "--n:${17+obSqlL('ville').length}", 'aria-label="${escAttr(obJoursLabel(nWeek,joursOn))}"'])
+    assert.ok(app.includes(k), k);
+});
