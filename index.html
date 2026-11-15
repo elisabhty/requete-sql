@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=4"></script>
+<script src="langues.js?v=5" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -13974,7 +13974,7 @@ function defiConsigneHTML(c,o){
   const sec=(cls,titre,chip,corps)=>`<section class="dq-sec ${cls}"><div class="dq-h"><b>${titre}</b>${chip?`<span class="dq-chip">${chip}</span>`:''}</div>${corps}</section>`;
   const liste=(l,num)=>`<${num?'ol':'ul'} class="dq-l${num?' is-num':''}">${l.map(x=>`<li>${escCode(x)}</li>`).join('')}</${num?'ol':'ul'}>`;
   const n=c.affiche.length,garde=Array.isArray(c.garde)?c.garde:[],precis=Array.isArray(c.precis)?c.precis:[];
-  const tri=c.ordered&&c.tri?String(c.tri).split(/,\s*puis\s+/).map(x=>x.trim()).filter(Boolean):null;
+  const tri=c.ordered&&c.tri?String(c.tri).split(/,\s*(?:puis|then)\s+/).map(x=>x.trim()).filter(Boolean):null;
   /* « La situation » (Elisa, 8 novembre, 13 h 15) : le paragraphe raconte le lieu et le besoin ; la question, c’est le titre. */
   return `<div class="consigne dq${base?' has-base':''}${titre?' has-titre':''}">${base}${titre}<span class="tag">La situation</span>${c.situation?`<p class="defi-ctx">${escCode(defiSituationSeule(c.situation))}</p>${defiAToiHTML()}`:''}`
     +sec('is-cols','Affiche',`${n}\u00a0colonne${n>1?'s':''}`,liste(c.affiche,true))
@@ -14092,9 +14092,10 @@ function defiOutils(sol){
     if(exclus.has(k)||(k==='order'&&out.length))continue;   // le tri, la consigne le dit déjà : seulement s’il n’y a rien d’autre
     out.push(t);(DEFI_OUTILS_INCLUS[k]||[]).forEach(x=>exclus.add(x));
   }
-  if(!out.length)return 'Une requête simple : choisis les bonnes colonnes de la bonne table.';
+  const en=defiEn();
+  if(!out.length)return en?'A simple query: choose the right columns from the right table.':'Une requête simple : choisis les bonnes colonnes de la bonne table.';
   const maj=x=>x.charAt(0).toUpperCase()+x.slice(1);
-  return out.length===1?`${maj(out[0])}.`:`${maj(out[0])} ; et ${out[1]}.`;
+  return out.length===1?`${maj(out[0])}.`:en?`${maj(out[0])}; and ${out[1]}.`:`${maj(out[0])} ; et ${out[1]}.`;
 }
 /* 14 novembre, 15 h 15 (Elisa, sa capture du défi « Quelles expériences sont planifiées ? », indice 2 : « Ah non les indices sont nuls
    là, on comprend rien ») ; à la question (concret ou intermédiaire), « Concret ». Ce matin (7 h 47) ils étaient « trop explicites » ;
@@ -14175,16 +14176,18 @@ function defiSelectListe(T,C){
   return items;
 }
 const defiNorm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[’'_]/g,' ').replace(/\s+/g,' ').trim();
-const defiSansArticle=s=>String(s||'').replace(/^(?:son|sa|ses|le|la|les|l’|l'|leur|leurs)\s*/i,'');
+const defiSansArticle=s=>String(s||'').replace(/^(?:son|sa|ses|le|la|les|l’|l'|leur|leurs|their|the|its)\s*/i,'');
+/* Les indices dans la langue des défis (15 novembre : les défis en anglais) : leur texte est fabriqué ici, phrase par phrase. */
+function defiEn(){try{const L=window.REQUETE_LANGUE;return !!(L&&L.code==='en'&&L.baseTraduite);}catch(e){return false;}}
 function defiOuChercher(c){
   const T=defiJetons(c&&c.sol),C=defiClauses(T),N=defiNoms(T);
   const tb=defiTables(c&&c.sol).map(t=>`<code>${esc(t)}</code>`);
-  const et=a=>a.length<2?a.join(''):`${a.slice(0,-1).join(', ')} et ${a[a.length-1]}`;
-  let h=!tb.length?'Ouvre le schéma : repère la table dont parle la situation.':tb.length===1?`Table ${tb[0]}.`:`Tables ${et(tb)}.`;
+  const en=defiEn(),et=a=>a.length<2?a.join(''):`${a.slice(0,-1).join(', ')} ${en?'and':'et'} ${a[a.length-1]}`;
+  let h=!tb.length?(en?'Open the schema: find the table the situation talks about.':'Ouvre le schéma : repère la table dont parle la situation.'):tb.length===1?`Table ${tb[0]}.`:`Tables ${et(tb)}.`;
   if(!C)return h;
   const items=defiSelectListe(T,C),aff=Array.isArray(c.affiche)?c.affiche:[];
   const lab=i=>items.length===aff.length&&aff[i]?defiSansArticle(aff[i]):'';
-  if(items.length===1&&items[0].length===1&&items[0][0].t==='*')h+=' À afficher : toutes les colonnes.';
+  if(items.length===1&&items[0].length===1&&items[0][0].t==='*')h+=en?' To show: all the columns.':' À afficher : toutes les colonnes.';
   else if(items.length){
     const vus=items.map((it,i)=>{
       const as=it.findIndex(x=>x.u==='AS'),corps=as>=0?it.slice(0,as):it,alias=as>=0&&it[as+1]?it[as+1].t:'';
@@ -14194,13 +14197,13 @@ function defiOuChercher(c){
         const nom=corps[0].t.split('.').pop();
         return `<code>${esc(nom)}</code>${l&&!defiNorm(l).includes(defiNorm(nom))?` (${esc(l)})`:''}`;
       }
-      return alias?`<code>${esc(alias)}</code> (à calculer${l?`, ${esc(l)}`:''})`:`un calcul${l?` (${esc(l)})`:''}`;
+      return alias?`<code>${esc(alias)}</code> (${en?'to calculate':'à calculer'}${l?`, ${esc(l)}`:''})`:`${en?'a calculation':'un calcul'}${l?` (${esc(l)})`:''}`;
     });
-    h+=` À afficher : ${et(vus)}.`;
+    h+=en?` To show: ${et(vus)}.`:` À afficher : ${et(vus)}.`;
   }
   const filtres=[];T.forEach((x,n)=>{if(x.u!=='WHERE')return;let f=n+1;while(f<T.length&&!(T[f].d<x.d||(T[f].d===x.d&&/^(GROUP|HAVING|ORDER|LIMIT|UNION|EXCEPT|INTERSECT|;|\))$/.test(T[f].u))))f++;
     defiColonnes(T,n+1,f,N,{table:true}).forEach(k=>{if(!filtres.includes(k))filtres.push(k);});});
-  if(filtres.length)h+=` Pour filtrer : ${et(filtres.slice(0,4).map(k=>`<code>${esc(k)}</code>`))}.`;
+  if(filtres.length)h+=`${en?' To filter:':' Pour filtrer :'} ${et(filtres.slice(0,4).map(k=>`<code>${esc(k)}</code>`))}.`;
   return h;
 }
 /* Les notions particulières (pas celles que la méthode nomme déjà clause par clause) */
@@ -14208,39 +14211,41 @@ const DEFI_NOTIONS=new Set(['dense','numero','rang','lag','over','case','julian'
 function defiMethode(c){
   const T=defiJetons(c&&c.sol),C=defiClauses(T),N=defiNoms(T);
   if(!C)return defiOutils(c&&c.sol);
-  const L=[],code=t=>`<code>${esc(t)}</code>`;
+  const L=[],code=t=>`<code>${esc(t)}</code>`,en=defiEn();
   if(T[0]&&T[0].u==='WITH'){
     const noms=[];T.forEach((x,n)=>{if(x.d===0&&(x.u==='WITH'||x.t===',')&&n<C.debut){const y=T[n+1]&&T[n+1].u==='RECURSIVE'?T[n+2]:T[n+1];if(y&&y.k==='id')noms.push(y.t);}});
-    L.push(`<b>WITH</b> : prépare d’abord ${noms.length>1?`${noms.length} résultats intermédiaires`:'un résultat intermédiaire'} (${noms.map(code).join(', ')}), puis :`);
+    L.push(en?`<b>WITH</b>: first prepare ${noms.length>1?`${noms.length} intermediate results`:'an intermediate result'} (${noms.map(code).join(', ')}), then:`
+      :`<b>WITH</b> : prépare d’abord ${noms.length>1?`${noms.length} résultats intermédiaires`:'un résultat intermédiaire'} (${noms.map(code).join(', ')}), puis :`);
   }
   const items=defiSelectListe(T,C),sel=C.get('SELECT')[0];
   const fonc=[...new Set(T.slice(sel.n+1,sel.fin).filter(x=>x.fn&&DEFI_FONCS.has(x.u)).map(x=>x.u))];
   const fenetre=T.slice(sel.n+1,sel.fin).some(x=>x.u==='OVER');
   const distinct=T[sel.n+1]&&T[sel.n+1].u==='DISTINCT';
-  const nb=items.length===1&&items[0].length===1&&items[0][0].t==='*'?'toutes les colonnes':`${items.length===1?'la colonne':`les ${items.length} colonnes`}`;
+  const nb=items.length===1&&items[0].length===1&&items[0][0].t==='*'?(en?'all the columns':'toutes les colonnes'):en?(items.length===1?'the column':`the ${items.length} columns`):`${items.length===1?'la colonne':`les ${items.length} colonnes`}`;
   const calculs=items.filter(it=>{const as=it.findIndex(x=>x.u==='AS'),corps=as>=0?it.slice(0,as):it;return !(corps.length===1&&(corps[0].k==='id'||corps[0].t==='*'));}).length;
-  L.push(`<b>SELECT${distinct?' DISTINCT':''}</b> : ${nb}${calculs?`, dont ${calculs>1?`${calculs} calculs`:'un calcul'}${fonc.length?` (${fonc.slice(0,3).map(code).join(', ')}${fenetre?' avec OVER':''})`:''}`:''}`);
+  L.push(en?`<b>SELECT${distinct?' DISTINCT':''}</b>: ${nb}${calculs?`, including ${calculs>1?`${calculs} calculations`:'one calculation'}${fonc.length?` (${fonc.slice(0,3).map(code).join(', ')}${fenetre?' with OVER':''})`:''}`:''}`
+    :`<b>SELECT${distinct?' DISTINCT':''}</b> : ${nb}${calculs?`, dont ${calculs>1?`${calculs} calculs`:'un calcul'}${fonc.length?` (${fonc.slice(0,3).map(code).join(', ')}${fenetre?' avec OVER':''})`:''}`:''}`);
   const from=C.get('FROM')[0];
-  if(from){const t=T[from.n+1];L.push(`<b>FROM</b> ${t&&t.k==='id'?code(t.t):'une sous-requête'}`);}
+  if(from){const t=T[from.n+1];L.push(`<b>FROM</b> ${t&&t.k==='id'?code(t.t):en?'a subquery':'une sous-requête'}`);}
   C.parts.filter(p=>/JOIN/.test(p.k)).forEach(p=>{
     const t=T[p.n+1],on=T.slice(p.n+1,p.fin).findIndex(x=>x.u==='ON');
     const cols=on>=0?defiColonnes(T,p.n+1+on+1,p.fin,N):[];
     const par=cols.filter(k=>k.toLowerCase()!=='id');
-    L.push(`<b>${p.k}</b> ${t&&t.k==='id'?code(t.t):'une sous-requête'}${cols.length?`, reliée par ${(par.length?par:cols).slice(0,2).map(code).join(' et ')}`:''}`);
+    L.push(`<b>${p.k}</b> ${t&&t.k==='id'?code(t.t):en?'a subquery':'une sous-requête'}${cols.length?`${en?', linked by':', reliée par'} ${(par.length?par:cols).slice(0,2).map(code).join(en?' and ':' et ')}`:''}`);
   });
   const w=C.get('WHERE')[0];
   if(w){
     const cols=defiColonnes(T,w.n+1,w.fin,N,{table:true,niveau:true}),z=T.slice(w.n+1,w.fin);
     const nonEx=z.some((x,i)=>x.u==='NOT'&&z[i+1]&&z[i+1].u==='EXISTS'),ouiEx=z.some((x,i)=>x.u==='EXISTS'&&!(z[i-1]&&z[i-1].u==='NOT'));
     const sous=z.some((x,i)=>x.t==='('&&z[i+1]&&z[i+1].u==='SELECT'),ex=nonEx||ouiEx,ops=['LIKE','BETWEEN','IN','IS'].filter(o=>z.some((x,i)=>x.d===T[w.n].d&&x.u===o&&!(o==='IN'&&z[i+1]&&z[i+1].t==='('&&z[i+2]&&z[i+2].u==='SELECT')));
-    L.push(`<b>WHERE</b>${cols.length?` sur ${cols.slice(0,3).map(code).join(', ')}`:''}${ex?`, avec ${[ouiEx?code('EXISTS'):'',nonEx?code('NOT EXISTS'):''].filter(Boolean).join(' et ')}`:sous?', avec une sous-requête':''}${ops.length?` (${ops.map(o=>code(o==='IS'?'IS NULL':o)).join(', ')})`:''}`);
+    L.push(`<b>WHERE</b>${cols.length?`${en?' on':' sur'} ${cols.slice(0,3).map(code).join(', ')}`:''}${ex?`${en?', with':', avec'} ${[ouiEx?code('EXISTS'):'',nonEx?code('NOT EXISTS'):''].filter(Boolean).join(en?' and ':' et ')}`:sous?(en?', with a subquery':', avec une sous-requête'):''}${ops.length?` (${ops.map(o=>code(o==='IS'?'IS NULL':o)).join(', ')})`:''}`);
   }
   const g=C.get('GROUP')[0];
-  if(g){const cols=defiColonnes(T,g.n+2,g.fin,N,{table:true});L.push(`<b>GROUP BY</b>${cols.length?` ${cols.slice(0,3).map(code).join(', ')}`:''} : un groupe par valeur`);}
-  if(C.get('HAVING')[0])L.push('<b>HAVING</b> : un filtre sur le calcul de chaque groupe');
-  if(C.get('ORDER')[0])L.push(`<b>ORDER BY</b>${c.tri?` : ${esc(c.tri)}`:''}`);
-  if(C.get('LIMIT')[0])L.push('<b>LIMIT</b> : ne garde que les premières lignes');
-  if(C.union)L.push('<b>UNION</b> : puis une deuxième requête, dont les lignes s’ajoutent aux premières');
+  if(g){const cols=defiColonnes(T,g.n+2,g.fin,N,{table:true});L.push(`<b>GROUP BY</b>${cols.length?` ${cols.slice(0,3).map(code).join(', ')}`:''}${en?': one group per value':' : un groupe par valeur'}`);}
+  if(C.get('HAVING')[0])L.push(en?'<b>HAVING</b>: a filter on each group’s calculation':'<b>HAVING</b> : un filtre sur le calcul de chaque groupe');
+  if(C.get('ORDER')[0])L.push(`<b>ORDER BY</b>${c.tri?`${en?':':' :'} ${esc(c.tri)}`:''}`);
+  if(C.get('LIMIT')[0])L.push(en?'<b>LIMIT</b>: keeps only the first rows':'<b>LIMIT</b> : ne garde que les premières lignes');
+  if(C.union)L.push(en?'<b>UNION</b>: then a second query, whose rows are added to the first ones':'<b>UNION</b> : puis une deuxième requête, dont les lignes s’ajoutent aux premières');
   /* La notion particulière, s’il y en a une que les clauses ne disent pas */
   const q=String(c&&c.sol||'').replace(/'(?:''|[^'])*'/g,"''"),dits=L.join(' ');
   const notions=[],exclus=new Set();
@@ -14252,7 +14257,7 @@ function defiMethode(c){
     if((k==='like'||k==='between'||k==='in'||k==='isnull')&&/LIKE|BETWEEN|IN<|IS NULL/.test(dits.replace(/<\/code>/g,'<')))continue;
     notions.push(t);(DEFI_OUTILS_INCLUS[k]||[]).forEach(x=>exclus.add(x));
   }
-  return `<ul class="coach-etapes">${L.map(l=>`<li>${l}</li>`).join('')}</ul>${notions.length?`<p class="coach-notion">À utiliser : ${notions.join(' ; ')}.</p>`:''}`;
+  return `<ul class="coach-etapes">${L.map(l=>`<li>${l}</li>`).join('')}</ul>${notions.length?`<p class="coach-notion">${en?`To use: ${notions.join('; ')}.`:`À utiliser : ${notions.join(' ; ')}.`}</p>`:''}`;
 }
 /* La requête à compléter : chaque valeur devient « … », et le tri final aussi ; s’il ne reste rien à trouver, la liste des colonnes. */
 function defiACompleter(c){
@@ -14273,7 +14278,7 @@ function defiIndices(c){
   return [
     ['Où chercher',defiOuChercher(c)],
     ['La méthode',defiMethode(c)],
-    ['À compléter',`Remplace chaque «&nbsp;…&nbsp;».<div class="ex-code">${highlight(sqlEnLignes(defiACompleter(c)))}</div>`]
+    ['À compléter',`${typeof defiEn==='function'&&defiEn()?'Replace each “…”.':'Remplace chaque «&nbsp;…&nbsp;».'}<div class="ex-code">${highlight(sqlEnLignes(defiACompleter(c)))}</div>`]
   ];
 }
 /* Elisa, 1er novembre, 14 h 33 : « homogénéiser, fusionner pour faire un seul cadre » (« Pas encore » et les indices étaient deux
@@ -14300,7 +14305,7 @@ function defiIndicesHTML(c,n,view,diag,next,kind){
   /* Un indice à l’écran : eurêka, l’ampoule s’allume (Elisa, 7 novembre, 15 h 38 : son GIF, une fois), au bout de la ligne de l’indice */
   const chat=n&&typeof chatBonusHtml==='function'?`<span class="coach-chat" aria-hidden="true">${chatBonusHtml('eureka')}</span>`:'';
   const head=`<div class="coach-h">${tag}${n?`<b>${I[v-1][0]}</b>`:''}${dots}${chat}</div>`;
-  const body=n?`<div class="coach-hint" data-v="${v}"><div class="coach-t">${I[v-1][1]}</div>${n>=3&&v===3?`<p class="coach-fin">${room?'C’était le dernier indice. La correction t’attend à la fin de la partie\u00a0: d’ici là, à toi de compléter les «\u00a0…\u00a0».':'C’était le dernier indice\u00a0: à toi de compléter les «\u00a0…\u00a0».'}</p>`:''}</div>`
+  const body=n?`<div class="coach-hint" data-v="${v}"><div class="coach-t"${typeof defiEn==='function'&&defiEn()&&defiBaseId(c)?' data-notrad':''}>${I[v-1][1]}</div>${n>=3&&v===3?`<p class="coach-fin">${room?'C’était le dernier indice. La correction t’attend à la fin de la partie\u00a0: d’ici là, à toi de compléter les «\u00a0…\u00a0».':'C’était le dernier indice\u00a0: à toi de compléter les «\u00a0…\u00a0».'}</p>`:''}</div>`
     :`<p class="coach-intro">Écris ta requête, puis touche <b>Exécuter</b>.${room?'':' Un nom de colonne te manque&nbsp;? Touche <b>Schéma</b>. Si tu bloques, un indice arrive après chaque essai raté.'}</p>`;
   /* Ce que dit un essai manqué (« Pas encore », puis « Un coup de patte ? » le 8 novembre, « Raté » et « Essaie encore » le 9, sous
      l’éditeur à 7 h 23). 9 novembre, 7 h 37 (Elisa) : « Non enfaite met le au niveau de l’indice « Réessaie » avec une icône ! Mais
@@ -21740,6 +21745,45 @@ const DEMO_SQL={
   escape:'SELECT nom, theme, difficulte, duree_max_min\nFROM salles\nORDER BY difficulte;',
   festival:'SELECT nom, genre, pays, cachet\nFROM artistes\nORDER BY nom;'
 };
+/* Les défis dans la langue de l’appli (Elisa, 15 novembre, 14 h 40 : « Il faut qu’un Anglais comprenne ce qu’il y a dans la base. Et
+   quand il va exécuter les exos, il faut qu’il comprenne ») : chaque base qui a sa traduction (langue-en-defis.js, fabriqué par
+   tools/langue/defis.mjs) passe dans la langue avant sa première ouverture : son SQL (tables, colonnes, valeurs : bassins → tanks,
+   'Eau douce' → 'Freshwater' ; les prénoms, les noms, les villes restent), sa présentation, ses tables, ses colonnes, sa requête de
+   démo ; ses défis aussi : leur texte et leur solution. Le reste de l’appli lit ces données déjà traduites. Les salles renvoient au
+   serveur la requête récrite pour la base française (defiSqlServeur) : il vérifie sur sa copie, restée en français. Le nom de la
+   base (DEFI_BASES[id].nom) reste français : « Base Aquarium » se traduit à l’affichage. En français, rien ne change. */
+(function defisLangue(){
+  try{
+    const L=window.REQUETE_LANGUE;
+    if(!L||L.code==='fr'||typeof L.baseTraduite!=='function')return;
+    const t=x=>x==null?x:L.t(String(x));
+    Object.keys(DEFI_BASES).forEach(id=>{
+      if(!L.baseTraduite(id))return;
+      const B=DEFI_BASES[id],tab=x=>L.identifiant(x,null,id),col=(x,c)=>L.identifiant(x,c,id);
+      B.sql=L.sql(B.sql,null,id);
+      B.desc=t(B.desc);
+      const tables={},cols={};
+      for(const k in B.tables||{})tables[tab(k)]=t(B.tables[k]);
+      for(const k in B.cols||{}){const o={};for(const c in B.cols[k])o[col(k,c)]=t(B.cols[k][c]);cols[tab(k)]=o;}
+      B.tables=tables;B.cols=cols;
+      if(DEFI_TABLES_MOTS[id]){const m={};for(const k in DEFI_TABLES_MOTS[id])m[tab(k)]=t(DEFI_TABLES_MOTS[id][k]);DEFI_TABLES_MOTS[id]=m;}
+      if(DEMO_SQL[id])DEMO_SQL[id]=L.sql(DEMO_SQL[id],null,id);
+    });
+    CHALLENGES.forEach(c=>{
+      if(!c.base||!L.baseTraduite(c.base))return;
+      c.solFr=c.sol;c.sol=(L.solution&&L.solution(c.base,c.id))||L.sql(c.sol,null,c.base);
+      c.titre=t(c.titre);c.situation=t(defiSituationSeule(c.situation));
+      ['affiche','garde','precis'].forEach(k=>{if(Array.isArray(c[k]))c[k]=c[k].map(t);});
+      if(c.tri)c.tri=t(c.tri);
+      if(c.indice)c.indice=t(c.indice);
+    });
+    /* Les notions des indices (« À utiliser : … »), écrites en HTML */
+    DEFI_OUTILS.forEach(o=>{o[2]=t(o[2]);});
+  }catch(e){}
+})();
+/* La requête d’un joueur, pour le serveur des salles : écrite pour la base du défi dans la langue de l’appli, récrite pour sa base
+   française (tanks → bassins, 'Freshwater' → 'Eau douce'). */
+function defiSqlServeur(sql,c){try{const L=window.REQUETE_LANGUE;return c&&c.base&&L&&L.baseTraduite&&L.baseTraduite(c.base)?L.versFrancais(sql,c.base):sql;}catch(e){return sql;}}
 /* Elisa, 1er novembre, 18 h 42 : « Base NutriBoost » plutôt que « Base des cours ». */
 function demoLabel(id){return id==='cours'?'Base NutriBoost':'Base '+DEFI_BASES[id].nom;}
 /* Ce que contient une base de démo, en une ligne : « Vols, passagers, compagnies, avions et bagages ». */
@@ -24386,7 +24430,7 @@ function errAide(msg,sql,o){
   const m=String(msg==null?'':msg).toLowerCase(); let aide='';
   /* 23 h 50 (ld8) : DISTINCT ON, juste en PostgreSQL, n’existe pas en SQLite (« near "ON": syntax error ») */
   if(sql&&/\bDISTINCT\s+ON\s*\(/i.test(String(sql).replace(/'(?:''|[^'])*'/g,"''"))) aide="<code>DISTINCT ON</code> est propre à PostgreSQL : la base de l’app ne le connaît pas. Pour garder une seule ligne par groupe, numérote les lignes dans une sous-requête avec <code>ROW_NUMBER() OVER (PARTITION BY … ORDER BY …)</code>, puis garde le numéro 1.";
-  else if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'texte'</code>.";
+  else if(m.includes('no such column')) aide="Vérifie l'orthographe exacte de la colonne — ou si tu voulais du texte, entoure-le de guillemets simples : <code>'"+(typeof window!=='undefined'&&window.REQUETE_LANGUE&&window.REQUETE_LANGUE.code==='en'?'text':'texte')+"'</code>.";
   else if(m.includes('no such table')){
     /* Pendant un défi sur une autre base (Aéroport…), ce sont ses tables à elle. */
     /* La console : ses tables à elle, même après un défi ouvert plus tôt (mode reste « defi » ; 9 novembre, 18 h 21, vu en capture :
@@ -25409,7 +25453,7 @@ function buildSteps(sql,database){
       groupRows=rows; groupUniq=uniq;
       steps.push({n:'GROUP BY',t:'Regrouper les lignes',
         e:`Les lignes qui ont la même valeur de <code>${esc(c.group)}</code> forment un groupe. Ici, ${uniq.length===1?'un seul groupe':`<b>${uniq.length} groupes</b> : une couleur par groupe`}.`,
-        cols:base.columns,rows,note:`${uniq.length} groupe${uniq.length>1?'s':''} : ${uniq.slice(0,6).join(', ')}${uniq.length>6?'…':''}`});
+        cols:base.columns,rows,note:`${uniq.length} groupe${uniq.length>1?'s':''}`,vals:`${uniq.slice(0,6).join(', ')}${uniq.length>6?'…':''}`});
     }catch(e){
       fail('GROUP BY','Regrouper les lignes',`Le regroupement par <code>${esc(c.group)}</code> est impossible : vérifie le nom des colonnes.`,e);
       return steps;
@@ -25538,6 +25582,8 @@ function vizEmpty(kind,sql){
   document.getElementById('viz').classList.add('is-empty');
   updateVizNav();
 }
+/* 15 novembre (l’appli en anglais) : « Lire la table clients » se traduit sans le nom de la table, qui reste tel quel */
+function vizTitre(t){const m=/^(Lire la table) (.+)$/.exec(t);return m?`${esc(m[1])}<span data-notrad> ${esc(m[2])}</span>`:esc(t);}
 function closeViz(){document.getElementById('viz-back').classList.remove('on');document.getElementById('viz').classList.remove('on','is-empty');document.getElementById('fab').classList.remove('hide');}
 function schemaTableIcon(){
   return `<svg class="ti" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M9 10v9" stroke="currentColor" stroke-width="1.8"/></svg>`;
@@ -26271,7 +26317,7 @@ function renderViz(){
   if(s.err){
     document.getElementById('viz-body').innerHTML=`
       <div class="viz-stepnum"><span>Étape ${vizI+1} sur ${vizSteps.length}</span><b>${esc(s.n)}</b></div>
-      <h3>${esc(s.t)}</h3>
+      <h3>${vizTitre(s.t)}</h3>
       <p class="viz-e">${s.e}</p>
       ${errBox(s.err)}`;
     document.getElementById('viz-dots').innerHTML=vizSteps.map((_,i)=>`<i class="${i===vizI?'on':''}"></i>`).join('');
@@ -26286,9 +26332,9 @@ function renderViz(){
   }).join('');
   document.getElementById('viz-body').innerHTML=`
     <div class="viz-stepnum"><span>Étape ${vizI+1} sur ${vizSteps.length}</span><b>${esc(s.n)}</b></div>
-    <h3>${esc(s.t)}</h3>
+    <h3>${vizTitre(s.t)}</h3>
     <p class="viz-e">${s.e}</p>
-    ${s.note?`<p class="viz-count">${esc(s.note)}</p>`:''}
+    ${s.note?`<p class="viz-count">${esc(s.note)}${s.vals?` : <span data-notrad>${esc(s.vals)}</span>`:''}</p>`:''}
     <div class="table-wrap"><table><thead><tr>${s.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
   document.getElementById('viz-dots').innerHTML=vizSteps.map((_,i)=>`<i class="${i===vizI?'on':''}"></i>`).join('');
   document.getElementById('viz-body').scrollTop=0;
@@ -53622,7 +53668,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3069';
+  const SW_CACHE='requete-2026-11-15-module-v3070';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -53663,7 +53709,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 }
 </script>
 <script src="onboarding-focus.js"></script>
-<script src="multiplayer-security.js?v=10"></script>
+<script src="multiplayer-security.js?v=11"></script>
 <script src="achat.js?v=7"></script>
 <script src="compte-moteurs.js?v=1"></script>
 <script src="connexion.js?v=3"></script>

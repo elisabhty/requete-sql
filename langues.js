@@ -41,7 +41,7 @@
   /* essai : la langue n'est proposée qu'aux iPhone en essai, tant que sa traduction n'est pas terminée. */
   var LANGUES = {
     fr: { nom: 'Français', locale: 'fr-FR' },
-    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=4', essai: true }
+    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=5', defis: 'langue-en-defis.js?v=2', essai: true }
   };
   var CLE = 'requete-langue';
 
@@ -146,7 +146,11 @@
 
   /* ---------- 4. Le SQL : la base et les requêtes dans la langue ---------- */
   /* base : {tables: {clients: ['customers', {nom: 'last_name', …}], …}, valeurs: {'Livrée': 'Delivered', …}} */
-  function tablesBase() { return (TRAD && TRAD.base && TRAD.base.tables) || null; }
+  /* Le dictionnaire du SQL : celui de la base des cours (TRAD.base), ou, le temps d'un appel, celui de la base d'un défi
+     (TRAD.bases.aquarium, 15 novembre : « il faut qu'un Anglais comprenne ce qu'il y a dans la base ») ou son inverse (versFrancais). */
+  var dicoCourant = null, versFr = false;
+  function dico() { return dicoCourant || (TRAD && TRAD.base) || null; }
+  function tablesBase() { var d = dico(); return (d && d.tables) || null; }
   /* Découpe une requête : mots, chaînes, commentaires, le reste. */
   function decouper(sql) {
     var re = /('(?:[^']|'')*')|("(?:[^"]|"")*")|(--[^\n]*|\/\*[\s\S]*?\*\/)|([A-Za-z_À-ÿ][\wÀ-ÿ$]*)|([\s\S])/g, m, liste = [];
@@ -158,7 +162,7 @@
      toutes les tables qui l'ont la traduisent pareil (client_id : customer_id) ; sinon celle de base.defauts, à défaut celle de la
      première table qui l'a (nom : last_name, celui des clients). */
   function colonneSeule(nom) {
-    var T = tablesBase(), D = (TRAD.base && TRAD.base.defauts) || {}, vu = null, k;
+    var T = tablesBase(), D = (dico() && dico().defauts) || {}, vu = null, k;
     if (Object.prototype.hasOwnProperty.call(D, nom)) return D[nom];
     for (k in T) if (Object.prototype.hasOwnProperty.call(T[k][1], nom)) { if (vu == null) vu = T[k][1][nom]; else if (vu !== T[k][1][nom]) return vu; }
     return vu;
@@ -172,7 +176,7 @@
     /* Le contexte peut être déjà traduit (la ligne FROM products passée avant la ligne SELECT) : les noms anglais des tables comptent aussi */
     for (t in T) deja[String(T[t][0]).toLowerCase()] = t;
     if (contexte) decouper(String(contexte)).forEach(function (x) { var n = x.g === 'nom' ? x.v.toLowerCase() : ''; n = T[n] ? n : deja[n] || ''; if (n && autour.indexOf(n) < 0) autour.push(n); });
-    var L = decouper(String(requete)), valeursBase = (TRAD.base.valeurs) || {}, i, j;
+    var L = decouper(String(requete)), valeursBase = (dico().valeurs) || {}, i, j;
     var suivant = function (k) { for (k++; k < L.length; k++) if (L[k].g !== 'autre' || /\S/.test(L[k].v)) return k; return -1; };
     var precedent = function (k) { for (k--; k >= 0; k--) if (L[k].g !== 'autre' || /\S/.test(L[k].v)) return k; return -1; };
     /* Les tables citées, et leurs alias (FROM clients c, JOIN commandes AS co) */
@@ -197,18 +201,82 @@
       for (i = 0; i + 1 < C.length; i++) { var tc = C[i].g === 'nom' ? C[i].v.toLowerCase() : ''; tc = T[tc] ? tc : deja[tc] || ''; if (!tc || (C[i + 1].v === '.')) continue;
         j = i + 1; if (C[j].g === 'nom' && C[j].v.toUpperCase() === 'AS') j++;
         if (j < C.length && C[j].g === 'nom' && !T[C[j].v.toLowerCase()] && !deja[C[j].v.toLowerCase()] && !/^(ON|USING|WHERE|GROUP|ORDER|HAVING|LIMIT|JOIN|INNER|LEFT|RIGHT|FULL|CROSS|NATURAL|UNION|EXCEPT|INTERSECT|SET|VALUES|AS)$/i.test(C[j].v) && !alias[C[j].v.toLowerCase()]) alias[C[j].v.toLowerCase()] = tc; } }
+    /* 15 novembre, base Salle de sport : dans CREATE TABLE t (…) et INSERT INTO t (…), une colonne est celle de t, même si une
+       table citée plus près (REFERENCES adherents(id)) a une colonne du même nom (date_inscription : join_date, booking_date). */
+    (function () {
+      var k, prof = 0, cible = null, debut = false, etat = 0;
+      for (k = 0; k < L.length; k++) {
+        var z = L[k], uz = z.g === 'nom' ? z.v.toUpperCase() : '';
+        if (!cible) {
+          if (uz === 'CREATE' || uz === 'INSERT') { etat = 1; continue; }
+          if (etat === 1) {
+            if (z.g === 'nom' && z.table) { cible = z.table; prof = 0; continue; }
+            if (z.g === 'nom' && /^(TABLE|IF|NOT|EXISTS|INTO|OR|REPLACE|IGNORE|TEMP|TEMPORARY)$/.test(uz)) continue;
+            if (/\S/.test(z.v)) etat = 0;
+          }
+          continue;
+        }
+        if (z.v === '(') { prof++; if (prof === 1) debut = true; continue; }
+        if (z.v === ')') { prof--; if (prof <= 0) { cible = null; etat = 0; } continue; }
+        if (prof === 0 && /\S/.test(z.v)) { cible = null; etat = 0; continue; }
+        if (prof === 1 && z.v === ',') { debut = true; continue; }
+        if (prof === 1 && z.g === 'nom' && debut) { z.colonneDe = cible; debut = false; continue; }
+        if (z.g !== 'autre' || /\S/.test(z.v)) debut = false;
+      }
+    })();
+    /* 15 novembre, base Aéroport : une même valeur française qui se traduit autrement selon sa colonne (« Suisse » : Swiss pour une
+       nationalité, Switzerland pour un pays). valeursColonnes : {'passagers.nationalite': {'Suisse': 'Swiss'}}. La colonne d'une
+       chaîne se lit dans un INSERT INTO t (colonnes) VALUES (…), ou devant elle : nationalite = 'Suisse', nationalite IN ('Suisse', …). */
+    var VC = !versFr && dico() && dico().valeursColonnes;
+    if (VC) {
+      var ins = null, prof = 0, rang = 0, k2, u;
+      for (i = 0; i < L.length; i++) {
+        var y = L[i]; u = y.g === 'nom' ? y.v.toUpperCase() : '';
+        if (u === 'INSERT') { ins = { table: '', cols: [], etat: 0 }; prof = 0; continue; }
+        if (ins) {
+          if (ins.etat === 0 && y.g === 'nom' && !/^(INTO|OR|REPLACE|IGNORE)$/.test(u)) { ins.table = y.v.toLowerCase(); ins.etat = 1; }
+          else if (ins.etat === 1 && y.v === '(') ins.etat = 2;
+          else if (ins.etat === 1 && y.g === 'nom') ins = null;
+          else if (ins.etat === 2 && y.g === 'nom') ins.cols.push(y.v.toLowerCase());
+          else if (ins.etat === 2 && y.v === ')') ins.etat = 3;
+          else if (ins.etat === 3 && u === 'VALUES') ins.etat = 4;
+          else if (ins.etat === 4) {
+            if (y.v === '(') { prof++; if (prof === 1) rang = 0; }
+            else if (y.v === ')') prof--;
+            else if (y.v === ',' && prof === 1) rang++;
+            else if (y.g === 'chaine' && prof === 1) y.colonne = ins.table + '.' + ins.cols[rang];
+            else if (y.v === ';' && prof === 0) ins = null;
+          }
+          continue;
+        }
+        if (y.g !== 'chaine') continue;
+        var enIn = false, op = false;
+        k2 = precedent(i);
+        while (k2 >= 0 && (L[k2].v === ',' || L[k2].v === '(' || L[k2].g === 'chaine')) k2 = precedent(k2);
+        if (k2 >= 0 && L[k2].g === 'nom' && L[k2].v.toUpperCase() === 'IN') { enIn = true; k2 = precedent(k2); if (k2 >= 0 && L[k2].g === 'nom' && L[k2].v.toUpperCase() === 'NOT') k2 = precedent(k2); }
+        else { k2 = precedent(i); while (k2 >= 0 && /^[=<>!]$/.test(L[k2].v)) { op = true; k2 = precedent(k2); } }
+        if ((!enIn && !op) || k2 < 0 || L[k2].g !== 'nom') continue;
+        var col = L[k2].v.toLowerCase();
+        for (var cle in VC) { var tc2 = cle.split('.'); if (tc2[1] === col && citees.some(function (x) { return x.table === tc2[0]; })) { y.colonne = cle; break; } }
+      }
+    }
     for (i = 0; i < L.length; i++) {
       var e = L[i];
-      if (e.g === 'chaine') { var c = e.v.slice(1, -1).replace(/''/g, "'"); if (Object.prototype.hasOwnProperty.call(valeursBase, c)) e.v = "'" + String(valeursBase[c]).replace(/'/g, "''") + "'"; continue; }
+      if (e.g === 'chaine') { var c = e.v.slice(1, -1).replace(/''/g, "'"), vc = VC && e.colonne && VC[e.colonne];
+        if (vc && Object.prototype.hasOwnProperty.call(vc, c)) { e.v = "'" + String(vc[c]).replace(/'/g, "''") + "'"; continue; }
+        if (Object.prototype.hasOwnProperty.call(valeursBase, c)) e.v = "'" + String(valeursBase[c]).replace(/'/g, "''") + "'"; continue; }
       if (e.g !== 'nom' || e.alias) continue;
+      /* Un alias devant un point (ca.nom, alias de « JOIN camions ca ») reste l'alias, même si son nom a une traduction (ca : revenue) */
+      if (alias[e.v.toLowerCase()]) { var apresAlias = suivant(i); if (apresAlias >= 0 && L[apresAlias].v === '.') continue; }
       /* Un alias entre guillemets doubles (« nom AS "Nom du produit" ») : traduit comme le texte qu'il affiche */
-      if (e.guillemets && TRAD.textes && Object.prototype.hasOwnProperty.call(TRAD.textes, e.v)) { e.v = String(TRAD.textes[e.v]).replace(/"/g, '""'); continue; }
+      if (e.guillemets && !versFr && TRAD.textes && Object.prototype.hasOwnProperty.call(TRAD.textes, e.v)) { e.v = String(TRAD.textes[e.v]).replace(/"/g, '""'); continue; }
       if (e.table) { e.v = casse(e.v, T[e.table][0]); continue; }
       var nom = e.v.toLowerCase(), p = precedent(i), n = suivant(i), table = '';
       if (n >= 0 && L[n].v === '(') {   // COUNT(, une fonction
         /* … sauf une routine de la base (15 novembre, module 13 : CALL expedier_commande(13), SELECT calculer_points(80)) : son nom est dans les défauts */
-        var D = (TRAD.base && TRAD.base.defauts) || {};
-        if (Object.prototype.hasOwnProperty.call(D, nom)) e.v = casse(e.v, D[nom]);
+        var D = (dico() && dico().defauts) || {};
+        /* … jamais à l'envers : RANK( reste RANK( même si « rank » est un alias (rang) */
+        if (!versFr && Object.prototype.hasOwnProperty.call(D, nom)) e.v = casse(e.v, D[nom]);
         continue;
       }
       if (p >= 0 && L[p].v === '.') {
@@ -220,6 +288,8 @@
         if (!table) { for (j = 0; j < autour.length && !table; j++) if (Object.prototype.hasOwnProperty.call(T[autour[j]][1], nom)) table = autour[j]; }
         /* … sinon le nom seul (une colonne calculée d'une CTE : totaux.nb_commandes) */
         if (!table) { var g2 = colonneSeule(nom); if (g2) e.v = casse(e.v, g2); continue; }
+      } else if (e.colonneDe && T[e.colonneDe] && Object.prototype.hasOwnProperty.call(T[e.colonneDe][1], nom)) {
+        table = e.colonneDe;   // la colonne d'un CREATE TABLE ou d'un INSERT INTO
       } else {
         /* Sans préfixe : la table citée la plus proche qui a cette colonne */
         var mieux = -1;
@@ -234,8 +304,34 @@
         table = citees[mieux].table;
       }
       if (T[table][1][nom]) e.v = casse(e.v, T[table][1][nom]);
+      /* Un alias réutilisé pour un résultat intermédiaire (« JOIN medecins m » dans un WITH, puis « CROSS JOIN moyenne m » : m.valeur) */
+      else if (dicoCourant) { var g3 = colonneSeule(nom); if (g3) e.v = casse(e.v, g3); }
     }
     return L.map(function (e) { return e.guillemets ? '"' + e.v + '"' : e.v; }).join('');
+  }
+  function avec(d, fr, f) {
+    var avant = dicoCourant, avantFr = versFr;
+    dicoCourant = d; versFr = fr;
+    try { return f(); } finally { dicoCourant = avant; versFr = avantFr; }
+  }
+  /* Le dictionnaire à l'envers (customers → clients, 'Freshwater' → 'Eau douce'), gardé une fois fait */
+  var inverses = {};
+  function inverse(baseId) {
+    var d = TRAD && TRAD.bases && TRAD.bases[baseId];
+    if (!d) return null;
+    if (inverses[baseId]) return inverses[baseId];
+    var r = { tables: {}, valeurs: {}, defauts: {} }, t, c;
+    for (t in d.tables || {}) {
+      var cols = {};
+      for (c in d.tables[t][1]) cols[String(d.tables[t][1][c]).toLowerCase()] = c;
+      r.tables[String(d.tables[t][0]).toLowerCase()] = [t, cols];
+    }
+    for (c in d.valeurs || {}) r.valeurs[d.valeurs[c]] = c;
+    for (t in d.valeursColonnes || {}) for (c in d.valeursColonnes[t]) r.valeurs[d.valeursColonnes[t][c]] = c;
+    /* … et les valeurs qu'une solution écrite à la main traduit autrement (« Faible » : Weak pour une ruche, Low pour un niveau) */
+    for (c in d.valeursRetour || {}) r.valeurs[c] = d.valeursRetour[c];
+    for (c in d.defauts || {}) r.defauts[String(d.defauts[c]).toLowerCase()] = c;
+    return (inverses[baseId] = r);
   }
   /* Une base SQLite (sql.js) passée dans la langue : tables, colonnes, valeurs. Rend la base. */
   function base(db) {
@@ -460,11 +556,27 @@
     disponibles: disponibles,
     nom: function (c) { return (LANGUES[c] || {}).nom || c; },
     t: t,
-    sql: sql,
+    /* baseId : la base d'un défi (« aquarium ») ; sans dictionnaire pour elle, la requête reste telle quelle (base restée en français). */
+    sql: function (requete, contexte, baseId) {
+      if (!baseId) return sql(requete, contexte);
+      var d = TRAD && TRAD.bases && TRAD.bases[baseId];
+      return d ? avec(d, false, function () { return sql(requete, contexte); }) : requete;
+    },
+    /* Une requête écrite pour la base d'un défi dans la langue, récrite pour sa base française : le serveur des salles vérifie sur
+       la base française (supabase/functions/jeu-verifier). */
+    versFrancais: function (requete, baseId) {
+      var d = inverse(baseId);
+      return d ? avec(d, true, function () { return sql(requete, null); }) : requete;
+    },
+    /* La solution d'un défi écrite à la main pour la langue (une requête que la réécriture automatique lirait mal : une colonne d'un
+       résultat intermédiaire, WITH, qui a deux traductions selon sa table) ; null sinon. */
+    solution: function (baseId, cid) { var d = TRAD && TRAD.bases && TRAD.bases[baseId]; return (d && d.solutions && d.solutions[cid]) || null; },
+    /* La base d'un défi a-t-elle sa traduction ? */
+    baseTraduite: function (baseId) { return CODE !== 'fr' && !!(TRAD && TRAD.bases && TRAD.bases[baseId]); },
     base: base,
     /* Le nom d'une table (identifiant('clients') : customers) ou d'une de ses colonnes (identifiant('produits', 'nom') : name). */
-    identifiant: function (table, colonne) {
-      var T = tablesBase(), x = T && T[String(table).toLowerCase()];
+    identifiant: function (table, colonne, baseId) {
+      var d = baseId ? TRAD && TRAD.bases && TRAD.bases[baseId] : dico(), T = d && d.tables, x = T && T[String(table).toLowerCase()];
       if (CODE === 'fr' || !x) return colonne == null ? table : colonne;
       return colonne == null ? x[0] : (Object.prototype.hasOwnProperty.call(x[1], colonne) ? x[1][colonne] : colonne);
     },
@@ -486,6 +598,8 @@
       if (!TRAD) TRAD = { textes: {}, base: null, mots: null };
       var D = contenu.textes || {}, k;
       for (k in D) TRAD.textes[k] = D[k];
+      /* Les bases des défis (langue-en-defis.js) : chacune son dictionnaire */
+      if (contenu.bases) { TRAD.bases = TRAD.bases || {}; for (k in contenu.bases) TRAD.bases[k] = contenu.bases[k]; inverses = {}; }
       /* Les tables propres à une page (15 novembre, « Quel JOIN choisir ? » : medecins, bassins, livres…) : ses tables, ses alias et ses
          valeurs s'ajoutent à la base de la langue, pour cette page seulement. */
       var B = contenu.base;
@@ -521,6 +635,8 @@
   if (CODE !== 'fr' && LANGUES[CODE].fichier) {
     var moi = document.currentScript, src = (moi && moi.getAttribute('src')) || '', dossier = src.slice(0, src.lastIndexOf('/') + 1);
     var page = moi && moi.getAttribute('data-textes'), html = '<script src="' + dossier + LANGUES[CODE].fichier + '"><\/script>';
+    /* data-defis (l'appli, pas les vidéos) : les bases des défis et leurs textes, dans leur propre fichier */
+    if (moi && moi.hasAttribute && moi.hasAttribute('data-defis') && LANGUES[CODE].defis) html += '<script src="' + dossier + LANGUES[CODE].defis + '"><\/script>';
     if (page) html += '<script src="' + page.replace('{langue}', CODE) + '"><\/script>';
     try { document.write(html); } catch (e) {}
   }

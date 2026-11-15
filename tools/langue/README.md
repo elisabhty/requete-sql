@@ -78,6 +78,22 @@ l'anglais :
 - Ce qui reste dans la liste à la fin s'écrit pareil dans la langue : mots-clés SQL, noms de colonnes, données d'exemple (« Petit »
   y est un nom de famille : ne pas le traduire).
 
+## Les bases des défis (defis.mjs)
+
+- `defis.mjs --langue <code> recolter [base…]` : écrit `travail/<code>/defis/<base>.md`, ce qui manque pour une base (ses textes,
+  ses tables et colonnes, leurs valeurs, les noms et les valeurs des solutions, puis chaque défi avec sa solution).
+- La traduction s'écrit dans `defis/<code>/<base>.json` : `tables` (`{fr: [nom, {colonne: nom}]}`), `defauts` (les alias et les
+  résultats intermédiaires des solutions ; `nom` y dit quelle traduction prend `x.nom` quand `x` est un résultat intermédiaire),
+  `gardees` (`table.colonne` gardées telles quelles : prénoms, noms, e-mails, noms propres), `valeurs`, `valeursColonnes`
+  (`{"passagers.nationalite": {"Suisse": "Swiss"}}`), `solutions` (une solution écrite à la main) et `valeursRetour` (ses valeurs,
+  pour la salle), `textes`.
+- Règles : deux valeurs françaises n'ont jamais la même traduction dans une base (la salle ne saurait pas laquelle remettre) ;
+  un texte commun à deux bases n'a qu'une traduction ; un tri garde autant d'étapes (« , then ») que le français (« , puis »).
+- `construire` écrit `langue-<code>-defis.js` (avec les étiquettes du schéma de chaque table : « Déplier la table bookings ») ;
+  `verifier [base…]` crée chaque base dans la langue, rejoue chaque solution traduite et la compare à la française, puis récrit
+  la requête en français (les salles) : il faut « Aucune erreur ». Les remarques (un ordre qui change parce qu'un texte traduit se
+  trie autrement, une longueur de nom) sont normales.
+
 ## L'iPhone : widgets, Live Activities, raccourcis, rappels
 
 Ce que l'app confie à l'iPhone ne passe pas par la page : l'app le traduit avant de l'envoyer (`natifT`, `natifSql`, `pocheLangue`

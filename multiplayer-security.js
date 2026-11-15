@@ -82,7 +82,8 @@
       timeout = setTimeout(() => controller.abort(), 20000);
       const response = await fetch(JEU_SB + '/functions/v1/jeu-verifier?forceFunctionRegion=eu-west-3', {
         method:'POST', headers:{apikey:JEU_SB_KEY,'Content-Type':'application/json'},
-        body:JSON.stringify({cle:clsCle(),salle:game.code,g:game.g,n,id,sql}), signal:controller.signal
+        // 15 novembre (les défis en anglais) : le serveur vérifie sur la base française ; la requête y est récrite (defiSqlServeur).
+        body:JSON.stringify({cle:clsCle(),salle:game.code,g:game.g,n,id,sql:typeof defiSqlServeur==='function'?defiSqlServeur(sql,CHALLENGES.find(x=>x.id===round.cid)):sql}), signal:controller.signal
       });
       const result = await response.json();
       if (JEU !== game || jeuCur() !== n) return;

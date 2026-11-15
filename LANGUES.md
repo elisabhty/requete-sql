@@ -78,10 +78,32 @@ requête d’origine sur la base française.
 **Branché depuis le module 1 (14 novembre)** : en anglais, `buildDb` crée la base avec `sql(SCHEMA_SQL)` (les valeurs par défaut
 aussi : `DEFAULT 'processing'`), et les noms des produits sont traduits (`Prebiotic Fiber`…). Le schéma et l’aide à la saisie
 (`SCHEMA_META`) prennent les noms anglais. La solution d’un exercice et sa requête de vérification passent par `langueSql` ; un
-défi qui a sa propre base (Aéroport, Zoo…) reste en français pour l’instant (`langueSqlDe`), et son code affiché aussi
-(`REQUETE_LANGUE.autreBase`). Le code affiché dans `<code>` est récrit pour la base de la langue (`<code>prenom</code>` devient
+défi qui a sa propre base (Aéroport, Zoo…) a la sienne dans la langue depuis le 15 novembre (voir « Les bases des défis en
+anglais ») ; son code affiché n’est pas récrit pour la base du cours (`REQUETE_LANGUE.autreBase`). Le code affiché dans `<code>` est récrit pour la base de la langue (`<code>prenom</code>` devient
 `first_name`) : une table suivie d’une parenthèse reste une table (`REFERENCES clients(id)`), une colonne citée seule prend la
 traduction commune à ses tables (`client_id`), sinon celle de la première table qui l’a (`nom` : `last_name`).
+
+## Les bases des défis en anglais (15 novembre)
+
+« Il faut qu’un anglais il comprenne ce qu’il y a dans la base, et quand il va exécuter les exos » : les 15 bases des défis
+(Aéroport, Hôpital, Wok, Zoo, Fromagerie, Laboratoire, Voyages, Ski, Food truck, Aquarium, Vélos, Ferme apicole, Escape game,
+Festival, Salle de sport) et leurs 477 défis, en anglais : tables, colonnes, valeurs (les villes, les statuts, les noms des
+plats, des salles, des pistes…), descriptions, consignes, indices et solutions. Les prénoms, les noms de famille, les e-mails et
+les noms propres (une marque, un artiste, une commune) restent tels quels.
+
+- La source : `tools/langue/defis/en/<base>.json` (`tables`, `defauts` pour les alias des solutions, `gardees` pour les colonnes
+  qui ne se traduisent pas, `valeurs`, `valeursColonnes` pour une valeur qui se traduit selon sa colonne, `solutions` pour une
+  solution écrite à la main, `valeursRetour`, `textes`). `tools/langue/defis.mjs` les assemble dans `langue-en-defis.js`, chargé
+  par l’appli seulement (`<script src="langues.js?v=5" data-defis>`).
+- Au chargement, `defisLangue` (index.html) passe chaque base dans la langue (son SQL, sa description, ses tables), et chaque
+  défi (titre, situation, colonnes à afficher, tri, indices ; sa solution par `sql(sol, null, base)` ou `solution(base, défi)`).
+- Les salles : le serveur vérifie sur la base française. L’essai anglais est récrit en français avant l’envoi
+  (`versFrancais`, `defiSqlServeur`) ; tout ce qui est traduit se récrit, une valeur cherchée avec `LIKE` seulement si elle est
+  écrite comme dans la base anglaise.
+- Le moteur a appris : une valeur traduite selon sa colonne (« Suisse » : `Swiss` pour une nationalité, `Switzerland` pour un
+  pays) ; la colonne d’un `CREATE TABLE` ou d’un `INSERT INTO` est celle de sa table, même après un `REFERENCES` ; un alias devant
+  un point (`ca.nom`, alias de `JOIN camions ca`) reste l’alias, même si son nom se traduit ailleurs (`ca` : `revenue`).
+- Les écrans des défis (indices, schéma, minuteur, salle) et le pas à pas sont en anglais ; les erreurs SQL aussi.
 
 ## Les vidéos des cours
 
