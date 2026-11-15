@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-15-module-v3059';
+const CACHE = 'requete-2026-11-15-module-v3060';
 
 const PRECACHE = [
   './safari-surface.css?v=14',
@@ -333,6 +333,14 @@ const PRECACHE = [
   './assets/anim/en/projet-drop-thumb.webp',
   './assets/anim/en/projet-schemas.js?v=1',
   './assets/anim/en/projet-schemas-thumb.webp',
+  './assets/anim/en/projet-insert.js?v=1',
+  './assets/anim/en/projet-insert-thumb.webp',
+  './assets/anim/en/projet-update.js?v=1',
+  './assets/anim/en/projet-update-thumb.webp',
+  './assets/anim/en/projet-merge.js?v=1',
+  './assets/anim/en/projet-merge-thumb.webp',
+  './assets/anim/en/projet-delete.js?v=1',
+  './assets/anim/en/projet-delete-thumb.webp',
   './assets/anim/conference-nutrition.webp',
   './assets/anim/evenement-ephemere.webp',
   './assets/anim/colis-dechire.webp',

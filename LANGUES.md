@@ -176,6 +176,11 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   - la date d’inscription d’un client reste `signup_date` à côté de celle d’une inscription (`data-en` sur sa colonne).
   Les requêtes tapées des quatre vidéos sont écrites pour la base avant d’être découpées en caractères (`LG.ecrireCode` dans
   `dom()`) ; la couverture « SCHÉMAS » devient « SCHEMAS ».
+- **Le module 10** (15 novembre, « continue ») : Écrire et modifier les données (INSERT, UPDATE, MERGE, DELETE), dans le projet
+  des ateliers. `entrepot` (l’inventaire de MERGE) devient `warehouse` ; Spiruline Bio : Organic Spirulina. Les commentaires qui
+  changent en cours de vidéo (`cmtStack` : « -- Valeurs inversées », « -- Oubli du WHERE ») sont traduits comme des phrases
+  (`LG.t`) avant que le code ne passe par `ecrireCode` (sinon « Atelier oublié » deviendrait « workshop oublié »). Les cartes
+  d’actions de MERGE et de requêtes sont du code (`codeSel: '.rc'`).
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
@@ -213,6 +218,7 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   (un tri à glisser : seulement une aide sur le geste) n’a pas de fichier d’indice : l’appli ne joue l’indice qu’avec le `tip`
   qu’elle affiche après deux erreurs (moments.js).
   Module 9 (15 novembre) : les quatre fichiers sont prêts (`projet-create.json` à `projet-schemas.json`, environ 12 500 caractères).
+  Module 10 (15 novembre) : les quatre fichiers sont prêts (`projet-insert.json` à `projet-delete.json`, environ 11 000 caractères).
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

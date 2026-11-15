@@ -851,7 +851,7 @@ test('le module 9 en entier : CREATE, ALTER, DROP, les schémas ; requêtes, com
         'CREATE SCHEMA wellness; ALTER TABLE customers SET SCHEMA shop; SELECT * FROM shop.orders; SELECT * FROM wellness.enrollments;']])
       assert.equal(L.sql(q, 'inscriptions'), en, `${c} : ${q}`);
   }
-  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9].map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9].map(c => `'${c}'`).join(',') + ','));
   /* « Les requêtes d'une page » : un commentaire SQL se traduit comme une phrase ; un schéma devant une table */
   assert.ok(MOTEUR.includes("var v = /^\\s*--/.test(n.nodeValue) ? n.nodeValue.replace(/^(\\s*--\\s*)(.*?)(\\s*)$/, function (m, a, x, b) { return a + t(x) + b; }) : sql(n.nodeValue, contexte);"));
   assert.ok(MOTEUR.includes("if (!table && Object.prototype.hasOwnProperty.call(T, nom)) { e.v = casse(e.v, T[nom][0]); continue; }"));
@@ -884,4 +884,60 @@ test('la voix anglaise du module 9 : Brielle, les ids du français, pas de fichi
     total += en.elements.reduce((a, e) => a + e.texte.length, 0);
   }
   assert.ok(total > 10500 && total < 14500, `${total} caractères (autant de crédits)`);
+});
+
+/* Module 10 (« Écrire et modifier les données », 15 novembre) : INSERT, UPDATE, MERGE, DELETE dans le projet des ateliers */
+const M10 = ['projet-insert', 'projet-update', 'projet-merge', 'projet-delete'];
+test('le module 10 en entier : INSERT, UPDATE, MERGE, DELETE ; requêtes et commentaires écrits pour la base avant la frappe', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  for (const c of M10) {
+    const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(Object.keys(textes).length > 100, `${c} : ${Object.keys(textes).length} textes`);
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
+    assert.ok(pg.includes(`<body data-table="${c === 'projet-merge' ? 'produits' : 'inscriptions'}">`), c);
+    assert.ok(pg.includes("  if (typeof LG !== 'undefined' && LG && LG.ecrireCode) $$('.sq .ln').forEach(el => LG.ecrireCode(el));"), c);
+    /* les commentaires qui changent en cours de vidéo, traduits avant le code (sinon « Atelier » deviendrait workshop) */
+    if (pg.includes('cmtStack')) assert.ok(pg.indexOf("$$('.sq .cm > i').forEach(el => { el.textContent = LG.t(el.textContent); });") < pg.indexOf("$$('.sq .ln').forEach(el => LG.ecrireCode(el));"), c);
+    assert.equal(textes['date_inscription'], 'enrollment_date', c);
+    const {L, ctx} = anglais();
+    vm.runInNewContext(lire(`assets/anim/en/${c}.js`), ctx);
+    for (const [q, en] of [['INSERT INTO inscriptions (client_id, atelier_id, date_inscription) VALUES (2, 3, \'2026-09-08\');', 'INSERT INTO enrollments (customer_id, workshop_id, enrollment_date) VALUES (2, 3, \'2026-09-08\');'],
+      ['INSERT INTO cartes (client_id, seances_restantes) VALUES (6, 10) ON CONFLICT (client_id) DO UPDATE SET seances_restantes = seances_restantes + 10;',
+        'INSERT INTO cards (customer_id, sessions_left) VALUES (6, 10) ON CONFLICT (customer_id) DO UPDATE SET sessions_left = sessions_left + 10;'],
+      ['UPDATE ateliers SET date_atelier = \'2026-09-18\' WHERE id = 2;', 'UPDATE workshops SET workshop_date = \'2026-09-18\' WHERE id = 2;'],
+      ['MERGE INTO produits USING entrepot ON produits.id = entrepot.id WHEN MATCHED THEN UPDATE SET stock = entrepot.stock',
+        'MERGE INTO products USING warehouse ON products.id = warehouse.id WHEN MATCHED THEN UPDATE SET stock = warehouse.stock'],
+      ['DELETE FROM inscriptions WHERE client_id = 6;', 'DELETE FROM enrollments WHERE customer_id = 6;']])
+      assert.equal(L.sql(q, 'inscriptions'), en, `${c} : ${q}`);
+  }
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10].map(c => `'${c}'`).join(',') + ']};'));
+  assert.equal(textesDe('projet-merge')['nom'], 'name');
+  assert.ok(lire('assets/anim/projet-merge.html').includes("Course({codeSel: '.rc', duration: DURATION,"));
+  for (const [c, k, v] of [['projet-update', 'Oubli du WHERE', 'Forgetting the WHERE'], ['projet-insert', 'Atelier oublié', 'Workshop forgotten'], ['projet-update', 'Offrir {1} séances à toutes les cartes', 'Give {1} sessions to every card']])
+    assert.equal(textesDe(c)[k], v, `${c} : ${k}`);
+});
+
+test('la voix anglaise du module 10 : Brielle, les ids du français, sans code brut', () => {
+  const br = JSON.parse(lire('tools/voix/en/bases-relationnelles.json'));
+  let total = 0;
+  for (const c of M10) {
+    const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.equal(en.langue, 'en'); assert.equal(en.cours, c); assert.deepEqual(en.voix, br.voix, c); assert.equal(en.modele, fr.modele);
+    const ids = fr.elements.map(e => e.id), chs = ids.filter(i => /^ch/.test(i));
+    assert.deepEqual(en.elements.map(e => e.id), ids.filter(i => en.elements.some(e => e.id === i)), `${c} : l’ordre du français`);
+    assert.ok(!en.elements.some(e => e.id === chs[chs.length - 1]), `${c} : le « Pour finir » n’est pas joué dans l’appli`);
+    assert.ok(fr.elements.every(e => en.elements.some(x => x.id === e.id) || /^indice/.test(e.id) || e.id === chs[chs.length - 1]), c);
+    for (const e of en.elements) {
+      const t = e.texte.replace(/^\[\w+\]\s*/, '');
+      assert.ok(t.length > 3, `${c} ${e.id} : vide`);
+      assert.ok(!/[«»<>=≠→↔⇔|+*%_×÷−'"@…]|\.\.|\w\(|[A-Za-z_]\.[A-Za-z]|&[a-z]+;|Pour finir|idées à retenir|atelier|inscription|séance|entrepot/.test(t), `${c} ${e.id} : ${t}`);
+      if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
+    }
+    total += en.elements.reduce((a, e) => a + e.texte.length, 0);
+  }
+  assert.ok(total > 9000 && total < 13000, `${total} caractères (autant de crédits)`);
 });
