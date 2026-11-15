@@ -191,7 +191,7 @@ test('le module 2 en entier : chaque vidéo charge ses textes anglais, gardés n
     for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
   }
-  assert.ok(app.includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + M2.map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + M2.map(c => `'${c}'`).join(',') + ','));
   assert.ok(where.includes("if (LG && LG.ecrireCode) document.querySelectorAll('.ln,.codepill,.rq,.tye,.m,code').forEach(el => LG.ecrireCode(el));"), 'WHERE a son propre moteur');
 });
 
@@ -397,4 +397,67 @@ test('l’onboarding entier en anglais : le paywall, l’offre de bienvenue, le 
   assert.ok(lire('assets/anim/core.css').includes('html[lang="en"]:is(.tr-f,.tr-m) #cap .cap-stk{background:url(formatrice.webp) 50% 0/134px 134px no-repeat,'));
   assert.ok(app.includes("montres=OB_FORMATEURS.slice(0,seule?1:4);") && app.includes("${seule?'<b>Ta formatrice</b> te fera progresser':`<b>${OB_FORMATEURS.length} formateurs</b> te feront progresser`}"));
   assert.equal(anglais().L.t('<1>Ta formatrice</1> te fera progresser'), '<1>Your instructor</1> will help you progress');
+});
+
+/* Elisa, 15 novembre : « continue ». Le module 3 (Fonctions et expressions) en anglais : ses six vidéos (textes, code, mise en page,
+   fiches, vignettes), et leur voix prête pour generer.mjs --langue en. Le code s’y dit comme on le lit (« two vertical bars »,
+   « floor of price », « percent d, slash… »), comme la voix française ; le « Pour finir, voici les trois idées à retenir », coupé
+   dans l’appli, n’est plus dans les fichiers à générer. En français, les six vidéos rendent exactement la même chose. */
+const M3 = ['fonctions-texte', 'fonctions-numeriques', 'fonctions-dates', 'conversion-types', 'case', 'coalesce'];
+
+test('le module 3 en entier : chaque vidéo charge ses textes anglais, gardés nombre pour nombre, avec sa vignette, préchargés', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  for (const c of M3) {
+    const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(Object.keys(textes).length > 150, `${c} : ${Object.keys(textes).length} textes`);
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    /* « + ? points » : les points encore inconnus du ticket, pas une ponctuation française */
+    for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X').replace('+ ? points', '')), `${c} : la typographie anglaise : ${v}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
+    assert.equal(textes['0 ligne'], '0 rows', c);
+  }
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3].map(c => `'${c}'`).join(',') + ']};'));
+  for (const [c, t] of [['fonctions-numeriques', 'produits'], ['case', 'produits'], ['fonctions-dates', 'commandes'], ['conversion-types', 'commandes'], ['coalesce', 'clients']])
+    assert.ok(lire(`assets/anim/${c}.html`).includes(`<body data-table="${t}"`), c);
+  const dates = lire('assets/anim/fonctions-dates.html'), texte = lire('assets/anim/fonctions-texte.html');
+  assert.ok(dates.includes('<span data-en="D">J</span><span>+</span><span>7</span>'), 'J+7 : D+7');
+  assert.ok(texte.includes('html[lang="en"] .rgT{grid-template-columns:236px 160px 1fr 186px}'), 'les colonnes de l’étiquette');
+  const {L} = anglais();
+  assert.equal(L.sql("SELECT nom, stock, CASE WHEN stock < 50 THEN 'À commander' WHEN stock < 100 THEN 'À surveiller' ELSE 'OK' END AS alerte FROM produits"),
+    "SELECT name, stock, CASE WHEN stock < 50 THEN 'Reorder' WHEN stock < 100 THEN 'Watch' ELSE 'OK' END AS alert FROM products");
+  assert.equal(L.sql("SELECT nom, COALESCE(email, 'Non renseigné') FROM clients"), "SELECT last_name, COALESCE(email, 'Not provided') FROM customers");
+  for (const [fr, en] of [['Une <1>fonction par besoin</1> :', 'One <1>function per need</1>:'],
+    ['renvoie la <1>première valeur qui n’est pas NULL</1> :', 'returns the <1>first value that isn’t NULL</1>:'],
+    ['Sans <1/>, une ligne qui ne remplit aucune condition reçoit <2/>.', 'Without <1/>, a row that meets no condition gets <2/>.']])
+    assert.equal(L.t(fr), en, fr);
+});
+
+test('la voix anglaise du module 3 : Brielle, les ids du français, le code dit comme on le lit, sans le « Pour finir » coupé dans l’appli', () => {
+  const br = JSON.parse(lire('tools/voix/en/bases-relationnelles.json')), prep = lire('tools/voix/preparer-langue.mjs');
+  assert.ok(prep.includes('if (cles.every(k => !D.caps[k] || D.caps[k] === D.caps0[k])) { horsAppli.push(el.id); continue; }'));
+  const DIRE = new Function(prep.slice(prep.indexOf('const B = '), prep.indexOf('const parFichier')) + '\nreturn DIRE;')();
+  for (const [x, dit] of [['Careful: with + instead of ||, the query returns 0.', 'Careful: with the plus sign instead of two vertical bars, the query returns 0.'],
+    ['We multiply the function’s result: FLOOR(price) * 2 gives 58.', 'We multiply the function’s result: floor of price times 2 gives 58.'],
+    ["The '%d/%m/%Y' format shows the date 2026-07-02 as 02/07/2026.", 'The percent d, slash, percent m, slash, percent capital Y format shows the date 2026, dash, 07, dash, 02 as 02, slash, 07, slash, 2026.'],
+    ["Your turn! What does COALESCE('', 'Not provided') return?", 'Your turn! What does coalesce of an empty text and Not provided return?'],
+    ["CAST(price AS INTEGER) drops the decimals, without rounding: 29.9 becomes 29.", 'cast price as integer drops the decimals, without rounding: 29.9 becomes 29.']])
+    assert.equal(DIRE(x).replace(/^\w/, m => m.toLowerCase()), dit.replace(/^\w/, m => m.toLowerCase()), x);
+  let total = 0;
+  for (const c of M3) {
+    const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.equal(en.langue, 'en'); assert.equal(en.cours, c); assert.deepEqual(en.voix, br.voix, c); assert.equal(en.modele, fr.modele);
+    const ids = fr.elements.map(e => e.id), chs = ids.filter(i => /^ch/.test(i));
+    assert.deepEqual(en.elements.map(e => e.id), ids.filter(i => en.elements.some(e => e.id === i)), `${c} : l’ordre du français`);
+    assert.ok(!en.elements.some(e => e.id === chs[chs.length - 1]), `${c} : le « Pour finir » n’est pas joué dans l’appli`);
+    for (const e of en.elements) {
+      const t = e.texte.replace(/^\[\w+\]\s*/, '');
+      assert.ok(t.length > 3, `${c} ${e.id} : vide`);
+      assert.ok(!/[«»<>=≠→⇔|+*%()_×−']|&[a-z]+;|Pour finir|idées à retenir|\b(SELECT|FROM|WHERE|UPPER|SUBSTR|INSTR|FLOOR|ROUND|CAST|COALESCE|STRFTIME|DATE|CASE|WHEN|THEN|ELSE|END|NULL|INTEGER)\b/.test(t), `${c} ${e.id} : ${t}`);
+      if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
+    }
+    total += en.elements.reduce((a, e) => a + e.texte.length, 0);
+  }
+  assert.ok(total > 14000 && total < 18000, `${total} caractères (autant de crédits)`);
 });

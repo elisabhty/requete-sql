@@ -14,10 +14,14 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     valeurs: {'expédiée': 'shipped', 'en_preparation': 'processing', 'Bien-être': 'Wellness', 'Beauté': 'Beauty', 'Nutrition': 'Nutrition', 'Boisson': 'Drink', 'Accessoire': 'Accessory',
       /* Les produits (14 novembre : le module 1 en anglais) */
       'Fibre Prébiotique': 'Prebiotic Fiber', 'Collagène Marin': 'Marine Collagen', 'Magnésium': 'Magnesium', 'Vitamine D': 'Vitamin D',
-      'Tisane Détox': 'Detox Tea', 'Protéine Végétale': 'Plant Protein', 'Oméga 3': 'Omega 3', 'Shaker Inox': 'Steel Shaker'},
+      'Tisane Détox': 'Detox Tea', 'Protéine Végétale': 'Plant Protein', 'Oméga 3': 'Omega 3', 'Shaker Inox': 'Steel Shaker',
+      /* Le module 3 (15 novembre) : les valeurs écrites dans les requêtes (CASE, COALESCE) */
+      'À commander': 'Reorder', 'À surveiller': 'Watch', 'Non renseigné': 'Not provided'},
     colonnesValeurs: {commandes: ['statut'], produits: ['categorie', 'nom']},
     /* Un nom seul dans du code, hors des tables (la formule de pagination : OFFSET = (n − 1) × taille) */
-    defauts: {taille: 'size'}
+    defauts: {taille: 'size',
+      /* Les alias des requêtes du module 3 (AS destinataire, AS suivi…) */
+      destinataire: 'recipient', numero: 'number', suivi: 'follow_up', alerte: 'alert'}
   },
   /* Les mois et les jours : dans une clé, {m1}, {m2}… (« le {1} {m1} » pour « le 15 mars »). */
   mots: {"janvier": "January", "février": "February", "mars": "March", "avril": "April", "mai": "May", "juin": "June", "juillet": "July", "août": "August", "septembre": "September", "octobre": "October", "novembre": "November", "décembre": "December", "janv.": "Jan", "févr.": "Feb", "avr.": "Apr", "juil.": "Jul", "sept.": "Sep", "oct.": "Oct", "nov.": "Nov", "déc.": "Dec", "lundi": "Monday", "mardi": "Tuesday", "mercredi": "Wednesday", "jeudi": "Thursday", "vendredi": "Friday", "samedi": "Saturday", "dimanche": "Sunday", "lun.": "Mon", "mar.": "Tue", "mer.": "Wed", "jeu.": "Thu", "ven.": "Fri", "sam.": "Sat", "dim.": "Sun"},
@@ -3020,6 +3024,29 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Ton accès annuel": "Your yearly access",
     /* 15 novembre, 2 h 57 : en anglais, une seule formatrice pour tous les cours */
     "Ta formatrice te fera progresser": "Your instructor will help you progress",
-    "<1>Ta formatrice</1> te fera progresser": "<1>Your instructor</1> will help you progress"
+    "<1>Ta formatrice</1> te fera progresser": "<1>Your instructor</1> will help you progress",
+    /* Les fiches des cours du module 3 (Fonctions et expressions, 15 novembre) */
+    "Une <1>fonction</1> transforme le texte du résultat, sans modifier la table :": "A <1>function</1> transforms the text in the result, without changing the table:",
+    "Une <1>fonction par besoin</1> :": "One <1>function per need</1>:",
+    "→ met en majuscules<1/><2/> → met en minuscules<3/><4/> → retire les espaces autour du texte<5/><6/> → compte les caractères<7/><8/> → récupère une partie du texte<9/><10/> → donne la position d’un texte<11/><12/> → remplace des caractères": "→ converts to uppercase<1/><2/> → converts to lowercase<3/><4/> → removes the spaces around the text<5/><6/> → counts the characters<7/><8/> → gets part of the text<9/><10/> → gives the position of a text<11/><12/> → replaces characters",
+    "<1>assemble des textes</1>, et on peut y placer des fonctions :": "<1>joins texts</1>, and you can put functions in it:",
+    "Une <1>fonction numérique</1> calcule une valeur, sans modifier la table :": "A <1>numeric function</1> calculates a value, without changing the table:",
+    "arrondit <1>au plus proche</1>, <2/> toujours vers le haut, <3/> toujours vers le bas.": "rounds <1>to the nearest</1>, <2/> always up, <3/> always down.",
+    "On calcule avec <1/>, <2/>, <3/>, <4/> et <5/>, qui donne le <6>reste</6> d’une division :": "We calculate with <1/>, <2/>, <3/>, <4/> and <5/>, which gives the <6>remainder</6> of a division:",
+    "Une <1>fonction de date</1> calcule une date, sans modifier la table :": "A <1>date function</1> calculates a date, without changing the table:",
+    "suit le <1>calendrier</1> : la durée peut compter en jours, en mois ou en années.": "follows the <1>calendar</1>: the duration can count in days, months or years.",
+    "change l’<1>affichage</1> d’une date :": "changes the <1>display</1> of a date:",
+    "convertit une valeur vers le <1>type</1> choisi.": "converts a value to the chosen <1>type</1>.",
+    "Exemple : <1/> transforme le texte en nombre entier.": "Example: <1/> turns the text into an integer.",
+    "indique le <1>type</1> d’une valeur.": "tells you the <1>type</1> of a value.",
+    "Par exemple : <1/>, <2/> ou <3/>.": "For example: <1/>, <2/> or <3/>.",
+    "Convertir en <1/> peut <2>modifier</2> la valeur.": "Converting to <1/> can <2>change</2> the value.",
+    "devient {1}, sans message d’erreur.<1/>{2}.{3} devient {4} : la partie après la virgule est supprimée, sans arrondi.": "becomes {1}, with no error message.<1/>{2}.{3} becomes {4}: the part after the decimal point is dropped, without rounding.",
+    "choisit une valeur selon des <1>conditions</1> :": "picks a value based on <1>conditions</1>:",
+    "L’ordre compte : les <1/> sont testés <2>de haut en bas</2>, et la première condition vraie l’emporte.": "Order matters: the <1/>s are tested <2>from top to bottom</2>, and the first true condition wins.",
+    "Sans <1/>, une ligne qui ne remplit aucune condition reçoit <2/>.": "Without <1/>, a row that meets no condition gets <2/>.",
+    "renvoie la <1>première valeur qui n’est pas NULL</1> :": "returns the <1>first value that isn’t NULL</1>:",
+    "Il change l’<1>affichage</1>, pas la table : l’email de Hugo Laurent reste <2/>.": "It changes the <1>display</1>, not the table: Hugo Laurent’s email stays <2/>.",
+    "Un texte vide <1/> n’est pas <2/> : <3/> ne le remplace pas.": "An empty text <1/> isn’t <2/>: <3/> doesn’t replace it."
   }
 });

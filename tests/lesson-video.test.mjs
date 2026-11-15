@@ -716,7 +716,7 @@ const COURSES = [
     table: 'commandes',
     bubble: 'Extrais, transforme et compare des dates et des heures.',
     chapters: ['Situation', 'Le problème', 'DATE en action', 'Le calendrier', 'Changer l’affichage', 'Le résultat', 'À retenir'],
-    traps: ['<div class="abs title"><span>J</span><span>+</span><span>7</span></div>', '<span>⏳ 7 jours plus tard</span>', '<div class="ml-f"><span>Envoi prévu le</span><span class="ml-val">?</span></div>',
+    traps: ['<div class="abs title"><span data-en="D">J</span><span>+</span><span>7</span></div>', '<span>⏳ 7 jours plus tard</span>', '<div class="ml-f"><span>Envoi prévu le</span><span class="ml-val">?</span></div>',
       '<i class="qcol" id="qS">?</i>', '<span class="kw glow" id="dtA">DATE</span>(date_commande, <span class="str">\'+7 days\'</span>) <span class="kw">AS</span> suivi',
       '<span class="fv"><span class="sw"><span class="a">?</span><span class="b">2026-07-09</span></span></span>',
       '<span class="pt">2026<span class="dim">-07-02</span></span><span class="pj">+</span><span class="pt">7</span>', '<b>Résultat : 2033</b><span class="s">La date est lue comme le nombre 2026.</span>',

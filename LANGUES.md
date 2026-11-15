@@ -122,6 +122,11 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   traduction (`labels`, la valeur jugée reste française), les étiquettes des choix sont traduites en texte (`trTxt`, sans
   `&lt;` ni `&nbsp;`). L’histoire de BETWEEN passe en anglais (la confirmation renvoyée « in English », « Thank you! »).
   La feuille « Leçon verrouillée » est traduite (la prochaine étape sous `{etape}`).
+- **Le module 3** (15 novembre, « continue ») : Fonctions et expressions, les six vidéos (fonctions de texte, numériques, de date,
+  conversion de types, CASE, COALESCE : environ 1 180 textes), leurs vignettes et les bilans des leçons. Les valeurs écrites dans
+  le code passent dans la base anglaise (`'À commander'` : `'Reorder'`, `'Non renseigné'` : `'Not provided'`, `alerte` : `alert`) ;
+  un mot dessiné lettre par lettre prend son `data-en` (`J+7` : `D+7`, les initiales du calendrier) ; une colonne trop étroite pour
+  l’anglais s’élargit sous `html[lang="en"]` (l’étiquette de fonctions-texte).
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
@@ -134,6 +139,11 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   caractères) ; `node tools/voix/generer.mjs --toutes --langue en` les génère tous. Le code y est dit en toutes lettres
   (`<=` : « less than or equal to », `'2023-03-01'` : « 2023, dash, 03, dash, 01 », `ASC` : « ascending ») ; le « À retenir »
   de WHERE, que la vidéo de l’appli ne joue plus, n’a pas de fichier.
+  Module 3 (15 novembre) : les six fichiers sont prêts (`tools/voix/en/fonctions-texte.json` à `coalesce.json`, environ 15 900
+  caractères). Les fonctions et les opérateurs se disent comme on les lit (`PARLE`, preparer-langue.mjs) : `||` « two vertical
+  bars », `FLOOR(price) * 2` « floor of price times 2 », `'%d/%m/%Y'` « percent d, slash, percent m, slash, percent capital Y »,
+  `COALESCE('', 'Not provided')` « coalesce of an empty text and Not provided ». Un chapitre dont aucune légende n’est traduite
+  (le « Pour finir, voici les trois idées à retenir », coupé dans l’appli) n’a plus de fichier.
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

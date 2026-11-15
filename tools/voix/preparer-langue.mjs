@@ -22,18 +22,43 @@ await p.evaluate(() => window.__ready);
 const D = await p.evaluate(() => {
   /* dans la langue (fr() traduit) ; WHERE a son propre moteur, sans plain() */
   const t = h => typeof plain === 'function' ? plain(h) : fr(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, '\u00a0').replace(/\s+/g, ' ').trim();
-  const caps = {}; CAPTIONS.forEach(c => { caps[vkey(c[2])] = t(c[2]); });
+  const caps = {}, caps0 = {}; CAPTIONS.forEach(c => { caps[vkey(c[2])] = t(c[2]); caps0[vkey(c[2])] = String(c[2]).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, '\u00a0').replace(/\s+/g, ' ').trim(); });
   const M = (typeof MOMENTS !== 'undefined' ? MOMENTS : []).map(m => ({prompt: t(m.prompt), tip: m.tip ? t(m.tip) : ''}));
   const O = (typeof OPENS !== 'undefined' ? OPENS : []).map(o => t(o.prompt));
   const page = typeof pontPage === 'function' ? pontPage() : (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
   const L = typeof liensDe === 'function' ? liensDe(page) : null;
-  return {caps, M, O, apres: L && L.apres ? t(L.apres) : '', avant: L && L.avant ? t(L.avant) : '', bulle: t(document.querySelector('#s0 .bubble') ? document.querySelector('#s0 .bubble').textContent : ''),
+  return {caps, caps0, M, O, apres: L && L.apres ? t(L.apres) : '', avant: L && L.avant ? t(L.avant) : '', bulle: t(document.querySelector('#s0 .bubble') ? document.querySelector('#s0 .bubble').textContent : ''),
     sub: document.querySelector('#s0 .sub') ? document.querySelector('#s0 .sub').textContent : '', VOICE};
 });
 await b.close();
 /* La prononciation anglaise : le code dit à voix haute */
 const B = '(?<![\\p{L}\\d_])', E = '(?![\\p{L}\\d_])', W = (x, f = 'gu') => new RegExp(B + x + E, f);
-const DIRE = s => s.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&')
+/* Module 3 (15 novembre) : les fonctions et les opérateurs dits comme on les lit (la voix française : « appeur », « deux barres
+   verticales », « sub-stringue », « pourcent d, barre… ») */
+const FN = {UPPER: 'upper', LOWER: 'lower', TRIM: 'trim', LENGTH: 'length', SUBSTR: 'substring', INSTR: 'in-string', REPLACE: 'replace',
+  ROUND: 'round', CEIL: 'ceiling', FLOOR: 'floor', CAST: 'cast', COALESCE: 'coalesce', DATE: 'date', STRFTIME: 'string format time',
+  typeof: 'type of', Typeof: 'type of', CASE: 'case', WHEN: 'when', THEN: 'then', ELSE: 'else', END: 'end', COUNT: 'count'};
+const FNRE = Object.keys(FN).join('|');
+const PARLE = s => s
+  .replace(/MARTIN Sophie, (\d+), RUE DES LILAS, PARIS/g, 'MARTIN Sophie, $1, rue des Lilas, Paris')
+  .replace(/\bWHEN gives the condition, THEN the value\b/g, 'The when part gives the condition, and the then part, the value')
+  .replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, '$1, dash, $2, dash, $3').replace(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g, '$1, slash, $2, slash, $3')
+  .replace(/'%d\/%m\/%Y'/g, 'percent d, slash, percent m, slash, percent capital Y').replace(/'%([a-zA-Z])'/g, 'percent $1')
+  .replace(/'\+(\d+) (days?|months?|years?)'/g, 'plus $1 $2')
+  .replace(/COALESCE\('', '([^']*)'\)/g, 'coalesce of an empty text and $1').replace(/ '' /g, ' ')
+  .replace(/INSTR\(([a-z_]+), ' '\)/g, (t, a) => `in-string of ${a}, space`)
+  .replace(/UPPER\(([a-z_]+)\) \+ ' ' \+ ([a-z_]+)/g, 'upper of $1, plus a space, plus $2')
+  .replace(/CAST\('?([^'()]+?)'? AS ([A-Z]+)\)/gi, (t, a, b) => `cast ${a} as ${b.toLowerCase()}`)
+  .replace(new RegExp(`\\b(${FNRE})\\(\\)`, 'g'), (t, f) => FN[f])
+  .replace(new RegExp(`\\b(${FNRE})\\(([^()]*)\\)`, 'g'), (t, f, a) => `${FN[f]} of ${a.replace(/'([^']*)'/g, '$1')}`)
+  .replace(new RegExp(`\\b(${FNRE})\\b`, 'g'), f => FN[f])
+  .replace(/\|\|/g, 'two vertical bars')
+  .replace(/\bwith \+ instead of\b/gi, m => (m[0] === 'W' ? 'With' : 'with') + ' the plus sign instead of').replace(/\bnever \+/g, 'never the plus sign')
+  .replace(/\bWith \+,/g, 'With the plus sign,').replace(/\+, -, \* and \//g, 'plus, minus, times and divided by')
+  .replace(/(\S) \* (\d)/g, '$1 times $2').replace(/(\d) \/ (\d)/g, '$1 divided by $2').replace(/ × /g, ' times ').replace(/ − /g, ' minus ')
+  .replace(/(\S) \+ (\S)/g, '$1 plus $2').replace(/\bThe \+ (\d)/g, 'The plus $1').replace(/\bCMD-,/g, 'C-M-D dash,')
+  .replace(/'(CMD-[\d-]+|\d+|OK)'/g, '$1').replace(/\bCMD-(\d+)-(\d+)\b/g, 'C-M-D, dash, $1, dash, $2');
+const DIRE = s => PARLE(s.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&'))
   /* Comme les retouches de la voix française : « Prix en euros », « l’euro entre parenthèses », « le numéro de la page moins un » */
   .replace(/Price \(€\)/g, 'Price in euros').replace(/\(€\)/g, 'the euro in parentheses')
   .replace(/\(page − 1\) × (\d+)/g, 'the page number minus one, times $1')
@@ -67,7 +92,9 @@ for (const el of fr.elements) {
   else if (parFichier[el.id]) {
     cles = parFichier[el.id];
     /* Un chapitre que la vidéo de l’appli ne joue plus (le « À retenir » de WHERE, passé dans le bilan) : pas de fichier */
-    if (cles.every(k => !D.caps[k])) { horsAppli.push(el.id); continue; }
+    /* 15 novembre : ou dont aucune légende n’est traduite (le « Pour finir, voici les trois idées à retenir » des vidéos, coupé dans
+       l’appli : ses légendes restaient en français, et leur voix était générée pour rien) */
+    if (cles.every(k => !D.caps[k] || D.caps[k] === D.caps0[k])) { horsAppli.push(el.id); continue; }
     phrases = cles.map(k => { if (!D.caps[k]) manque.push(el.id + ':' + k); return D.caps[k] || ''; });
   }
   else if (/^at\d$/.test(el.id)) phrases = ['Your turn! ' + D.M[+el.id.slice(2) - 1].prompt];
