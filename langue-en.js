@@ -3037,6 +3037,13 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     /* 15 novembre, 2 h 57 : en anglais, une seule formatrice pour tous les cours */
     "Ta formatrice te fera progresser": "Your instructor will help you progress",
     "<1>Ta formatrice</1> te fera progresser": "<1>Your instructor</1> will help you progress",
+    /* Les fiches des cours du module 11 (Intégrité des tables liées, 15 novembre) */
+    "La règle <1/> décide du sort de la <2>ligne liée</2>.": "The <1/> rule decides the fate of the <2>linked row</2>.",
+    "Elle se définit sur la clé étrangère.": "It’s set on the foreign key.",
+    "Trois règles au <1>choix</1>.": "Three rules to <1>choose</1> from.",
+    "bloque la suppression, <1/> supprime aussi l’avis, <2/> le conserve sans compte.": "blocks the deletion, <1/> deletes the review too, <2/> keeps it without an account.",
+    "Avec <1/>, la colonne doit autoriser <2/>.": "With <1/>, the column must allow <2/>.",
+    "Le site affiche alors « Ancien client ».": "The website then shows “Former customer”.",
     /* Les fiches des cours du module 10 (Écrire et modifier les données, 15 novembre) */
     "Ajouter une <1>ligne</1>": "Adding a <1>row</1>",
     "ajoute une ligne dans une table. Les valeurs suivent l’ordre des colonnes indiquées. Une colonne omise reçoit sa valeur par défaut ou <1/>. Si elle est obligatoire et sans valeur par défaut, l’ajout est refusé.": "adds a row to a table. The values follow the order of the columns listed. A column left out gets its default value or <1/>. If it’s required and has no default value, the insert is refused.",

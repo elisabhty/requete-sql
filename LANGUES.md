@@ -181,6 +181,9 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   changent en cours de vidéo (`cmtStack` : « -- Valeurs inversées », « -- Oubli du WHERE ») sont traduits comme des phrases
   (`LG.t`) avant que le code ne passe par `ecrireCode` (sinon « Atelier oublié » deviendrait « workshop oublié »). Les cartes
   d’actions de MERGE et de requêtes sont du code (`codeSel: '.rc'`).
+- **Le module 11** (15 novembre, « continue ») : Intégrité des tables liées, la vidéo ON DELETE. La table `avis` devient
+  `reviews` (note : rating, commentaire : comment) ; le site affiche « Former customer ». Dans une même page, le `nom` d’un produit
+  (name) et celui d’un client (last_name) : `data-en` sur l’en-tête de la table des produits.
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
@@ -219,6 +222,7 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   qu’elle affiche après deux erreurs (moments.js).
   Module 9 (15 novembre) : les quatre fichiers sont prêts (`projet-create.json` à `projet-schemas.json`, environ 12 500 caractères).
   Module 10 (15 novembre) : les quatre fichiers sont prêts (`projet-insert.json` à `projet-delete.json`, environ 11 000 caractères).
+  Module 11 (15 novembre) : `projet-ondelete.json` est prêt (environ 3 600 caractères) ; « set null » se dit d’un seul tenant.
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

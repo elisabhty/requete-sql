@@ -914,7 +914,7 @@ test('le module 10 en entier : INSERT, UPDATE, MERGE, DELETE ; requêtes et comm
       ['DELETE FROM inscriptions WHERE client_id = 6;', 'DELETE FROM enrollments WHERE customer_id = 6;']])
       assert.equal(L.sql(q, 'inscriptions'), en, `${c} : ${q}`);
   }
-  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10].map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10].map(c => `'${c}'`).join(',') + ','));
   assert.equal(textesDe('projet-merge')['nom'], 'name');
   assert.ok(lire('assets/anim/projet-merge.html').includes("Course({codeSel: '.rc', duration: DURATION,"));
   for (const [c, k, v] of [['projet-update', 'Oubli du WHERE', 'Forgetting the WHERE'], ['projet-insert', 'Atelier oublié', 'Workshop forgotten'], ['projet-update', 'Offrir {1} séances à toutes les cartes', 'Give {1} sessions to every card']])
@@ -940,4 +940,35 @@ test('la voix anglaise du module 10 : Brielle, les ids du français, sans code b
     total += en.elements.reduce((a, e) => a + e.texte.length, 0);
   }
   assert.ok(total > 9000 && total < 13000, `${total} caractères (autant de crédits)`);
+});
+
+/* Module 11 (« Intégrité des tables liées », 15 novembre) : ON DELETE, la table des avis (reviews) */
+test('le module 11 : ON DELETE en anglais, la table avis devient reviews, le nom d’un produit name, celui d’un client last_name', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  const c = 'projet-ondelete', pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+  assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`));
+  assert.ok(Object.keys(textes).length > 100, `${Object.keys(textes).length} textes`);
+  for (const k in textes) assert.deepEqual(f(textes[k]), f(k), k);
+  for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `la typographie anglaise : ${v}`);
+  for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+  assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000);
+  assert.ok(pg.includes('<body data-table="avis">'));
+  assert.ok(pg.includes("  if (typeof LG !== 'undefined' && LG && LG.ecrireCode) $$('.sq .ln').forEach(el => LG.ecrireCode(el));"));
+  assert.ok(pg.includes(`['c1', '<span data-en="name">nom</span>']`), 'le nom d’un produit');
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10, c].map(c => `'${c}'`).join(',') + ']};'));
+  const {L, ctx} = anglais();
+  vm.runInNewContext(lire(`assets/anim/en/${c}.js`), ctx);
+  assert.equal(L.sql('client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE SET NULL', 'avis'), 'customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE SET NULL');
+  assert.equal(L.sql('SELECT id, client_id, produit_id, note, commentaire FROM avis', 'avis'), 'SELECT id, customer_id, product_id, rating, comment FROM reviews');
+  assert.equal(textes['La colonne client_id de la table avis'], 'The customer_id column of the reviews table');
+  assert.equal(textes['Customer reviews'] || textes['Avis clients<1>{1} avis</1>'], 'Customer reviews<1>{1}</1>');
+  const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+  assert.equal(en.langue, 'en'); assert.deepEqual(en.voix, JSON.parse(lire('tools/voix/en/bases-relationnelles.json')).voix);
+  assert.deepEqual(en.elements.map(e => e.id), fr.elements.map(e => e.id).filter(i => en.elements.some(e => e.id === i)));
+  for (const e of en.elements) {
+    const t = e.texte.replace(/^\[\w+\]\s*/, '');
+    assert.ok(t.length > 3 && !/[«»<>=≠→↔⇔|+*%_×÷−'"@…]|\.\.|\w\(|[A-Za-z_]\.[A-Za-z]|SET null|avis|atelier|Pour finir/.test(t), `${e.id} : ${t}`);
+  }
+  const total = en.elements.reduce((a, e) => a + e.texte.length, 0);
+  assert.ok(total > 2800 && total < 4400, `${total} caractères`);
 });
