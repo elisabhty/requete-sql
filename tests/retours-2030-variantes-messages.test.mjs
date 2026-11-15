@@ -58,3 +58,18 @@ test('un mot qui est aussi une donnée de la base (Petit, Grand) n’a pas de cl
   assert.equal(L.t('Petit'), 'Petit');
   assert.equal(L.t('Grand'), 'Grand');
 });
+
+/* Elisa, 15 novembre, 20 h 41 : « et quand une requete s'exécute le message est trad ? ». La console, une requête qui marche, une
+   vide, cinq erreurs : tout passe. Restaient la ligne de l’historique (le nombre de lignes gardé en français, l’heure à la française),
+   le bouton « Extraire » et le compte des pages. */
+test('l’exécution d’une requête : l’historique, Extraire, les pages', () => {
+  const app = lire('index.html'), L = moteur();
+  assert.ok(app.includes("const T=typeof natifT==='function'?natifT:(x=>x);"), 'chaque morceau de la ligne traduit');
+  assert.ok(app.includes("? [T(it.n),it.ms!=null?Math.round(it.ms)+' ms':null,fmtHistWhen(it.ts)]"));
+  assert.ok(app.includes("if(L&&L.code!=='fr'&&L.locale)loc=L.locale;"), 'l’heure dans la langue de l’appli');
+  assert.equal(L.t('3 lignes'), '3 rows');
+  assert.equal(L.t('Erreur'), 'Error');
+  assert.equal(L.t('Extraire'), 'Export');
+  assert.equal(L.t('1 à 5 sur 8 exécutions'), '1 to 5 of 8 runs');
+  assert.equal(L.t('6 sur 6 exécutions'), '6 of 6 runs');
+});

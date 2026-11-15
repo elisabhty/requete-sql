@@ -7502,6 +7502,14 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "2e place, défi résolu !": "2nd place, challenge solved!",
     "3e place, défi résolu !": "3rd place, challenge solved!",
     "7e place, défi résolu !": "7th place, challenge solved!",
-    "8e place, défi résolu !": "8th place, challenge solved!"
+    "8e place, défi résolu !": "8th place, challenge solved!",
+    /* 15 novembre, 20 h 45 (Elisa : « et quand une requete s'exécute le message est trad ? ») : la console */
+    "Extraire": "Export",
+    "{1} à {2} sur {3} exécutions": "{1} to {2} of {3} runs",
+    "{1} sur {2} exécutions": "{1} of {2} runs",
+    "{1} à {2} sur {3} parties": "{1} to {2} of {3} games",
+    "{1} sur {2} parties": "{1} of {2} games",
+    "{1} à {2} sur {3} confrontations": "{1} to {2} of {3} head-to-heads",
+    "{1} sur {2} confrontations": "{1} of {2} head-to-heads"
   }
 });
