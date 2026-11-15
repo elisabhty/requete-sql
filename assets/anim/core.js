@@ -240,7 +240,7 @@ function voiceHold(a, b, v, readMiss){
    « Encore un effort ! ») ; les fichiers à précharger ; les légendes sans phrase (missing). */
 function voiceOut(captions, nPicks, nOpens, end){
   if (!VCFG) return null;
-  const src = f => new URL((VCFG.dir || '') + f + '.mp3', location.href).href;
+  const src = f => new URL((VCFG.dir || '') + f + '.mp3' + (VCFG.v ? '?v=' + VCFG.v : ''), location.href).href;
   const clip = v => v ? {src: src(v[0]), o: +(+v[1]).toFixed(3), d: +(v[2] - v[1]).toFixed(3)} : null;
   const clips = [];
   if (VCFG.intro) clips.push(Object.assign({t: unwarp(VOICE_INTRO)}, clip(VCFG.intro)));
@@ -254,7 +254,7 @@ function voiceOut(captions, nPicks, nOpens, end){
 /* Les phrases du lien avec la leçon d’avant et d’après (VOICE.say.lienavant / lienapres), à leur instant dans la vidéo. */
 function pontVoice(v){
   if (!v || !VCFG || !VCFG.say) return v;
-  const src = f => new URL((VCFG.dir || '') + f + '.mp3', location.href).href;
+  const src = f => new URL((VCFG.dir || '') + f + '.mp3' + (VCFG.v ? '?v=' + VCFG.v : ''), location.href).href;
   const intro = v.clips.find(c => VCFG.intro && c.src === src(VCFG.intro[0])), after = intro ? intro.t + intro.d + 0.15 : 0;
   PONTS.forEach(p => { const s = VCFG.say['lien' + p.k]; if (s) v.clips.push({t: +Math.max(p.a + PONT_FADE, p.k === 'avant' ? after : 0).toFixed(3), src: src(s[0]), o: +(+s[1]).toFixed(3), d: +(s[2] - s[1]).toFixed(3)}); });
   v.clips.sort((x, y) => x.t - y.t);

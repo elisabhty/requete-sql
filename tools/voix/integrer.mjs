@@ -21,6 +21,7 @@
    réencodés dans assets/voix/en/<cours>/ ; chaque phrase va à la légende française que donne cles (preparer-langue.mjs), sans
    comparer les textes ; la voix est écrite dans assets/anim/en/<cours>.js (voix de REQUETE_LANGUE.ajouter), la page ne change pas. */
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import vm from 'node:vm';
 import {execFileSync} from 'node:child_process';
@@ -303,3 +304,14 @@ for (let passe = 0; passe < 3; passe++) {
   for (const p of aFaire) { const f = path.join(OUT, p.id + '.mp3'); fs.writeFileSync(f, regler(fs.readFileSync(f), p.crans).buf); regles++; }
 }
 console.log(`volume : référence ${refVol.toFixed(1)} LUFS, ${regles} fichier${regles > 1 ? 's' : ''} ramené${regles > 1 ? 's' : ''} au niveau du cours`);
+
+/* 15 novembre, 2 h 47 (Elisa : « j’ai toujours l’ancienne voix ») : refaite sous les mêmes noms, une voix pouvait rester celle
+   d’avant, servie par un cache (celui du navigateur, puis celui de l’appli, qui la garde). La version des fichiers (v), tirée de
+   leur contenu final, après le réglage du volume : le lecteur les demande sous ?v=…, une voix refaite a donc une autre adresse. */
+const HV = crypto.createHash('sha1');
+for (const f of fs.readdirSync(OUT).filter(f => f.endsWith('.mp3')).sort()) { HV.update(f); HV.update(fs.readFileSync(path.join(OUT, f))); }
+const VER = HV.digest('hex').slice(0, 8);
+const versionner = (F, re) => { const s = fs.readFileSync(F, 'utf8'), t = s.replace(re, `$1 v: '${VER}',`); if (t !== s) fs.writeFileSync(F, t); };
+if (LANGUE) versionner(path.join(ROOT, 'assets', 'anim', LANGUE, cours + '.js'), /(\{voix: \{dir: '[^']*',)(?: v: '[0-9a-f]*',)?/);
+else versionner(PAGE, /(const VOICE = \{dir: '[^']*',)(?: v: '[0-9a-f]*',)?/);
+console.log(`version des fichiers : ${VER}`);

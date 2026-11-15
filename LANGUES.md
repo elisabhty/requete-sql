@@ -140,6 +140,8 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   22 Mo pour les treize) et écrit la voix dans `assets/anim/en/<cours>.js` (`voix`, entre les repères « Voix off ») ; la page et
   sa voix française ne changent pas. Une vidéo anglaise ne dure pas tout à fait autant que la française : sa durée est dans
   `LV_DUREES` (index.html) et sur sa vignette, refaite après la voix.
+  Les fichiers d’une voix se demandent sous `?v=<version>` (`v` du bloc de voix, tirée de leur contenu par integrer.mjs) : une
+  voix refaite sous les mêmes noms n’est jamais servie par un cache (15 novembre, 2 h 47 : l’ancienne voix restait dans l’appli).
 - **L’onboarding entier** (15 novembre, « bcp de phrases en français encore ») : le paywall, l’offre de bienvenue, le rappel et
   l’avis audio. Une phrase qui porte un montant ou une date se traduit par son gabarit (`obPh('{prix} aujourd’hui, puis {quand}.', …)`,
   le gabarit dans langue-en.js), puis reçoit ses montants, écrits à la manière de la langue (`obLoc()` : « €44.99 », « $39.99 »,

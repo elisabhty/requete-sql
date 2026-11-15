@@ -133,7 +133,7 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
 });
 /* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
    française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
-window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/distinct/', intro: ["ch00",0,5.9],
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/distinct/', v: '28d2b0ed', intro: ["ch00",0,5.9],
   caps: [
     ["vewi3d5","ch01",0,3.02],
     ["vtsqs7n","ch02",0.02,4.94],

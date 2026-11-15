@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
@@ -379,4 +380,14 @@ test('l’onboarding entier en anglais : le paywall, l’offre de bienvenue, le 
   const onde = /onde:\[([^\]]*)\]\}\}\};/.exec(app.slice(app.indexOf('const OB_TEMOINS_LANGUE=')));
   assert.ok(onde && onde[1].split(',').length === 48 && onde[1].split(',').every(v => +v >= 0.12 && +v <= 1), 'quarante-huit barres, comme le français');
   assert.ok(app.includes("'limit-offset':'3 min 56'}};"), 'les durées des vidéos avec la voix de Brielle');
+  /* 2 h 47 (« j’ai toujours l’ancienne voix ») : refaite sous les mêmes noms, la voix restait celle d’avant dans les caches. Les
+     fichiers se demandent sous ?v=<version>, tirée de leur contenu : une voix refaite a une autre adresse. */
+  const vsrc = "  const src = f => new URL((VCFG.dir || '') + f + '.mp3' + (VCFG.v ? '?v=' + VCFG.v : ''), location.href).href;";
+  assert.equal(core.split(vsrc).length, 3, 'core.js'); assert.equal(where.split(vsrc).length, 3, 'where.html');
+  assert.ok(lire('tools/voix/integrer.mjs').includes("const VER = HV.digest('hex').slice(0, 8);"));
+  for (const c of ['bases-relationnelles', 'as', 'distinct', ...M2]) {
+    const HV = crypto.createHash('sha1'), OUT = path.join(ROOT, 'assets/voix/en', c);
+    for (const f of fs.readdirSync(OUT).filter(f => f.endsWith('.mp3')).sort()) { HV.update(f); HV.update(fs.readFileSync(path.join(OUT, f))); }
+    assert.ok(lire(`assets/anim/en/${c}.js`).includes(`{voix: {dir: '../voix/en/${c}/', v: '${HV.digest('hex').slice(0, 8)}',`), `${c} : la version de ses fichiers`);
+  }
 });
