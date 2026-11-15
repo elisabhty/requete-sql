@@ -13,7 +13,7 @@ const html = lire('index.html'), ctx = vm.createContext({});
 vm.runInContext(html.slice(html.indexOf('const CHALLENGES=['), html.indexOf('const NIV=')).replace('const CHALLENGES=', 'CHALLENGES='), ctx);
 const CHALLENGES = vm.runInContext('CHALLENGES', ctx);
 const LANGUES = ['en'], L = Object.fromEntries(LANGUES.map(c => [c, moteur(c, [`langue-${c}-defis.js`])]));
-const propre = s => Array.from(String(s || '').replace(/\s+/g, ' ').trim()).slice(0, 80).join('');
+const propre = s => Array.from(String(s || '').trim()).slice(0, 80).join('');   // tel que l’appli l’envoie (natifT(c.titre).slice(0, 80))
 const titres = {};
 for (const c of CHALLENGES) titres[c.id] = [propre(c.titre), ...LANGUES.map(l => propre(c.base && L[l].baseTraduite(c.base) ? L[l].t(c.titre) : c.titre))];
 const corps = `// Écrit par scripts/build-ile-titres.mjs : ne pas modifier à la main. {id du défi: [français, ${LANGUES.join(', ')}]}\n`
