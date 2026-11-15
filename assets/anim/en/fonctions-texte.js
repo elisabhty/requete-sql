@@ -219,3 +219,43 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "Sophie Martin, première valeur : sophie@mail.fr": "Sophie Martin, first value: sophie@mail.fr"
   }
 });
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/fonctions-texte/', v: '69f9699e', intro: ["ch00",0.06,6.38],
+  caps: [
+    ["vakf3fr","ch01",0.02,3.93],
+    ["v1s3cv4x","ch01",4.24,9.54],
+    ["vibhiol","ch01",9.88,17.47],
+    ["v6k9xsi","ch01",17.94,21.06],
+    ["v1vqb0wy","ch01",21.38,28.12],
+    ["v163o8c0","ch02",0.04,3.45],
+    ["v1kdmc6","ch02",3.66,9.75],
+    ["v1ityntt","ch02",10.14,14.11],
+    ["vu32ftt","ch02",14.4,17.83],
+    ["v1r8yew9","ch03",0.02,4.2],
+    ["vqjhcz2","ch03",4.43,10.4],
+    ["v3105s2","ch03",10.74,13.9],
+    ["v1cb0x70","ch03",14.1,19.42],
+    ["v3zswda","ch04",0.02,5.07],
+    ["v1gsh1xf","ch04",5.26,9.01],
+    ["vk9mbr1","ch04",9.33,12.86],
+    ["vnn7y1y","ch04",13.18,18.68],
+    ["v1lsvo9x","ch04",18.88,23.8],
+    ["vl8cekx","ch05",0.05,4.68],
+    ["vbiyh83","ch05",5.04,8.77],
+    ["vuk6138","ch05",9.09,13.37],
+    ["v9w2umn","ch05",13.65,20.3],
+    ["v1spo3j2","ch05",20.64,23.6],
+    ["v1s4qw7c","ch05",23.78,26.61],
+    ["vlf8el8","ch06",0.04,4.84],
+    ["v1d2ogzf","ch06",5.22,10.46],
+    ["v1q3hp6z","ch06",10.92,17.5],
+    ["v7akape","ch06",17.99,21.32],
+    ["v1fqih38","ch06",21.65,26.77],
+    ["v8iz9ed","ch07",0,5.88],
+    ["v1gul2v9","ch07",6.13,9.87],
+    ["v1iykhk3","ch07",10.09,13.59],
+    ["v1a4fv1d","ch07",13.84,16.54]],
+  say: {"at1":["at1",0.06,7.23],"at2":["at2",0.05,11],"at3":["at3",0.07,3.49],"at4":["at4",0.07,4.63],"indice3":["indice3",0.04,3.631],"indice4":["indice4",0.03,3.318],"lienavant":["lienavant",0.04,5.9],"lienapres":["lienapres",0.04,4.46],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]},
+  toi: {"at1":[0.96,1.16],"at2":[0.99,1.29],"at3":[0.99,1.18],"at4":[0.94,1.11]}}});
+/* Fin de la voix off */

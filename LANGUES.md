@@ -143,7 +143,8 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   caractères). Les fonctions et les opérateurs se disent comme on les lit (`PARLE`, preparer-langue.mjs) : `||` « two vertical
   bars », `FLOOR(price) * 2` « floor of price times 2 », `'%d/%m/%Y'` « percent d, slash, percent m, slash, percent capital Y »,
   `COALESCE('', 'Not provided')` « coalesce of an empty text and Not provided ». Un chapitre dont aucune légende n’est traduite
-  (le « Pour finir, voici les trois idées à retenir », coupé dans l’appli) n’a plus de fichier.
+  (le « Pour finir, voici les trois idées à retenir », coupé dans l’appli) n’a plus de fichier. **Intégrée le 15 novembre**
+  (« fini », 6 h 23) : les six vidéos du module 3 parlent anglais (environ 9 Mo), durées et vignettes refaites.
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

@@ -194,3 +194,35 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "Sophie Martin, première valeur : sophie@mail.fr": "Sophie Martin, first value: sophie@mail.fr"
   }
 });
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/case/', v: 'ea9b7084', intro: ["ch00",0.05,7.34],
+  caps: [
+    ["v8tusez","ch01",0.03,3.49],
+    ["vwxer92","ch01",3.69,9.92],
+    ["v1c3s4","ch01",10.29,14.53],
+    ["v2jjfi3","ch01",14.83,18.53],
+    ["vrxmouz","ch02",0.05,4.85],
+    ["vrh7s2a","ch02",5.18,9.54],
+    ["v14qiopt","ch02",9.94,13.89],
+    ["v1tyg7ak","ch02",14.36,17.93],
+    ["v1wjahh7","ch03",0,3.78],
+    ["v8g2o84","ch03",4.03,9.16],
+    ["vzi7o1","ch03",9.61,14.37],
+    ["v1qh3ywv","ch03",14.86,20.47],
+    ["vke5ofg","ch03",20.73,24.32],
+    ["v1sjibp6","ch03",24.78,27.97],
+    ["v18nm89p","ch03",28.36,34.66],
+    ["v1pk3qm3","ch04",0,5.01],
+    ["vhhji6g","ch04",5.27,11.7],
+    ["vrlkb1m","ch04",12.12,16.51],
+    ["v13i4hmg","ch04",16.89,21.26],
+    ["vjk9r72","ch05",0.01,4.02],
+    ["v1gu65iw","ch05",4.35,9.63],
+    ["vk05ott","ch05",9.99,15.9],
+    ["v252p5l","ch06",0.01,3.14],
+    ["v6xw3si","ch06",3.4,9.55],
+    ["vsws6mp","ch06",9.96,13.58]],
+  say: {"at1":["at1",0.08,4.55],"at2":["at2",0.01,5.564],"at3":["at3",0.05,5.24],"indice1":["indice1",0.04,3.553],"lienavant":["lienavant",0,4.28],"lienapres":["lienapres",0.04,4.05],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]},
+  toi: {"at1":[0.93,1.12],"at2":[0.89,1.13],"at3":[0.9,1.12]}}});
+/* Fin de la voix off */

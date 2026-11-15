@@ -208,3 +208,38 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "Sophie Martin, première valeur : sophie@mail.fr": "Sophie Martin, first value: sophie@mail.fr"
   }
 });
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/conversion-types/', v: 'ef30c6c7', intro: ["ch00",0,6.06],
+  caps: [
+    ["vye8szm","ch01",0.01,3.17],
+    ["vcvb70q","ch01",3.41,8.21],
+    ["v171qbb","ch01",8.58,14.47],
+    ["v4o79bz","ch01",15.01,18.67],
+    ["vu60qda","ch02",0.05,4.59],
+    ["v1ph84p5","ch02",4.9,7.49],
+    ["v1aowrkb","ch02",7.81,11.49],
+    ["v4zvkv3","ch02",11.72,14.45],
+    ["v193pn2","ch02",14.6,17.92],
+    ["vgu4af2","ch03",0.04,3],
+    ["v1mofp9c","ch03",3.18,8.84],
+    ["v13ynqme","ch03",9.29,20.68],
+    ["v1bfywj3","ch03",21.03,24.18],
+    ["vecusv5","ch03",24.16,28.23],
+    ["vchkmnk","ch03",28.56,33.47],
+    ["vbsltsn","ch04",0.04,5.31],
+    ["v2yoz2b","ch04",5.68,12.69],
+    ["v1fu1m7k","ch04",12.9,15.41],
+    ["vpblmzs","ch04",15.73,21.891],
+    ["v1ne4y2o","ch05",0.02,2.86],
+    ["v1sdr9wv","ch05",3.08,8.26],
+    ["v1afk2f5","ch05",8.69,14.08],
+    ["vx9n2j0","ch05",14.34,22.87],
+    ["v8sf78p","ch05",23.53,30.746],
+    ["v1gvq68c","ch06",0.1,3.56],
+    ["v1ek0lph","ch06",3.82,7.9],
+    ["v1esn7mn","ch06",8.21,12.12],
+    ["v4syjjr","ch06",12.44,16.78]],
+  say: {"at1":["at1",0.06,6.42],"at2":["at2",0.07,6.531],"at3":["at3",0.07,3.24],"indice1":["indice1",0.07,3.971],"indice3":["indice3",0.06,3.68],"lienavant":["lienavant",0.03,4.31],"lienapres":["lienapres",0.04,4.519],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]},
+  toi: {"at1":[0.93,1.1],"at2":[0.96,1.23],"at3":[0.93,1.11]}}});
+/* Fin de la voix off */

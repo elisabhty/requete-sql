@@ -379,7 +379,7 @@ test('l’onboarding entier en anglais : le paywall, l’offre de bienvenue, le 
   assert.ok(app.includes("const OB_TEMOINS_LANGUE={en:{'Sofia B.':{audio:'decouvrir/avis/en/sofia-b.mp3',duree:17.2,"));
   const onde = /onde:\[([^\]]*)\]\}\}\};/.exec(app.slice(app.indexOf('const OB_TEMOINS_LANGUE=')));
   assert.ok(onde && onde[1].split(',').length === 48 && onde[1].split(',').every(v => +v >= 0.12 && +v <= 1), 'quarante-huit barres, comme le français');
-  assert.ok(app.includes("'limit-offset':'3 min 56'}};"), 'les durées des vidéos avec la voix de Brielle');
+  assert.ok(app.includes("'limit-offset':'3 min 56',"), 'les durées des vidéos avec la voix de Brielle');
   /* 2 h 47 (« j’ai toujours l’ancienne voix ») : refaite sous les mêmes noms, la voix restait celle d’avant dans les caches. Les
      fichiers se demandent sous ?v=<version>, tirée de leur contenu : une voix refaite a une autre adresse. */
   const vsrc = "  const src = f => new URL((VCFG.dir || '') + f + '.mp3' + (VCFG.v ? '?v=' + VCFG.v : ''), location.href).href;";
@@ -460,4 +460,17 @@ test('la voix anglaise du module 3 : Brielle, les ids du français, le code dit 
     total += en.elements.reduce((a, e) => a + e.texte.length, 0);
   }
   assert.ok(total > 14000 && total < 18000, `${total} caractères (autant de crédits)`);
+});
+
+/* 15 novembre, 6 h 23 : « fini » (la voix anglaise du module 3, générée sur son Mac). Les six vidéos parlent avec Brielle : fichiers
+   dans assets/voix/en/<cours>/, sous leur version ; durées (LV_DUREES) et vignettes recalculées. */
+test('la voix anglaise du module 3 : intégrée, versionnée, durées et vignettes refaites', () => {
+  for (const c of M3) {
+    const HV = crypto.createHash('sha1'), OUT = path.join(ROOT, 'assets/voix/en', c);
+    const mp3 = fs.readdirSync(OUT).filter(f => f.endsWith('.mp3')).sort();
+    assert.ok(mp3.length > 15, `${c} : ${mp3.length} fichiers`);
+    for (const f of mp3) { HV.update(f); HV.update(fs.readFileSync(path.join(OUT, f))); }
+    assert.ok(lire(`assets/anim/en/${c}.js`).includes(`{voix: {dir: '../voix/en/${c}/', v: '${HV.digest('hex').slice(0, 8)}',`), `${c} : la version de ses fichiers`);
+  }
+  assert.ok(app.includes("'limit-offset':'3 min 56','fonctions-texte':'3 min 40','fonctions-numeriques':'2 min 51','fonctions-dates':'2 min 59','conversion-types':'3 min 08','case':'2 min 49','coalesce':'2 min 33'}};"));
 });
