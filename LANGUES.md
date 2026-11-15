@@ -153,6 +153,12 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   - un `<code>` dans une phrase peut porter sa traduction (`data-en`) : la légende de « AS » cite les mots d’un alias sans
     guillemets (« Nom », « du produit »), pas des colonnes ; en anglais « Product » et « name », comme dans le code affiché
     (avant : `last_name` et « du produit », dits aussi par la voix ; sa phrase est à refaire, `as.json`, ch03).
+- **Le module 7** (15 novembre, « continue la suite ») : Fonctions de fenêtre, les cinq vidéos (OVER(), fonctions de rang, LAG et
+  LEAD, fenêtres glissantes, FIRST_VALUE, LAST_VALUE et NTILE), leurs vignettes et les bilans des leçons. Les noms des requêtes ont
+  leur anglais (rayons : shelves, nb_produits : product_count, rang : rank, precedente : previous, delai_moyen : avg_gap,
+  cumul : running_total, gamme : tier…) ; le « délai » entre deux commandes se dit « gap ». Le code hors des cartes est écrit pour
+  la base (`codeSel` : l'étiquette « GROUP BY categorie », le tri des commandes, la requête du total) ; `FIRST_VALUE(nom)` porte
+  `data-en` (le nom d'un produit, pas d'un client).
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
@@ -181,6 +187,10 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   30 600 caractères). Les mots-clés gardent leurs capitales (EXISTS, ALL, ANY, WITH, UNION, INTERSECT, EXCEPT) : des mots anglais
   que la voix lit tels quels ; en minuscules, « all is true » ou « with with » se liraient mal. « (…) » ne se dit pas, une date
   entre apostrophes se dit sans elles, « with WITH » devient « with the WITH clause ».
+  Module 7 (15 novembre) : les cinq fichiers sont prêts (`tools/voix/en/over.json` à `first-last-ntile.json`, environ
+  14 400 caractères) ; les fonctions se disent comme on les lit (« row number », « dense rank », « lag of order underscore date »,
+  « N-tile of 3 », « first value of name »), partition by et rows between en minuscules comme group by, un calcul en mots
+  (« 0 plus 26, divided by 2, equals 13 days », « minus 23 days »).
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

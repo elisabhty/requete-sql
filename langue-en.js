@@ -29,7 +29,11 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
       produit: 'product', nombre_commandes: 'order_count', commande_1: 'order_1', commande_2: 'order_2',
       /* Les noms du module 6 (AS derniere_commande, WITH totaux AS, CREATE TABLE invites, WITH RECURSIVE jours) */
       derniere_commande: 'last_order', commandes_montants: 'order_amounts', montant: 'amount', totaux: 'totals', indicateur: 'indicator',
-      valeur: 'value', invites: 'guests', jours: 'days', jour: 'day'}
+      valeur: 'value', invites: 'guests', jours: 'days', jour: 'day',
+      /* Les noms du module 7 (WITH rayons AS, AS nb_produits, AS rang, LAG(…) AS precedente, AS cumul, NTILE(3) … AS gamme) */
+      nb_produits: 'product_count', rayons: 'shelves', rang: 'rank', precedente: 'previous', suivante: 'next', delai: 'gap', delais: 'gaps',
+      delai_moyen: 'avg_gap', jours_depuis: 'days_since', cumul: 'running_total', montants: 'amounts', moyenne_3: 'average_3', gamme: 'tier',
+      produit_le_plus_cher: 'most_expensive'}
   },
   /* Les mois et les jours : dans une clé, {m1}, {m2}… (« le {1} {m1} » pour « le 15 mars »). */
   mots: {"janvier": "January", "février": "February", "mars": "March", "avril": "April", "mai": "May", "juin": "June", "juillet": "July", "août": "August", "septembre": "September", "octobre": "October", "novembre": "November", "décembre": "December", "janv.": "Jan", "févr.": "Feb", "avr.": "Apr", "juil.": "Jul", "sept.": "Sep", "oct.": "Oct", "nov.": "Nov", "déc.": "Dec", "lundi": "Monday", "mardi": "Tuesday", "mercredi": "Wednesday", "jeudi": "Thursday", "vendredi": "Friday", "samedi": "Saturday", "dimanche": "Sunday", "lun.": "Mon", "mar.": "Tue", "mer.": "Wed", "jeu.": "Thu", "ven.": "Fri", "sam.": "Sat", "dim.": "Sun"},
@@ -3033,6 +3037,35 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     /* 15 novembre, 2 h 57 : en anglais, une seule formatrice pour tous les cours */
     "Ta formatrice te fera progresser": "Your instructor will help you progress",
     "<1>Ta formatrice</1> te fera progresser": "<1>Your instructor</1> will help you progress",
+    /* Les fiches des cours du module 7 (Fonctions de fenêtre, 15 novembre) */
+    "Calculer en conservant chaque ligne": "Calculating while keeping each row",
+    "Une fonction de fenêtre effectue un calcul sur un ensemble de lignes tout en gardant le détail de chacune. <1/> affiche le nombre total sur chaque ligne.": "A window function runs a calculation over a set of rows while keeping the detail of each one. <1/> shows the total number on every row.",
+    "Calculer par groupe avec": "Calculating per group with",
+    "affiche le nombre de produits de la catégorie, à côté de chaque produit.": "shows the number of products in the category, next to each product.",
+    "Calculer d’abord, filtrer ensuite": "Calculate first, filter next",
+    "Une fonction de fenêtre ne s’utilise pas directement dans <1/>. Calcule le résultat dans une CTE avec <2/>, puis filtre-le dans la requête principale.": "A window function can’t be used directly in <1/>. Calculate the result in a CTE with <2/>, then filter it in the main query.",
+    "Attribuer un numéro ou un rang à chaque ligne": "Giving each row a number or a rank",
+    ", <1/> et <2/> utilisent l’ordre défini dans <3/>, par exemple :": ", <1/> and <2/> use the order defined in <3/>, for example:",
+    "Choisir comment traiter les ex æquo": "Choosing how to handle ties",
+    "Pour deux commandes à la même date, suivies d’une commande plus récente :<1/><2/> : un numéro différent pour chaque ligne → {1}, {2}, {3}<3/><4/> : même rang en cas d’égalité, puis un saut → {4}, {5}, {6}<5/><6/> : même rang en cas d’égalité, sans saut → {7}, {8}, {9}": "For two orders on the same date, followed by a more recent order:<1/><2/>: a different number for each row → {1}, {2}, {3}<3/><4/>: same rank for a tie, then a gap → {4}, {5}, {6}<5/><6/>: same rank for a tie, no gap → {7}, {8}, {9}",
+    "Recommencer à {1} dans chaque groupe": "Starting again at {1} in each group",
+    "Avec <1/>, la numérotation ou le classement recommence pour chaque client.": "With <1/>, the numbering or ranking starts again for each customer.",
+    "Récupérer une valeur d’une autre ligne": "Getting a value from another row",
+    "récupère la valeur de la ligne précédente ; <1/>, celle de la suivante, sans supprimer de lignes.": "gets the value of the previous row; <1/>, that of the next one, without removing rows.",
+    "Définir les groupes et l’ordre": "Defining the groups and the order",
+    "Dans <1/>, <2/> sépare les commandes par client. <3/> les ordonne par date, puis par identifiant en cas d’égalité.": "In <1/>, <2/> separates the orders by customer. <3/> sorts them by date, then by ID for a tie.",
+    "Gérer l’absence de ligne précédente ou suivante": "Handling a missing previous or next row",
+    "Par défaut, <1/> renvoie <2/> pour la première ligne du groupe ; <3/>, pour la dernière. <4/> ignore les <5/>, et <6/> permet de les remplacer par une valeur choisie.": "By default, <1/> returns <2/> for the first row of the group; <3/>, for the last one. <4/> ignores <5/> values, and <6/> lets you replace them with a chosen value.",
+    "Le <1>cadre de fenêtre</1> définit les lignes utilisées pour calculer une valeur à chaque ligne.": "The <1>window frame</1> defines the rows used to calculate a value on each row.",
+    "Pour un <1>cumul</1>, <2/> additionne les montants depuis la première ligne jusqu’à la ligne actuelle.": "For a <1>running total</1>, <2/> adds up the amounts from the first row up to the current row.",
+    "Pour une <1>moyenne mobile</1> sur trois commandes, <2/> utilise la commande actuelle et les deux précédentes.": "For a <1>moving average</1> over three orders, <2/> uses the current order and the two previous ones.",
+    "Au début, seules les lignes disponibles sont utilisées.": "At the start, only the available rows are used.",
+    "FIRST_VALUE et LAST_VALUE": "FIRST_VALUE and LAST_VALUE",
+    "La première et la dernière valeur de la fenêtre, sans regrouper les lignes.": "The first and last value of the window, without grouping the rows.",
+    "Le cadre de LAST_VALUE": "The frame of LAST_VALUE",
+    "Avec <1/>, le cadre s’arrête à la ligne actuelle : étends-le avec <2/>.": "With <1/>, the frame stops at the current row: extend it with <2/>.",
+    "NTILE(n) : n groupes": "NTILE(n): n groups",
+    "Les lignes triées sont réparties en n groupes presque égaux ; les premiers reçoivent une ligne de plus.": "The sorted rows are split into n nearly equal groups; the first ones get one more row.",
     /* Les fiches des cours du module 6 (Sous-requêtes et ensembles, 15 novembre) */
     "La sous-requête fournit une <1>liste de valeurs</1>.": "The subquery provides a <1>list of values</1>.",
     "Avec <1/>, la requête principale conserve les lignes dont la valeur figure dans cette liste.": "With <1/>, the main query keeps the rows whose value is in this list.",

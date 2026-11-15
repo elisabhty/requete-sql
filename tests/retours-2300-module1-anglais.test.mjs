@@ -631,7 +631,7 @@ test('le module 6 en entier : chaque vidéo charge ses textes anglais, gardés n
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(/<body data-table="(clients|produits|commandes)">/.test(pg), c);
   }
-  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6].map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6].map(c => `'${c}'`).join(',') + ','));
   /* Les milliers à l'anglaise (1,250) ; les jours du calendrier en anglais (M T W T F S S) */
   assert.ok(lire('assets/anim/union.html').includes("const milliers = v => String(v).replace(/\\B(?=(\\d{3})+(?!\\d))/g, typeof LG !== 'undefined' && LG ? ',' : '\\u00a0');"));
   assert.ok(lire('assets/anim/with-recursive.html').includes("<div class=\"wd\" data-en=\"${'MTWTFSS'[i]}\">${d}</div>"));
@@ -689,4 +689,73 @@ test('la voix anglaise du module 6 : Brielle, les ids du français, les mots-cl�
     total += en.elements.reduce((a, e) => a + e.texte.length, 0);
   }
   assert.ok(total > 28000 && total < 33000, `${total} caractères (autant de crédits)`);
+});
+
+/* Module 7 (« Fonctions de fenêtre », 15 novembre) : les cinq vidéos en anglais, leur vignette, leur voix préparée */
+const M7 = ['over', 'fonctions-rang', 'lag-lead', 'fenetres-glissantes', 'first-last-ntile'];
+test('le module 7 en entier : chaque vidéo charge ses textes anglais, gardés nombre pour nombre, avec sa vignette, préchargés', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  for (const c of M7) {
+    const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X').replace('? days', '')), `${c} : la typographie anglaise : ${v}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
+    assert.ok(/<body data-table="(produits|commandes)">/.test(pg), c);
+  }
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7].map(c => `'${c}'`).join(',') + ']};'));
+  /* Le code hors des cartes : l'étiquette « GROUP BY categorie », le tri des commandes, la requête du total */
+  for (const [c, sel] of [['over', "'.mini, .lst-t.mono'"], ['fonctions-rang', "'.mini, .ob'"], ['fenetres-glissantes', "'.mini, .sm2-q'"], ['lag-lead', "'.mini'"], ['first-last-ntile', "'.mini'"]])
+    assert.ok(lire(`assets/anim/${c}.html`).includes(`Course({codeSel: ${sel}, duration: DURATION,`), c);
+  /* FIRST_VALUE(nom) : le nom d'un produit (name), pas celui d'un client */
+  const fl = lire('assets/anim/first-last-ntile.html');
+  assert.equal((fl.match(/<code data-en=\\"FIRST_VALUE\(name\)\\">FIRST_VALUE\(nom\)<\/code>/g) || []).length, 2);
+  assert.ok(fl.includes('<code data-en="FIRST_VALUE(name)">FIRST_VALUE(nom)</code>') && fl.includes('<code data-en="LAST_VALUE(name)">LAST_VALUE(nom)</code>'));
+  /* Les noms des requêtes du module 7 */
+  const {L} = anglais();
+  assert.equal(L.sql('WITH rayons AS (SELECT nom, categorie, prix, COUNT(*) OVER (PARTITION BY categorie) AS nb_produits FROM produits) SELECT nom, categorie, prix FROM rayons WHERE nb_produits = 1', 'produits'),
+    'WITH shelves AS (SELECT name, category, price, COUNT(*) OVER (PARTITION BY category) AS product_count FROM products) SELECT name, category, price FROM shelves WHERE product_count = 1');
+  assert.equal(L.sql('SELECT client_id, date_commande, LAG(date_commande) OVER (PARTITION BY client_id ORDER BY date_commande, id) AS precedente FROM commandes'),
+    'SELECT customer_id, order_date, LAG(order_date) OVER (PARTITION BY customer_id ORDER BY order_date, id) AS previous FROM orders');
+  assert.equal(L.sql('SELECT date_commande, montant, SUM(montant) OVER (ORDER BY date_commande, id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumul FROM montants'),
+    'SELECT order_date, amount, SUM(amount) OVER (ORDER BY order_date, id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total FROM amounts');
+  assert.equal(L.sql('SELECT nom, NTILE(3) OVER (ORDER BY prix DESC) AS gamme FROM produits'), 'SELECT name, NTILE(3) OVER (ORDER BY price DESC) AS tier FROM products');
+  assert.equal(L.sql(') AS delai_moyen, RANK() OVER (ORDER BY commandes.date_commande) AS rang, AS produit_le_plus_cher'), ') AS avg_gap, RANK() OVER (ORDER BY orders.order_date) AS rank, AS most_expensive');
+  /* Les fiches des cours du module 7 */
+  for (const [fr, en] of [['Recommencer à {1} dans chaque groupe'.replace('{1}', '1'), 'Starting again at 1 in each group'],
+    ['Les lignes triées sont réparties en n groupes presque égaux ; les premiers reçoivent une ligne de plus.', 'The sorted rows are split into n nearly equal groups; the first ones get one more row.']])
+    assert.equal(L.t(fr), en, fr);
+  const fr = textesDe('fenetres-glissantes');
+  assert.equal(fr['{1}er {m1} · {2}e commande'], '{m1} {1} · {2}th order');
+});
+
+test('la voix anglaise du module 7 : Brielle, les ids du français, les fonctions de fenêtre dites comme on les lit', () => {
+  const br = JSON.parse(lire('tools/voix/en/bases-relationnelles.json')), prep = lire('tools/voix/preparer-langue.mjs');
+  const DIRE = new Function(prep.slice(prep.indexOf('const B = '), prep.indexOf('const parFichier')) + '\nreturn DIRE;')();
+  for (const [x, dit] of [['ROW_NUMBER() numbers the rows, in the order given by OVER.', 'Row number numbers the rows, in the order given by OVER.'],
+    ['With LAG(order_date), each row reads the date of the previous row.', 'With lag of order underscore date, each row reads the date of the previous row.'],
+    ['So the average gap is (0 + 26) ÷ 2 = 13 days.', 'So the average gap is 0 plus 26, divided by 2, equals 13 days.'],
+    ['The calculated gap is −23 days.', 'The calculated gap is minus 23 days.'],
+    ['Next, the price tier: NTILE(3) splits the rows into 3 groups.', 'Next, the price tier: N-tile of 3 splits the rows into 3 groups.'],
+    ['Unlike GROUP BY, PARTITION BY doesn’t reduce the number of rows.', 'Unlike group by, partition by doesn’t reduce the number of rows.'],
+    ['What does FIRST_VALUE(name) return?', 'What does first value of name return?']])
+    assert.equal(DIRE(x), dit, x);
+  let total = 0;
+  for (const c of M7) {
+    const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.equal(en.langue, 'en'); assert.equal(en.cours, c); assert.deepEqual(en.voix, br.voix, c); assert.equal(en.modele, fr.modele);
+    const ids = fr.elements.map(e => e.id), chs = ids.filter(i => /^ch/.test(i));
+    assert.deepEqual(en.elements.map(e => e.id), ids.filter(i => en.elements.some(e => e.id === i)), `${c} : l’ordre du français`);
+    assert.ok(!en.elements.some(e => e.id === chs[chs.length - 1]), `${c} : le « Pour finir » n’est pas joué dans l’appli`);
+    for (const e of en.elements) {
+      const t = e.texte.replace(/^\[\w+\]\s*/, '');
+      assert.ok(t.length > 3, `${c} ${e.id} : vide`);
+      assert.ok(!/[«»<>=≠→⇔|+*%_×÷−'"()]|\w\(|[A-Za-z_]\.[A-Za-z]|&[a-z]+;|Pour finir|idées à retenir|\b(SELECT|FROM|WHERE|JOIN|COUNT|GROUP BY|PARTITION BY|ROWS BETWEEN|ROW_NUMBER|DENSE_RANK|NTILE|FIRST_VALUE|LAST_VALUE|LAG|LEAD)\b/.test(t), `${c} ${e.id} : ${t}`);
+      if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
+    }
+    total += en.elements.reduce((a, e) => a + e.texte.length, 0);
+  }
+  assert.ok(total > 12500 && total < 16500, `${total} caractères (autant de crédits)`);
 });

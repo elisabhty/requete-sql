@@ -40,7 +40,10 @@ const FN = {UPPER: 'upper', LOWER: 'lower', TRIM: 'trim', LENGTH: 'length', SUBS
   ROUND: 'round', CEIL: 'ceiling', FLOOR: 'floor', CAST: 'cast', COALESCE: 'coalesce', DATE: 'date', STRFTIME: 'string format time',
   typeof: 'type of', Typeof: 'type of', CASE: 'case', WHEN: 'when', THEN: 'then', ELSE: 'else', END: 'end', COUNT: 'count',
   /* Module 4 (15 novembre) : les agrégats */
-  SUM: 'sum', AVG: 'A-V-G', MIN: 'min', MAX: 'max', GROUP_CONCAT: 'group concat'};
+  SUM: 'sum', AVG: 'A-V-G', MIN: 'min', MAX: 'max', GROUP_CONCAT: 'group concat',
+  /* Module 7 (15 novembre) : les fonctions de fenêtre */
+  ROW_NUMBER: 'row number', RANK: 'rank', DENSE_RANK: 'dense rank', LAG: 'lag', LEAD: 'lead', NTILE: 'N-tile',
+  FIRST_VALUE: 'first value', LAST_VALUE: 'last value', julianday: 'julian day'};
 const FNRE = Object.keys(FN).join('|');
 const PARLE = s => s
   .replace(/MARTIN Sophie, (\d+), RUE DES LILAS, PARIS/g, 'MARTIN Sophie, $1, rue des Lilas, Paris')
@@ -74,7 +77,11 @@ const PARLE = s => s
   .replace(/ \(…\)/g, '').replace(/'(\d{4}, dash, [^']+)'/g, '$1').replace(/\bOVER\(\)/g, 'OVER').replace(/\bSELECTs\b/g, 'select queries')
   .replace(/\bwith WITH RECURSIVE\b/g, 'with the WITH RECURSIVE clause').replace(/\bwith WITH\b/g, 'with the WITH clause')
   .replace(/\bWith WITH ([a-z_]+) (as|AS),/g, 'Writing WITH $1 $2,')
-  .replace(/\bback WITH\b/g, 'back, WITH');
+  .replace(/\bback WITH\b/g, 'back, WITH')
+  /* Module 7 (15 novembre) : les fenêtres. PARTITION BY et ROWS BETWEEN en minuscules comme group by ; un calcul se dit en mots
+     (« 0 plus 26, divided by 2, equals 13 days », « minus 23 days ») */
+  .replace(/\bOVER \(\)/g, 'OVER').replace(/\bPARTITION BY\b/g, 'partition by').replace(/\bROWS BETWEEN\b/g, 'rows between')
+  .replace(/\((\d+) (?:\+|plus) (\d+)\) ÷ (\d+) (?:=|equals) /g, '$1 plus $2, divided by $3, equals ').replace(/\bntile\b/g, 'N-tile').replace(/ ÷ /g, ' divided by ').replace(/−(\d)/g, 'minus $1');
 const DIRE = s => PARLE(s.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&'))
   /* Comme les retouches de la voix française : « Prix en euros », « l’euro entre parenthèses », « le numéro de la page moins un » */
   .replace(/Price \(€\)/g, 'Price in euros').replace(/\(€\)/g, 'the euro in parentheses')
