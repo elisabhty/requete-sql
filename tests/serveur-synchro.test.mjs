@@ -42,15 +42,35 @@ test('jeu-verifier : index.ts prend le catalogue et le moteur au commit qui a le
   const { execFileSync } = await import('node:child_process');
   const idx = lire('supabase/functions/jeu-verifier/index.ts');
   const imports = [...idx.matchAll(/from 'https:\/\/raw\.githubusercontent\.com\/elisabhty\/requete-sql\/([0-9a-f]{40})\/supabase\/functions\/jeu-verifier\/([\w.-]+)'/g)];
-  assert.deepEqual(imports.map(m => m[2]), ['catalog.json', 'verifier.mjs'], 'le catalogue et le vérificateur, rien d’autre de distant');
-  assert.equal(new Set(imports.map(m => m[1])).size, 1, 'un seul commit pour les deux');
+  assert.deepEqual(imports.map(m => m[2]), ['catalog.json', 'catalog-en.json', 'verifier.mjs'], 'les catalogues (français, anglais) et le vérificateur, rien d’autre de distant');
+  assert.equal(new Set(imports.map(m => m[1])).size, 1, 'un seul commit pour les trois');
   assert.ok(idx.includes("/catalog.json' with {type:'json'};"), 'le catalogue en module JSON');
   assert.ok(!/from '\.\//.test(idx), 'plus d’import local : le déploiement n’envoie que index.ts et deno.json');
   const sha = imports[0][1];
-  for (const f of ['catalog.json', 'verifier.mjs', 'sqlite.mjs', 'sql-compat.mjs', 'matcher.mjs']) {
+  for (const f of ['catalog.json', 'catalog-en.json', 'verifier.mjs', 'sqlite.mjs', 'sql-compat.mjs', 'matcher.mjs']) {
     let fige;
     try { fige = execFileSync('git', ['-C', root, 'show', `${sha}:supabase/functions/jeu-verifier/${f}`], { encoding: 'utf8', maxBuffer: 64 << 20 }); }
     catch (e) { assert.fail(`le commit ${sha.slice(0, 7)} est introuvable ici (git fetch) : ${f}`); }
     assert.equal(fige, lire(`supabase/functions/jeu-verifier/${f}`), `${f} a changé depuis le commit ${sha.slice(0, 7)} : pousser, mettre le nouveau commit dans index.ts, redéployer jeu-verifier`);
+  }
+});
+
+/* 15 novembre (Elisa : « vasy ») : le catalogue anglais du serveur suit l’appli en anglais. Chaque défi y a la base et la solution que
+   l’appli lui donne en anglais (defisLangue : L.sql de la base, L.solution ou L.sql de la solution) ; sinon, un joueur qui a juste
+   dans l’appli serait refusé en salle. Après une traduction changée (tools/langue/defis.mjs construire) : node
+   scripts/build-secure-catalog.cjs, pousser, mettre le commit dans index.ts, redéployer jeu-verifier. */
+test('le catalogue anglais du serveur a les bases et les solutions de l’appli en anglais', async () => {
+  const { moteur } = await import(path.join(root, 'tools/langue/commun.mjs'));
+  const L = moteur('en', ['langue-en-defis.js']);
+  const fr = JSON.parse(lire('supabase/functions/jeu-verifier/catalog.json')), en = JSON.parse(lire('supabase/functions/jeu-verifier/catalog-en.json'));
+  for (const id in fr.bases) if (L.baseTraduite(id)) assert.equal(en.bases[id], L.sql(fr.bases[id], null, id), `base ${id} : node scripts/build-secure-catalog.cjs`);
+  const parId = new Map(en.challenges.map(c => [c.id, c]));
+  for (const c of fr.challenges) {
+    if (!L.baseTraduite(c.base)) continue;
+    const e = parId.get(c.id);
+    assert.ok(e, `${c.id} : absent du catalogue anglais`);
+    assert.equal(e.sol, (L.solution && L.solution(c.base, c.id)) || L.sql(c.sol, null, c.base), `${c.id} : solution anglaise différente — node scripts/build-secure-catalog.cjs`);
+    assert.equal(e.ordered, c.ordered, `${c.id} : ordre exigé différent`);
+    assert.equal(e.base, c.base);
   }
 });

@@ -52,7 +52,7 @@ test('la langue de l’iPhone : jamais une langue inachevée toute seule, seulem
   const p = page({stock: {...ESSAI, 'requete-langue': 'en'}});
   assert.equal(p.L.code, 'en');
   assert.equal(p.L.locale, 'en-US');
-  assert.deepEqual(p.ecrits, ['<script src="langue-en.js?v=5"><\/script>'], 'le fichier de la langue est chargé tout de suite, avant le reste de la page');
+  assert.deepEqual(p.ecrits, ['<script src="langue-en.js?v=6"><\/script>'], 'le fichier de la langue est chargé tout de suite, avant le reste de la page');
   assert.deepEqual([...p.L.disponibles()], ['fr', 'en']);
   assert.equal(p.L.nom('en'), 'English');
   /* changer de langue : enregistré, puis l’appli se recharge */
@@ -60,7 +60,7 @@ test('la langue de l’iPhone : jamais une langue inachevée toute seule, seulem
   assert.equal(p.local['requete-langue'], 'fr');
   assert.equal(p.win.recharge, true);
   assert.equal(p.L.changer('de'), false);
-  assert.ok(/en: \{ nom: 'English', locale: 'en-US', fichier: 'langue-en\.js\?v=5', defis: 'langue-en-defis\.js\?v=2', essai: true \}/.test(MOTEUR), 'l’anglais reste en essai tant que sa traduction n’est pas terminée');
+  assert.ok(/en: \{ nom: 'English', locale: 'en-US', fichier: 'langue-en\.js\?v=6', defis: 'langue-en-defis\.js\?v=2', essai: true \}/.test(MOTEUR), 'l’anglais reste en essai tant que sa traduction n’est pas terminée');
 });
 
 test('traduire un texte : tel quel, avec ses nombres, le prénom, les mois et les jours ; sans traduction, il reste en français et il est noté', () => {
@@ -165,9 +165,9 @@ test('le SQL : sur la vraie base du cours, la requête récrite donne le même r
 });
 
 test('index.html : langues.js juste après maj.js, le prénom confié au moteur, le choix de la langue seulement en essai', () => {
-  const i = app.indexOf('<script src="maj.js?v=2"></script>'), j = app.indexOf('<script src="langues.js?v=5" data-defis></script>');
+  const i = app.indexOf('<script src="maj.js?v=2"></script>'), j = app.indexOf('<script src="langues.js?v=6" data-defis></script>');
   assert.ok(i > 0 && j > i && j < app.indexOf('<script src="vendor/sqljs/sql-wasm.js"></script>'));
-  assert.ok(sw.includes("'./langues.js?v=5',") && sw.includes("'./langue-en.js?v=5',"));
+  assert.ok(sw.includes("'./langues.js?v=6',") && sw.includes("'./langue-en.js?v=6',"));
   assert.ok(app.includes("window.REQUETE_LANGUE.valeur('prenom',()=>state.name)"));
   assert.ok(app.includes('    ${langueReglageHTML()}\n    <details class="plus-details" id="plus-contact">'), 'le réglage « Langue », dans Mon compte, avant « Contacte-nous »');
   /* 13 novembre, 15 h 17 : « mets la langue en bas du pays » */

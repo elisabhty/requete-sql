@@ -91,7 +91,7 @@ test('les textes des défis, du schéma, des indices et du pas à pas se lisent 
 
 test('l’appli charge les défis en anglais, aussi hors ligne', () => {
   const app = lire('index.html'), sw = lire('sw.js'), moteurTxt = lire('langues.js');
-  assert.ok(app.includes('<script src="langues.js?v=5" data-defis></script>'));
+  assert.ok(app.includes('<script src="langues.js?v=6" data-defis></script>'));
   assert.ok(moteurTxt.includes("defis: 'langue-en-defis.js?v=2'"));
   assert.ok(sw.includes("'./langue-en-defis.js?v=2',"));
   assert.ok(app.includes('function defisLangue') || app.includes('defisLangue'), 'les défis passent dans la langue au chargement');

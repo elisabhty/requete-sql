@@ -93,6 +93,8 @@ l'anglais :
   `verifier [base…]` crée chaque base dans la langue, rejoue chaque solution traduite et la compare à la française, puis récrit
   la requête en français (les salles) : il faut « Aucune erreur ». Les remarques (un ordre qui change parce qu'un texte traduit se
   trie autrement, une longueur de nom) sont normales.
+- Après `construire` : `node scripts/build-secure-catalog.cjs` refait aussi `catalog-<code>.json`, le catalogue du serveur des
+  salles dans la langue ; pousser, mettre le commit dans `supabase/functions/jeu-verifier/index.ts`, redéployer `jeu-verifier`.
 
 ## L'iPhone : widgets, Live Activities, raccourcis, rappels
 

@@ -94,12 +94,16 @@ les noms propres (une marque, un artiste, une commune) restent tels quels.
 - La source : `tools/langue/defis/en/<base>.json` (`tables`, `defauts` pour les alias des solutions, `gardees` pour les colonnes
   qui ne se traduisent pas, `valeurs`, `valeursColonnes` pour une valeur qui se traduit selon sa colonne, `solutions` pour une
   solution écrite à la main, `valeursRetour`, `textes`). `tools/langue/defis.mjs` les assemble dans `langue-en-defis.js`, chargé
-  par l’appli seulement (`<script src="langues.js?v=5" data-defis>`).
+  par l’appli seulement (`<script src="langues.js?v=6" data-defis>`).
 - Au chargement, `defisLangue` (index.html) passe chaque base dans la langue (son SQL, sa description, ses tables), et chaque
   défi (titre, situation, colonnes à afficher, tri, indices ; sa solution par `sql(sol, null, base)` ou `solution(base, défi)`).
-- Les salles : le serveur vérifie sur la base française. L’essai anglais est récrit en français avant l’envoi
-  (`versFrancais`, `defiSqlServeur`) ; tout ce qui est traduit se récrit, une valeur cherchée avec `LIKE` seulement si elle est
-  écrite comme dans la base anglaise.
+- Les salles (15 novembre, 16 h 43, Elisa : « vasy ») : le serveur (`jeu-verifier`) a un catalogue par langue,
+  `catalog.json` et `catalog-en.json` (les bases et les solutions récrites comme `defisLangue` les récrit, par
+  `node scripts/build-secure-catalog.cjs`). L’appli en anglais envoie l’essai tel quel avec `langue: 'en'`
+  (`defiLangueServeur`, multiplayer-security.js) ; sans langue, le français. Après une traduction changée : relancer le script,
+  pousser, mettre le commit dans `supabase/functions/jeu-verifier/index.ts`, redéployer (tests/serveur-synchro.test.mjs le
+  rappelle). Les règles que le serveur répond (« Utilise une seule requête de lecture SELECT pour ce défi. ») sont dites en
+  anglais dans l’appli (`defiErreurSalle`). `versFrancais` reste dans le moteur, pour `defis.mjs verifier`.
 - Le moteur a appris : une valeur traduite selon sa colonne (« Suisse » : `Swiss` pour une nationalité, `Switzerland` pour un
   pays) ; la colonne d’un `CREATE TABLE` ou d’un `INSERT INTO` est celle de sa table, même après un `REFERENCES` ; un alias devant
   un point (`ca.nom`, alias de `JOIN camions ca`) reste l’alias, même si son nom se traduit ailleurs (`ca` : `revenue`).
@@ -326,8 +330,8 @@ noindex. Le jour où l’anglais sort d’essai : `node tools/langue/site.mjs --
   « November 18 », « −86% ») ; en anglais l’élément porte `data-notrad` (`obNt()`), déjà dans la langue. En français, chaque
   phrase reste au caractère près celle d’avant. Les jours du rappel et leurs initiales sont écrits dans la langue (« Monday and
   Thursday », « M T W T F S S ») ; `aria-valuetext` se traduit comme `aria-label`.
-- **À reprendre avec les défis** : dans une salle, le serveur (`jeu-verifier`) vérifie la requête sur la base française ; une
-  requête écrite en anglais sur un défi de la base des cours y serait refusée. À régler avant de traduire les défis.
+- **Réglé le 15 novembre** : dans une salle, le serveur (`jeu-verifier`) vérifie la requête sur la base de sa langue
+  (`catalog-en.json`, voir « Les bases des défis en anglais »).
 - **Ensuite** : les écrans des leçons et des défis (le cadre autour du contenu) ; puis les cours, module par module :
   les textes des vidéos (`assets/anim/<cours>.html`), leurs voix en anglais (`tools/voix/` ; environ 258 000 caractères au
   total, soit autant de crédits ElevenLabs, à valider avant toute dépense ; le moteur des vidéos attend déjà la fin de chaque

@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=5" data-defis></script>
+<script src="langues.js?v=6" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -21749,8 +21749,8 @@ const DEMO_SQL={
    quand il va exécuter les exos, il faut qu’il comprenne ») : chaque base qui a sa traduction (langue-en-defis.js, fabriqué par
    tools/langue/defis.mjs) passe dans la langue avant sa première ouverture : son SQL (tables, colonnes, valeurs : bassins → tanks,
    'Eau douce' → 'Freshwater' ; les prénoms, les noms, les villes restent), sa présentation, ses tables, ses colonnes, sa requête de
-   démo ; ses défis aussi : leur texte et leur solution. Le reste de l’appli lit ces données déjà traduites. Les salles renvoient au
-   serveur la requête récrite pour la base française (defiSqlServeur) : il vérifie sur sa copie, restée en français. Le nom de la
+   démo ; ses défis aussi : leur texte et leur solution. Le reste de l’appli lit ces données déjà traduites. Les salles envoient au
+   serveur la requête telle quelle, avec la langue de la base (defiLangueServeur) : il vérifie sur sa copie dans cette langue. Le nom de la
    base (DEFI_BASES[id].nom) reste français : « Base Aquarium » se traduit à l’affichage. En français, rien ne change. */
 (function defisLangue(){
   try{
@@ -21781,9 +21781,10 @@ const DEMO_SQL={
     DEFI_OUTILS.forEach(o=>{o[2]=t(o[2]);});
   }catch(e){}
 })();
-/* La requête d’un joueur, pour le serveur des salles : écrite pour la base du défi dans la langue de l’appli, récrite pour sa base
-   française (tanks → bassins, 'Freshwater' → 'Eau douce'). */
-function defiSqlServeur(sql,c){try{const L=window.REQUETE_LANGUE;return c&&c.base&&L&&L.baseTraduite&&L.baseTraduite(c.base)?L.versFrancais(sql,c.base):sql;}catch(e){return sql;}}
+/* La langue de la base d’un défi, pour le serveur des salles (15 novembre, Elisa : « vasy ») : la requête du joueur part telle
+   quelle, avec cette langue, et le serveur la vérifie sur sa copie de la base dans cette langue (catalog-en.json, fait par
+   scripts/build-secure-catalog.cjs comme defisLangue récrit les bases ici). En français, ou pour une base pas traduite : rien. */
+function defiLangueServeur(c){try{const L=window.REQUETE_LANGUE;return c&&c.base&&L&&L.code!=='fr'&&L.baseTraduite&&L.baseTraduite(c.base)?L.code:null;}catch(e){return null;}}
 /* Elisa, 1er novembre, 18 h 42 : « Base NutriBoost » plutôt que « Base des cours ». */
 function demoLabel(id){return id==='cours'?'Base NutriBoost':'Base '+DEFI_BASES[id].nom;}
 /* Ce que contient une base de démo, en une ligne : « Vols, passagers, compagnies, avions et bagages ». */
@@ -24419,7 +24420,10 @@ function defiErreurSalle(c,sql,brut){
     try{const d=defiSandbox(c);try{d.prepare(typeof sqlCompat==='function'?sqlCompat(sql):sql).free();}finally{d.close();}}
     catch(e){return defiErreurSql(e&&e.message,sql);}
   }
-  return defiErreurSql(brut,sql);
+  /* Une règle du serveur (« Utilise une seule requête de lecture SELECT pour ce défi. ») est écrite en français : dite dans la langue
+     de l’appli (langue-en.js). */
+  let dit=brut;try{const L=typeof window!=='undefined'&&window.REQUETE_LANGUE;if(L&&L.code!=='fr'&&typeof L.t==='function')dit=L.t(brut);}catch(e){}
+  return defiErreurSql(dit,sql);
 }
 function errBox(msg,sql,o){
   const aide=errAide(msg,sql,o);
@@ -53668,7 +53672,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3070';
+  const SW_CACHE='requete-2026-11-15-module-v3071';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -53709,7 +53713,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 }
 </script>
 <script src="onboarding-focus.js"></script>
-<script src="multiplayer-security.js?v=11"></script>
+<script src="multiplayer-security.js?v=12"></script>
 <script src="achat.js?v=7"></script>
 <script src="compte-moteurs.js?v=1"></script>
 <script src="connexion.js?v=3"></script>

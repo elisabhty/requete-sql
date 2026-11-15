@@ -80,10 +80,12 @@
     try {
       const controller = new AbortController();
       timeout = setTimeout(() => controller.abort(), 20000);
+      const langue = typeof defiLangueServeur === 'function' && typeof CHALLENGES !== 'undefined' ? defiLangueServeur(CHALLENGES.find(x => x.id === round.cid)) : null;
       const response = await fetch(JEU_SB + '/functions/v1/jeu-verifier?forceFunctionRegion=eu-west-3', {
         method:'POST', headers:{apikey:JEU_SB_KEY,'Content-Type':'application/json'},
-        // 15 novembre (les défis en anglais) : le serveur vérifie sur la base française ; la requête y est récrite (defiSqlServeur).
-        body:JSON.stringify({cle:clsCle(),salle:game.code,g:game.g,n,id,sql:typeof defiSqlServeur==='function'?defiSqlServeur(sql,CHALLENGES.find(x=>x.id===round.cid)):sql}), signal:controller.signal
+        // 15 novembre (les défis en anglais, puis « vasy ») : la requête telle que le joueur l’a écrite, et la langue de sa base ; le
+        // serveur la vérifie sur le catalogue de cette langue (catalog-en.json). Sans langue, le français, comme avant.
+        body:JSON.stringify({cle:clsCle(),salle:game.code,g:game.g,n,id,sql,...(langue?{langue}:{})}), signal:controller.signal
       });
       const result = await response.json();
       if (JEU !== game || jeuCur() !== n) return;

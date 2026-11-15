@@ -5191,6 +5191,22 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Ici, soustraire deux dates ne donne pas un nombre de jours : le calcul ne garde que l’année. Écris <1/>.": "Here, subtracting two dates doesn’t give a number of days: the calculation only keeps the year. Write <1/>.",
     "La requête tourne, mais…": "The query runs, but…",
     "Requête incorrecte": "Incorrect query",
-    "Lecture seule": "Read-only"
+    "Lecture seule": "Read-only",
+    /* 15 novembre, 17 h 50 : le serveur des salles vérifie en anglais ; ce qu'il répond, en anglais (jeu-verifier, multiplayer-security.js) */
+    "Utilise une seule requête de lecture SELECT pour ce défi.": "Use a single read-only SELECT query for this challenge.",
+    "Résultat trop volumineux.": "Result too large.",
+    "Valeur trop volumineuse.": "Value too large.",
+    "Requête trop longue.": "Query too long.",
+    "Requête SQL invalide.": "Invalid SQL query.",
+    "Défi inconnu.": "Unknown challenge.",
+    "Demande invalide.": "Invalid request.",
+    "Demande refusée.": "Request refused.",
+    "Méthode non autorisée.": "Method not allowed.",
+    "La vérification est indisponible. Réessaie.": "Checking isn’t available right now. Try again.",
+    "Vérification indisponible. Réessaie.": "Checking isn’t available. Try again.",
+    "Vérification indisponible.": "Checking isn’t available.",
+    "La vérification prend du temps. Réessaie : tes points ne seront pas comptés deux fois.": "Checking is taking a while. Try again: your points won’t be counted twice.",
+    "Moteur SQL indisponible.": "SQL engine unavailable.",
+    "Moteur SQL non reconnu.": "SQL engine not recognized."
   }
 });
