@@ -70,6 +70,14 @@ l'anglais :
   (langueFit dans core.js, jusqu'à 72 %) quand elle toucherait le logo ; pour tout le reste, c'est la règle.
 - `francais.mjs` : 0 à 3 images différentes d'un pixel arrivent (le lissage des polices).
 
+## Le dernier passage sur l'appli
+
+- `appli.mjs --langue <code>` : ouvre l'appli dans la langue, dans trois états (le parcours tout neuf, un planning et deux leçons,
+  tout fini), passe chaque onglet et chaque écran qui s'ouvre sans réglage, et écrit ce qui s'est affiché sans traduction dans
+  `travail/<code>/appli-manque.json`. Le prénom y est « Camille » (une clé qui le contient se lit avec `{prenom}`).
+- Ce qui reste dans la liste à la fin s'écrit pareil dans la langue : mots-clés SQL, noms de colonnes, données d'exemple (« Petit »
+  y est un nom de famille : ne pas le traduire).
+
 ## L'iPhone : widgets, Live Activities, raccourcis, rappels
 
 Ce que l'app confie à l'iPhone ne passe pas par la page : l'app le traduit avant de l'envoyer (`natifT`, `natifSql`, `pocheLangue`
