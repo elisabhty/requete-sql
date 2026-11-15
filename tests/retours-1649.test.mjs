@@ -84,7 +84,7 @@ test('pseudo — la mini-page vérifie en direct : « déjà pris », le champ t
   p.run(); await flush();
   assert.deepEqual(p.calls, [{ fn: 'jeu_pseudo_libre', body: { p_pseudo: '@léa', p_cle: 'K'.repeat(32) } }], 'le pseudo en identifiant (18 h 22 : @, minuscules, sans espace), avec la clé de l’appareil');
   assert.equal(etat.className, 'ps-etat is-pris');
-  assert.equal(etat.innerHTML, '<i class="ps-no" aria-hidden="true">!</i>« @léa » est déjà pris. Prends-en un libre :');
+  assert.equal(etat.innerHTML, '<i class="ps-no" aria-hidden="true">!</i>«&nbsp;@léa&nbsp;» est déjà pris. Prends-en un libre&nbsp;:');
   assert.equal(idees.innerHTML, ['@léa_sql', '@léa.db', '@léa42'].map((v, i) => `<button type="button" class="ps-idee" style="--i:${i}" data-v="${v}" onclick="psIdee('ob',this.dataset.v)">${v}</button>`).join(''), 'trois pastilles, l’une après l’autre (--i)');
   assert.ok(inp.classList.contains('is-ko') && !inp.classList.contains('is-ok'));
   assert.ok(p.buzzes.includes('warning'));
@@ -112,7 +112,7 @@ test('pseudo — la mini-page vérifie en direct : « déjà pris », le champ t
   /* Les autres réponses du serveur */
   const r = pseudoCtx({ reply: () => ({ ok: false, raison: 'refuse', idees: ['Joueur_sql'] }) });
   r.ev('psPage({})'); r.ev("psVerif('ob','Connard')"); r.run(); await flush();
-  assert.equal(r.el('ob-ps-etat').innerHTML, '<i class="ps-no" aria-hidden="true">!</i>Ce pseudo n’est pas accepté. Prends-en un libre :');
+  assert.equal(r.el('ob-ps-etat').innerHTML, '<i class="ps-no" aria-hidden="true">!</i>Ce pseudo n’est pas accepté. Prends-en un libre&nbsp;:');
   const off = pseudoCtx({ reply: () => new TypeError('Failed to fetch') });
   off.ev('psPage({})'); off.ev("psVerif('ob','Zoé')"); off.run(); await flush();
   assert.equal(off.el('ob-ps-etat').innerHTML, 'Pas de réseau : il sera vérifié dès ton retour en ligne.');
