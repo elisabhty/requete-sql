@@ -55,6 +55,8 @@ const PARLE = s => s
   .replace(/\b([a-z]+(?:_[a-z]+)+)\((\d+)\)/g, '$1 of $2')
   /* Module 14 (15 novembre) : « ON commandes(numero_commande) » se dit la table, puis sa colonne */
   .replace(/\bON ([a-z_]+)\(([a-z_]+)\)/g, 'on $1, column $2,')
+  /* Module 15 (15 novembre) : « le compte se place après FROM » : le mot-clé, pas la préposition */
+  .replace(/\bafter FROM\b/g, 'after the keyword FROM')
   .replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, '$1, dash, $2, dash, $3').replace(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g, '$1, slash, $2, slash, $3')
   .replace(/'%d\/%m\/%Y'/g, 'percent d, slash, percent m, slash, percent capital Y').replace(/'%([a-zA-Z])'/g, 'percent $1')
   .replace(/'\+(\d+) (days?|months?|years?)'/g, 'plus $1 $2')

@@ -37,7 +37,9 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
       /* Les noms du module 13 (CALL expedier_commande(13), SELECT calculer_points(80), CREATE TRIGGER garder_prix) */
       expedier_commande: 'ship_order', id_commande: 'order_id', calculer_points: 'calculate_points', nom_table: 'table_name', garder_prix: 'track_price',
       /* Les noms du module 14 (CREATE VIEW catalogue_box, la colonne selection_box du projet, CREATE INDEX idx_commandes_numero) */
-      catalogue_box: 'box_catalog', selection_box: 'box_selection', idx_commandes_numero: 'idx_orders_number'}
+      catalogue_box: 'box_catalog', selection_box: 'box_selection', idx_commandes_numero: 'idx_orders_number',
+      /* Les noms du module 15 (GRANT SELECT ON commandes_expedition TO lina : la vue des expéditions) */
+      commandes_expedition: 'shipping_orders', adresse_livraison: 'shipping_address'}
   },
   /* Les mois et les jours : dans une clé, {m1}, {m2}… (« le {1} {m1} » pour « le 15 mars »). */
   mots: {"janvier": "January", "février": "February", "mars": "March", "avril": "April", "mai": "May", "juin": "June", "juillet": "July", "août": "August", "septembre": "September", "octobre": "October", "novembre": "November", "décembre": "December", "janv.": "Jan", "févr.": "Feb", "avr.": "Apr", "juil.": "Jul", "sept.": "Sep", "oct.": "Oct", "nov.": "Nov", "déc.": "Dec", "lundi": "Monday", "mardi": "Tuesday", "mercredi": "Wednesday", "jeudi": "Thursday", "vendredi": "Friday", "samedi": "Saturday", "dimanche": "Sunday", "lun.": "Mon", "mar.": "Tue", "mer.": "Wed", "jeu.": "Thu", "ven.": "Fri", "sam.": "Sat", "dim.": "Sun"},
@@ -3041,6 +3043,13 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     /* 15 novembre, 2 h 57 : en anglais, une seule formatrice pour tous les cours */
     "Ta formatrice te fera progresser": "Your instructor will help you progress",
     "<1>Ta formatrice</1> te fera progresser": "<1>Your instructor</1> will help you progress",
+    /* Les fiches des cours du module 15 (Sécurité et droits, 15 novembre) */
+    "Accorde uniquement les <1>accès nécessaires</1>.": "Grant only the <1>access needed</1>.",
+    "Un compte doit pouvoir effectuer les actions utiles à sa mission.": "An account should be able to carry out the actions its mission requires.",
+    "permet d’<1>accorder</1> un droit.": "lets you <1>grant</1> a permission.",
+    "Tu peux autoriser la consultation ou limiter une modification à certaines colonnes.": "You can allow reading or limit a change to certain columns.",
+    "permet de <1>retirer</1> un droit.": "lets you <1>revoke</1> a permission.",
+    "Pense à revoir les accès lorsqu’une mission change ou se termine.": "Remember to review access when a mission changes or ends.",
     /* Les fiches des cours du module 14 (Vues, index et optimisation, 15 novembre) */
     "Une <1>vue</1> enregistre une requête sous un nom.": "A <1>view</1> stores a query under a name.",
     "Elle se consulte comme une table, avec <1/>.": "You read it like a table, with <1/>.",

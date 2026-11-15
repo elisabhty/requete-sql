@@ -1110,7 +1110,7 @@ test('le module 14 en entier : la vue box_catalog, l’index idx_orders_number ;
   const langues = lire('langues.js');
   assert.ok(langues.includes("var av = /^[:;!?]/.test(r) ? c.avant.replace(/[ \\u00a0\\u202f]+$/, '') : c.avant;"));
   assert.equal(textesDe('projet-index')['Le plan ou la mesure ?'], 'Plan or measurement?');
-  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10, 'projet-ondelete', ...M12, ...M13, ...M14].map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10, 'projet-ondelete', ...M12, ...M13, ...M14].map(c => `'${c}'`).join(',') + ','));
 });
 
 test('la voix anglaise du module 14 : Brielle, les ids du français, sans code brut', () => {
@@ -1132,4 +1132,41 @@ test('la voix anglaise du module 14 : Brielle, les ids du français, sans code b
     total += en.elements.reduce((a, e) => a + e.texte.length, 0);
   }
   assert.ok(total > 5500 && total < 8000, `${total} caractères (autant de crédits)`);
+});
+
+/* Module 15 (« Sécurité et droits », 15 novembre) : GRANT, REVOKE et la vue commandes_expedition ; le dernier module */
+test('le module 15 : GRANT et REVOKE en anglais, la vue shipping_orders ; les droits de la fiche de Lina sont du code ; tous les modules ont leur vignette', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  const c = 'projet-droits', pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+  assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`));
+  assert.ok(Object.keys(textes).length > 200, `${Object.keys(textes).length} textes`);
+  for (const k in textes) assert.deepEqual(f(textes[k]), f(k), k);
+  for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `la typographie anglaise : ${v}`);
+  for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+  assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000);
+  assert.ok(pg.includes('<body data-table="commandes">'));
+  assert.ok(pg.includes("Course({codeSel: '.fcd', duration: DURATION,"), 'les droits de la fiche du compte (SELECT · commandes_expedition) sont du code');
+  /* le prix tapé dans l’application de Lina, traduit avant d’être découpé pour la frappe (1,00 € : €1.00) */
+  assert.ok(pg.indexOf("$$('#pfl').forEach(el => { el.textContent = LG.t(el.textContent); });") > 0 && pg.indexOf("$$('#pfl').forEach(el => { el.textContent = LG.t(el.textContent); });") < pg.indexOf("  $$('#pfl').forEach(splitChars);"));
+  assert.equal(textes['{1} €'], '€{1}');
+  const {L} = anglais();
+  for (const [q, en] of [['GRANT SELECT ON commandes_expedition TO lina;', 'GRANT SELECT ON shipping_orders TO lina;'], ['GRANT UPDATE (statut) ON commandes TO lina;', 'GRANT UPDATE (status) ON orders TO lina;'],
+    ['REVOKE SELECT ON commandes_expedition FROM lina;', 'REVOKE SELECT ON shipping_orders FROM lina;'], ['UPDATE produits SET prix = 1 WHERE id = 2;', 'UPDATE products SET price = 1 WHERE id = 2;'],
+    ['SELECT numero_commande, destinataire, adresse_livraison, statut FROM commandes_expedition', 'SELECT order_number, recipient, shipping_address, status FROM shipping_orders']])
+    assert.equal(L.sql(q, 'commandes'), en, q);
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10, 'projet-ondelete', ...M12, ...M13, ...M14, c].map(c => `'${c}'`).join(',') + ']};'));
+  /* toutes les vidéos de l’appli ont maintenant leur vignette anglaise */
+  const videos = [...app.matchAll(/video:\{anim:'assets\/anim\/([a-z0-9-]+)\.html/g)].map(m => m[1]);
+  const vignettes = /const LV_VIGNETTES=\{en:\[([\s\S]*?)\]\};/.exec(app)[1];
+  for (const v of videos) assert.ok(vignettes.includes(`'${v}'`), `la vignette anglaise de ${v}`);
+  /* la voix */
+  const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+  assert.equal(en.langue, 'en'); assert.deepEqual(en.voix, JSON.parse(lire('tools/voix/en/bases-relationnelles.json')).voix);
+  assert.deepEqual(en.elements.map(e => e.id), fr.elements.map(e => e.id).filter(i => en.elements.some(e => e.id === i)));
+  for (const e of en.elements) {
+    const t = e.texte.replace(/^\[\w+\]\s*/, '');
+    assert.ok(t.length > 3 && !/[«»<>=≠→↔⇔|+*%_×÷−'"@]| … |\.\.|\w\(|[A-Za-z_]\.[A-Za-z]|commande|expedition|droit|Pour finir|after from/.test(t), `${e.id} : ${t}`);
+  }
+  const total = en.elements.reduce((a, e) => a + e.texte.length, 0);
+  assert.ok(total > 3000 && total < 4500, `${total} caractères`);
 });
