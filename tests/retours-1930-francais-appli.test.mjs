@@ -76,3 +76,15 @@ test('le moteur : les attributs d’un morceau, d’une zone de saisie ; une val
   assert.equal(L.t('Module 12 · Transactions et concurrence'), 'Module 12 · Transactions and concurrency');
   assert.equal(L.t('Les leçons s’ouvrent l’une après l’autre. Ta prochaine étape : <1>Transactions</1>.'), 'Lessons open one after the other. Your next step: <1>Transactions</1>.');
 });
+
+test('la longue traîne : console, import, salles, classement, notes, compte (15 novembre, 21 h)', () => {
+  const {L} = moteur();
+  const attendus = {
+    'Base d’entraînement en lecture seule': 'Read-only practice database', 'Ce fichier est vide.': 'This file is empty.',
+    'Requête épinglée : retrouve-la dans l’onglet Épinglées': 'Query pinned: find it in the Pinned tab', 'Salle trouvée !': 'Room found!',
+    'Ce code ne correspond à aucune salle. Vérifie-le et réessaie.': 'This code doesn’t match any room. Check it and try again.',
+    'Note enregistrée': 'Note saved', 'Supprimer ton compte ?': 'Delete your account?', 'Valide 5 leçons.': 'Complete 5 lessons.',
+    'Ce qui t’a plu, ce qui manque, ce qui n’est pas clair…': 'What you liked, what’s missing, what’s unclear…'
+  };
+  for (const [fr, en] of Object.entries(attendus)) assert.equal(L.t(fr), en, fr);
+});
