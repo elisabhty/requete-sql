@@ -67,7 +67,8 @@ test('le moteur : press note l’appui (sauf false), Course juge les appuis une 
 });
 
 test('le lecteur : le repère « confetti » lance une gerbe par-dessus l’image, à la place d’un son', () => {
-  assert.ok(html.includes("if(c.t>this.t){ if(c.type==='confetti')lvConfetti(this.frame,c); else LvSfx.play("), 'jamais joué comme un son');
+  /* 15 novembre : le son d’un repère est suivi de sa vibration (lvHapt, retours-1118) ; le confetti reste une gerbe, sans son */
+  assert.ok(html.includes("if(c.t>this.t){ if(c.type==='confetti')lvConfetti(this.frame,c); else{ LvSfx.play("), 'jamais joué comme un son');
   assert.ok(html.includes('.lv-confetti{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}'), 'par-dessus l’image, sans retenir le doigt');
   const a = html.indexOf('function lvConfetti(frame,c){'), b = html.indexOf('/* Leçon en vidéo : la vidéo est son cours');
   assert.ok(a > 0 && b > a);

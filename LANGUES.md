@@ -206,6 +206,11 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   `lina` garde son nom. Les droits de la fiche du compte (« SELECT · commandes_expedition ») sont du code (`codeSel: '.fcd'`) ; le
   prix tapé dans l’application de Lina est traduit avant la frappe (1,00 € : €1.00). Droit : permission ; accorder : grant ;
   retirer : revoke. **Toutes les vidéos des 15 modules ont leurs textes anglais et leur vignette.**
+- **La revue des débordements** (15 novembre, 11 h 18 : « regarde que ça déborde pas ») : les 71 vidéos, image par image, en
+  français et en anglais (un texte sorti d’un parent qui coupe, de sa carte ou de la scène, sur deux images au moins). Le français
+  n’avait rien à corriger ; en anglais, six vidéos des modules 8 à 11 (projet-cles, projet-insert, projet-ondelete, projet-create,
+  projet-uml, projet-normaliser) ont une règle `html[lang="en"]` pour « Healthy cooking », customer_id et son badge UNIQUE,
+  « enrolled on » et la chaîne de la 2NF. Voir tests/retours-1118-videos-haptiques.test.mjs.
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans

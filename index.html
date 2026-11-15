@@ -31764,7 +31764,7 @@ class LvAnim{
       for(let i=0;i<this.opens.length;i++){ const ot=this.opens[i].t; if(ot>this.t&&ot<=t){ if((q<0&&pk<0)||ot<t){ t=ot; op=i; q=-1; pk=-1; } break; } }
       const end=t>=this.duration; if(end)t=this.duration;
       this._voice(t,now);
-      while(this.ci<this.cues.length&&this.cues[this.ci].t<=t){ const c=this.cues[this.ci]; if(c.t>this.t){ if(c.type==='confetti')lvConfetti(this.frame,c); else LvSfx.play(c.type,c.pitch||0,c.gain==null?1:c.gain,.36*Math.sin(this.ci*2.399)); } this.ci++; }
+      while(this.ci<this.cues.length&&this.cues[this.ci].t<=t){ const c=this.cues[this.ci]; if(c.t>this.t){ if(c.type==='confetti')lvConfetti(this.frame,c); else{ LvSfx.play(c.type,c.pitch||0,c.gain==null?1:c.gain,.36*Math.sin(this.ci*2.399)); lvHapt(c.type); } } this.ci++; }
       this.t=t; this._render();
       /* Arrêt (question, moment, message à toucher, fin) : la voix se tait ; le lecteur y dit la consigne à part (LvVoice.say). */
       /* La phrase en cours se finit pendant l’arrêt (finish : 1,5 s au plus) ; si elle tient dans ce délai, la reprise ne la redit pas. */
@@ -31782,6 +31782,20 @@ class LvAnim{
    pas une erreur ensuite mettre des confettis »). La page les annonce comme un son (repère « confetti », position du bouton sur la scène
    1080 × 1920) ; le lecteur les lance en direct, par-dessus l’image : une pause de lecture ne les fige pas, revenir en arrière ne les
    rejoue pas. Même gerbe que la requête à trous réussie (qfConfetti), à l’échelle de l’image, même quand elle est réduite (lvPkFit). */
+/* Les vibrations de la vidéo (Elisa, 15 novembre, 11 h 18 : « mets des haptiques, des vibrations ») : pendant la lecture, les temps
+   forts de l’image vibrent avec leur son. Un bouton appuyé à l’écran (« Exécuter ») : un coup léger ; un message qui arrive (mail,
+   SMS) : un coup moyen ; une réussite (accord, bonne réponse) : la vibration de réussite d’iOS ; une erreur montrée par la vidéo
+   (requête refusée) : celle d’avertissement, plus douce que l’erreur réservée aux réponses de l’élève. Les sons fréquents (frappe,
+   apparitions, glissements) ne vibrent pas. Deux vibrations ne se suivent jamais à moins de 0,2 s (0,4 s entre deux réussites ou
+   avertissements) : à vitesse ×2, rien ne s’empile. Dans l’appli iOS, navigator.vibrate passe par le moteur haptique (voir plus haut). */
+const LV_HAPT={click:8,mail:14,sms:14,true:[10,60,20],chord:[10,60,20],success:[10,60,20],error:[16,60,16],buzz:[16,60,16]};
+function lvHapt(type){
+  const p=LV_HAPT[type]; if(!p||!navigator.vibrate)return;
+  const now=Date.now(), fort=Array.isArray(p);
+  if(now-(lvHapt.t||0)<200||(fort&&now-(lvHapt.f||0)<400))return;
+  lvHapt.t=now; if(fort)lvHapt.f=now;
+  try{navigator.vibrate(p);}catch(e){}
+}
 function lvConfetti(frame,c){
   if(prefersReduceMotion()||!LV||!LV.root||!frame||!(c.x>=0)||!(c.y>=0))return;
   let st=null; try{ st=frame.contentDocument&&frame.contentDocument.getElementById('stage'); }catch(e){}
@@ -33744,6 +33758,7 @@ function lvPkDrag(P,btn,zonesFn,onDrop){
       LV.root.appendChild(fly); btn.classList.add('is-lift'); lvPkSel(P,null);
       if(P.layer)P.layer.classList.add('is-armed');
       LvSfx.play('pop',3,.4,0);
+      if(navigator.vibrate)navigator.vibrate(6);   // l’étiquette se soulève sous le doigt : un cran (15 novembre, « des haptiques »)
     },
     move(cx,cy){
       const x=cx-R.left, y=cy-R.top;
@@ -53563,7 +53578,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3065';
+  const SW_CACHE='requete-2026-11-15-module-v3066';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
