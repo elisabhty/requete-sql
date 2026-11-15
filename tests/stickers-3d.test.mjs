@@ -30,7 +30,8 @@ test('les 35 images : WebP carrés de 768 px, fond transparent, légères', () =
     total += b.length;
   }
   assert.ok(total < 2.2 * 1024 * 1024, `en tout ${total} octets`);
-  assert.ok(html.includes('o.im.src=`assets/stickers/${id}.webp?v=${STK_IMG_V}`;'), 'chargées à la demande');
+  assert.ok(html.includes('o.im.src=stkSrc(id);'), 'chargées à la demande');
+  assert.ok(html.includes('return `assets/stickers/${en?\'en/\':\'\'}${id}.webp?v=${STK_IMG_V}`;'), 'la version anglaise, s’il y en a une');
   assert.ok(!sw.includes('assets/stickers/'), 'pas dans le précache : rangées par le service worker à la première vue');
 });
 

@@ -193,6 +193,15 @@ pluriels et les accords (Prête, Prêt, Prêt·e) ont chacun leur clé. À évit
 Les adresses (15 novembre, 19 h 26, Elisa voyait encore l’entretien en français) : chaque fichier de langue est demandé avec
 l’empreinte de son contenu, mise à jour par `tools/langue/versions.mjs` (appelé par les outils qui écrivent ces fichiers).
 
+## Les stickers en anglais (15 novembre, 20 h)
+
+Elisa : « oui vas'y pour le test », puis « oui ». Les 16 stickers 3D qui portent un mot (« 1re requête », « NIV. 1 », « 3 jours »,
+« 10 défis »…) ont leur version anglaise dans `assets/stickers/en/<id>.webp` (« 1st query », « LVL 1 », « 3 days », « 10 challenges ») :
+même dessin, même cadrage, seul le texte change. `stkSrc` (index.html) choisit l’image : la version anglaise pour l’appli en anglais
+s’il y en a une (`STK_EN`), l’originale sinon. Fabrication : retouche du sticker français par seedream-5.5 sur ElevenLabs (flux
+`cSRRRMte40Pm70lkU8vc`, 127 crédits l’image ; 9 sont sortis sur fond blanc et ont été détourés par birefnet, 30 crédits), puis
+recadrage sur la zone du sticker français dans un carré de 768 px.
+
 ## Où on en est
 
 - **Fait** : le système ; l’onboarding en anglais (le pilote) ; l’interface (14 novembre, 22 h 51 : « Tout traduire ») : l’accueil,

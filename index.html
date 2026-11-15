@@ -42067,6 +42067,16 @@ const STK_3D=new Set(['intro','lire','fonctions','agregats','jointures','sousreq
   'triggers','index','securite','requete','defi1','lecons10','serie3','code','donnees','defis10','premier','difficile','serie7','amis5','serie14','champion','serie30','parcours',
   'niv1','niv2','niv3','niv4','niv5']);   // 14 novembre : les stickers de niveau (le chat explorateur, bâtisseur, analyste, architecte, légende)
 const STK_IMG_V=1;
+/* 15 novembre (Elisa : « oui vas'y pour le test », puis « oui ») : les stickers qui portent un mot ont leur version anglaise,
+   assets/stickers/en/<id>.webp (même dessin, même cadrage, seul le texte change : « 1st query », « LVL 1 », « 3 days »…).
+   L’appli en anglais la prend ; en français, ou pour un sticker sans texte, c’est l’originale. La langue ne change qu’au rechargement. */
+const STK_EN=new Set(['requete','defi1','defis10','lecons10','premier','difficile','amis5','serie3','serie7','serie14','serie30',
+  'niv1','niv2','niv3','niv4','niv5']);
+function stkSrc(id){
+  let en=false;
+  try{const L=typeof window!=='undefined'?window.REQUETE_LANGUE:null;en=!!L&&L.code==='en'&&STK_EN.has(id);}catch(e){}
+  return `assets/stickers/${en?'en/':''}${id}.webp?v=${STK_IMG_V}`;
+}
 const stkImgs={},stkSilCache=new Map();
 let stkRepaintT=0;
 function stkImg(id){
@@ -42079,7 +42089,7 @@ function stkImg(id){
     o.im.onload=()=>{o.ok=true;delete stkMasks[id];for(const k of [...stkSilCache.keys()])if(k.startsWith(id+'|'))stkSilCache.delete(k);
       if(typeof stkFaits!=='undefined')for(const k of [...stkFaits.keys()])if(k.startsWith(id+'|'))stkFaits.delete(k);
       clearTimeout(stkRepaintT);stkRepaintT=setTimeout(()=>{try{stkPaint(document);}catch(e){}},50);};
-    o.im.src=`assets/stickers/${id}.webp?v=${STK_IMG_V}`;
+    o.im.src=stkSrc(id);
   }
   return o.ok?o.im:null;
 }
@@ -53693,7 +53703,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3080';
+  const SW_CACHE='requete-2026-11-15-module-v3081';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
