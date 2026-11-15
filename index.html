@@ -42329,6 +42329,14 @@ function stkAfterProgress(){
   const a=nivRangAtteint();
   let up=a>de?{de,a}:null;
   if(up){stkState().rang=a;save();try{if(typeof nivSync==='function')nivSync();}catch(e){}}   // save() renouvelle state.stickers : le relire ; le niveau part avec le pseudo
+  /* 15 novembre, 21 h 20 (Elisa : « j’ai eu que l’annonce du niv 1 et pas le sticker 1re requête ensemble ») : un stkSync passé avant
+     (la synchro du compte pendant la page du pseudo, l’ouverture de l’appli) gagne ces stickers sans page. Le niveau n’étant pas encore
+     fêté, ses stickers, et « Première requête » avec le niveau 1, rejoignent quand même sa page. */
+  if(up){
+    const G=stkState().got||{};
+    for(let k=up.de+1;k<=up.a;k++){const nid='niv'+k;if(G[nid]&&!won.includes(nid))won.push(nid);}
+    if(up.de===0&&G.requete&&!won.includes('requete'))won.unshift('requete');
+  }
   if(!won.length&&!up)return;
   if(typeof stat==='function')won.forEach(id=>stat('sticker',undefined,{s:String(id).slice(0,24)}));   // 13 novembre, 19 h 52, statistiques
   /* 20 h 26 : la première requête faite dans l’onboarding s’annonce tout de suite, même si la première leçon s’est déjà ouverte : elle
@@ -53812,7 +53820,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3086';
+  const SW_CACHE='requete-2026-11-15-module-v3087';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
