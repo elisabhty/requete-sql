@@ -1,6 +1,28 @@
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8">
+<script>/* 15 novembre (Elisa : « oui je vais l’ouvrir aujourd’hui ») : la langue du site selon le navigateur, au premier passage.
+   La première langue du navigateur que le site parle (français ou anglais) ; sinon le pays de ses réglages (le français là où il se
+   parle, l’anglais ailleurs), comme l’appli. Un choix fait dans le menu des langues est retenu (rq-langue-site) ; ?lang=fr ou ?lang=en
+   l’impose. Rien pour les moteurs de recherche, une page ouverte depuis l’appli (elle ouvre celle de sa langue) ou dans un cadre. */
+(function(){try{
+  var ici=document.documentElement.lang==='en'?'en':'fr',q=/[?&]lang=(fr|en)\b/.exec(location.search),voulu=q&&q[1];
+  if(voulu)localStorage.setItem('rq-langue-site',voulu);
+  document.addEventListener('click',function(e){var o=e.target.closest&&e.target.closest('.lang-o[lang],.lang-c[lang]');if(o&&/^(fr|en)$/.test(o.getAttribute('lang'))&&!o.hasAttribute('data-soon'))try{localStorage.setItem('rq-langue-site',o.getAttribute('lang'));}catch(x){}},true);
+  if(window.top!==window||/bot|crawl|spider|slurp|facebookexternalhit|embedly|preview|lighthouse/i.test(navigator.userAgent||'')||navigator.webdriver)return;
+  if(sessionStorage.getItem('rq-depuis-appli')==='1'||/[?&]depuis=appli\b/.test(location.search))return;   // l’appli ouvre la page de sa langue
+  if(!voulu)voulu=localStorage.getItem('rq-langue-site');
+  if(!voulu){
+    var l=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||'']).map(String),i,m;
+    for(i=0;i<l.length&&!voulu;i++){var c=l[i].slice(0,2).toLowerCase();if(c==='fr'||c==='en')voulu=c;}
+    var F=' FR MC LU SN CI ML BF NE TG BJ GN CM GA CG CD CF TD DJ KM MG BI MU MR MA DZ TN HT GP MQ GF RE YT PM BL MF NC PF WF ';
+    for(i=0;i<l.length&&!voulu;i++)if((m=/[-_]([A-Za-z]{2})(?![A-Za-z])/.exec(l[i])))voulu=F.indexOf(' '+m[1].toUpperCase()+' ')>=0?'fr':'en';
+    if(!voulu){var z='';try{z=Intl.DateTimeFormat().resolvedOptions().timeZone||'';}catch(x){}voulu=/^(Europe\/(Paris|Monaco|Luxembourg)|Africa\/(Dakar|Abidjan|Bamako|Ouagadougou|Niamey|Lome|Porto-Novo|Conakry|Douala|Libreville|Brazzaville|Kinshasa|Lubumbashi|Bangui|Ndjamena|Djibouti|Nouakchott|Casablanca|Algiers|Tunis)|Indian\/(Comoro|Antananarivo|Mauritius|Reunion|Mayotte)|America\/(Port-au-Prince|Guadeloupe|Martinique|Cayenne)|Pacific\/(Noumea|Tahiti))$/.test(z)?'fr':'en';}
+  }
+  if(voulu===ici)return;
+  var p=location.pathname,cible=ici==='fr'?p.replace(/\/([^\/]*)$/,'/en/$1'):p.replace(/\/en\/([^\/]*)$/,'/$1');
+  if(cible!==p)location.replace(cible+location.search.replace(/([?&])lang=(fr|en)&?/,'$1').replace(/[?&]$/,'')+location.hash);
+}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#6A4DF4">
 <meta name="color-scheme" content="light">
@@ -16,7 +38,10 @@ try{if(/[?&]depuis=appli(&|$)/.test(location.search))sessionStorage.setItem('rq-
 <link rel="stylesheet" href="../vitrine.css?v=48946bbe">
 <script>document.documentElement.classList.add('js')</script>
 <script src="../../assets/curseur.js?v=60b94b87" defer=""></script>
-<link rel="alternate" hreflang="fr" href="../mentions-legales.html"><link rel="alternate" hreflang="en" href="./mentions-legales.html"><meta name="robots" content="noindex"></head>
+
+
+
+<link rel="alternate" hreflang="fr" href="https://requeteapp.com/decouvrir/mentions-legales.html"><link rel="alternate" hreflang="en" href="https://requeteapp.com/decouvrir/en/mentions-legales.html"><link rel="alternate" hreflang="x-default" href="https://requeteapp.com/decouvrir/mentions-legales.html"></head>
 <body class="legal-page">
 
 <header class="nav" id="nav">
@@ -24,14 +49,14 @@ try{if(/[?&]depuis=appli(&|$)/.test(location.search))sessionStorage.setItem('rq-
     <a class="brand" href="./" aria-label="Requête, home"><span class="logo" aria-hidden="true">&gt;_</span><b>Requête</b></a>
     <nav class="links" aria-label="Sections"><a href="./#pourquoi">Why learn SQL</a> <a href="./#modules">Learning paths</a> <a href="./#faq">FAQ</a></nav>
     <div class="nav-cta">
-      <div class="lang" data-lang=""><button type="button" class="lang-btn" aria-expanded="false" aria-label="Site language: English"><svg class="gl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.6 2.8 3.9 5.8 3.9 9s-1.3 6.2-3.9 9c-2.6-2.8-3.9-5.8-3.9-9S9.4 5.8 12 3Z"></path></svg><span class="lb-s">EN</span><span class="lb-l">English</span><svg class="ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button><div class="lang-menu" hidden=""><p class="lang-h">Language</p><button type="button" class="lang-o" lang="fr" data-href="../mentions-legales.html"><b>FR</b>Français</button><button type="button" class="lang-o on" lang="en" aria-current="true"><b>EN</b>English<i aria-hidden="true">✓</i></button><button type="button" class="lang-o" lang="es" data-soon="La versión en español llega muy pronto."><b>ES</b>Español<small>Soon</small></button><button type="button" class="lang-o" lang="pt" data-soon="A versão em português chega em breve."><b>PT</b>Português<small>Soon</small></button></div></div>
+      <div class="lang" data-lang=""><button type="button" class="lang-btn" aria-expanded="false" aria-label="Site language: English"><svg class="gl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.6 2.8 3.9 5.8 3.9 9s-1.3 6.2-3.9 9c-2.6-2.8-3.9-5.8-3.9-9S9.4 5.8 12 3Z"></path></svg><span class="lb-s">EN</span><span class="lb-l">English</span><svg class="ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button><div class="lang-menu" hidden=""><p class="lang-h">Language</p><button type="button" class="lang-o" lang="fr" data-href="../mentions-legales.html"><b>FR</b>Français</button><button type="button" class="lang-o on" lang="en" aria-current="true"><b>EN</b>English</button><button type="button" class="lang-o" lang="es" data-soon="La versión en español llega muy pronto."><b>ES</b>Español<small>Soon</small></button><button type="button" class="lang-o" lang="pt" data-soon="A versão em português chega em breve."><b>PT</b>Português<small>Soon</small></button></div></div>
       <a class="btn btn-p" href="./#video">Start</a>
     </div>
     <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="menu" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
   <div class="progress" aria-hidden="true"><i id="prog"></i></div>
   <nav class="menu" id="menu" aria-label="Menu" hidden="">
-    <div class="lang-row" role="group" aria-label="Site language"><p class="lr-h"><svg class="gl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.6 2.8 3.9 5.8 3.9 9s-1.3 6.2-3.9 9c-2.6-2.8-3.9-5.8-3.9-9S9.4 5.8 12 3Z"></path></svg>Site language</p><div class="lr-opts"><button type="button" class="lang-c" lang="fr" data-href="../mentions-legales.html"><b>FR</b><small>Français</small></button><button type="button" class="lang-c on" lang="en" aria-label="English" aria-current="true"><b>EN</b><small>English</small></button><button type="button" class="lang-c" lang="es" data-soon="La versión en español llega muy pronto." aria-label="Español (soon)"><b>ES</b><small>Español</small></button><button type="button" class="lang-c" lang="pt" data-soon="A versão em português chega em breve." aria-label="Português (soon)"><b>PT</b><small>Português</small></button></div></div>
+    <div class="lang-row" role="group" aria-label="Site language"><p class="lr-h"><svg class="gl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.6 2.8 3.9 5.8 3.9 9s-1.3 6.2-3.9 9c-2.6-2.8-3.9-5.8-3.9-9S9.4 5.8 12 3Z"></path></svg>Site language</p><div class="lr-opts"><button type="button" class="lang-c" lang="fr" data-href="../mentions-legales.html"><b>FR</b><small>Français</small></button><button type="button" class="lang-c on" lang="en" aria-current="true"><b>EN</b><small>English</small></button><button type="button" class="lang-c" lang="es" data-soon="La versión en español llega muy pronto." aria-label="Español (soon)"><b>ES</b><small>Español</small></button><button type="button" class="lang-c" lang="pt" data-soon="A versão em português chega em breve." aria-label="Português (soon)"><b>PT</b><small>Português</small></button></div></div>
     <a href="./">Home</a>
     <a href="./#objectif">Pick a goal</a>
     <a href="./#modules">Learning paths</a>
@@ -202,7 +227,7 @@ document.documentElement.classList.add('js');
   });
   document.addEventListener('click',function(e){
     var o=e.target.closest&&e.target.closest('.lang-o,.lang-c');if(!o)return;
-    if(o.dataset.soon)dire(o.dataset.soon,o.getAttribute('lang'));
+    if(o.dataset.href){location.href=o.dataset.href+location.hash;return;}if(o.dataset.soon)dire(o.dataset.soon,o.getAttribute('lang'));
     var w=o.closest('[data-lang]');if(w){w.querySelector('.lang-menu').hidden=true;var b=w.querySelector('.lang-btn');b.setAttribute('aria-expanded','false');b.focus();}
   });
 })();

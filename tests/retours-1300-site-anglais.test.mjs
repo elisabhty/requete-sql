@@ -24,7 +24,9 @@ test('chaque page anglaise : en anglais, ses adresses un dossier plus bas, la pa
   for (const f of PAGES) {
     const h = lire('decouvrir/en/' + f);
     assert.match(h, /<html lang="en"/, f);
-    assert.ok(h.includes('<link rel="alternate" hreflang="fr" href="../') && h.includes('<link rel="alternate" hreflang="en" href="./'), f);
+    /* 15 novembre (le site ouvert) : les adresses hreflang complètes, comme les veut Google, et le français par défaut */
+    const nom = f === 'index.html' ? '' : f;
+    assert.ok(h.includes(`<link rel="alternate" hreflang="fr" href="https://requeteapp.com/decouvrir/${nom}">`) && h.includes(`<link rel="alternate" hreflang="en" href="https://requeteapp.com/decouvrir/en/${nom}">`) && h.includes(`<link rel="alternate" hreflang="x-default" href="https://requeteapp.com/decouvrir/${nom}">`), f);
     assert.ok(!/(src|href)="\.\.\/assets\//.test(h), `${f} : les fichiers de l’appli sont à ../../assets`);
   }
   const i = lire('decouvrir/en/index.html');

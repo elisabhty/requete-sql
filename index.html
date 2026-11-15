@@ -50734,6 +50734,8 @@ const SITE_URL='https://requeteapp.com/';
    (?depuis=appli, avant l’ancre) : elles cachent « Bientôt sur Google Play » et le choix de langue (règle 2.3.10 : pas d’autre
    plateforme ; et rien « à venir »). Le site, lui, ne change pas. */
 function siteUrl(chemin){
+  /* 15 novembre (le site anglais ouvert) : l’appli en anglais ouvre les pages anglaises du site (decouvrir/en/). */
+  try{const L=window.REQUETE_LANGUE;if(L&&L.code==='en'&&/^decouvrir\/(?!en\/)/.test(chemin))chemin='decouvrir/en/'+chemin.slice(10);}catch(e){}
   if(typeof appliNative==='function'&&appliNative()){
     const i=chemin.indexOf('#'),page=i<0?chemin:chemin.slice(0,i),ancre=i<0?'':chemin.slice(i);
     return SITE_URL+page+(page.includes('?')?'&':'?')+'depuis=appli'+ancre;
@@ -53682,7 +53684,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3073';
+  const SW_CACHE='requete-2026-11-15-module-v3074';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

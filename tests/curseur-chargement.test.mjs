@@ -20,7 +20,8 @@ test('le curseur est chargé par l’appli et par chaque page de la vitrine, ave
   /* 13 novembre : connexion.html n’est plus qu’un renvoi vers la section iPhone (retours-0144-site), sans curseur à charger */
   const pages = fs.readdirSync(path.join(root, 'decouvrir')).filter(f => f.endsWith('.html') && f !== 'connexion.html');
   assert.ok(pages.length >= 6);
-  for (const p of pages) assert.ok(lire('decouvrir/' + p).includes(`<script src="../assets/curseur.js?v=${v}" defer></script>\n</head>`), `${p} : écrire ../assets/curseur.js?v=${v}`);
+  /* 15 novembre : le site anglais ouvert, les pages disent aussi leur version dans l’autre langue (hreflang) avant </head> */
+  for (const p of pages) assert.match(lire('decouvrir/' + p), new RegExp(`<script src="\\.\\./assets/curseur\\.js\\?v=${v}" defer></script>\\n(<link rel="alternate" hreflang="[a-z-]+" href="[^"]*">\\n)*</head>`), `${p} : écrire ../assets/curseur.js?v=${v}`);
   assert.ok(sw.includes("'./assets/curseur.js',"), 'préchargé par le service worker');
 });
 

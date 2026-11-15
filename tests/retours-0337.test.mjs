@@ -70,6 +70,6 @@ test('l’app iPhone embarque la vidéo : la page, sa mascotte, sa voix et sa mu
   for (const c of voix.scenes) assert.ok(fs.statSync(path.join(ROOT, 'decouvrir/voix', c.id + '.mp3')).size > 2000, c.id);
   assert.ok(fs.existsSync(path.join(ROOT, 'decouvrir/voix/musique.mp3')) && fs.existsSync(path.join(ROOT, 'decouvrir/mascotte.webp')));
   /* La page n’utilise que ce qui est embarqué : ../assets (copié en entier), sa mascotte et voix/ */
-  const refs = [...page.matchAll(/(?:src|href)="(?!https?:|data:|#|\.\.\/assets\/)([^"]+)"/g)].map(m => m[1]);
+  const refs = [...page.replace(/<link rel="alternate" hreflang=[^>]*>/g, '').matchAll(/(?:src|href)="(?!https?:|data:|#|\.\.\/assets\/)([^"]+)"/g)].map(m => m[1]);   // 15 novembre : sans les liens hreflang du site anglais
   assert.deepEqual([...new Set(refs)].sort(), ['./', './#mobile', 'mascotte.webp'], 'Retour, et la section iPhone du site (13 novembre : plus de « Se connecter »)');
 });

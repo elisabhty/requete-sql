@@ -26,6 +26,8 @@ const ACTION = process.argv.find(a => ['recolter', 'construire', 'verifier', 'pu
 const PAGES = ['index.html', 'module.html', 'video.html', 'conditions.html', 'confidentialite.html', 'mentions-legales.html', 'connexion.html'];
 const DICO = path.join(ROOT, 'tools/langue/site', LANGUE + '.json');
 const SORTIE = path.join(ROOT, 'decouvrir', LANGUE);
+/* Les adresses hreflang : complètes, comme les veut Google (15 novembre, le site anglais ouvert) */
+const SITE = 'https://requeteapp.com/decouvrir/';
 const LOCALES = {en: 'en_US', es: 'es_ES', de: 'de_DE', it: 'it_IT', pt: 'pt_PT'};
 
 const propre = s => String(s).replace(/[\u00a0\u202f\u2009]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -208,7 +210,7 @@ async function construire() {
       /* Les scripts sont gardés pour la suite (traduits dans Node) : on les repère */
       [...document.querySelectorAll('script:not([src])')].forEach((s, n) => s.setAttribute('data-n', n));
       return {html: '<!doctype html>\n' + document.documentElement.outerHTML, manque};
-    }, {D, LANGUE, LOCALE: LOCALES[LANGUE] || LANGUE, f, relever: relever.toString(), adresseSrc: adresse.toString(), autres: [['fr', '../'], [LANGUE, './']], publie: estPubliee()});
+    }, {D, LANGUE, LOCALE: LOCALES[LANGUE] || LANGUE, f, relever: relever.toString(), adresseSrc: adresse.toString(), autres: [['fr', SITE], [LANGUE, SITE + LANGUE + '/'], ['x-default', SITE]], publie: estPubliee()});
     res.manque.forEach(m => manque.add(m));
     /* Les scripts de la page : les chaînes traduites, les adresses écrites dans le code recalculées ; le JSON-LD, chaîne par chaîne */
     let html = res.html.replace(/<script([^>]*?) data-n="\d+"([^>]*)>([\s\S]*?)<\/script>/g, (tout, a1, a2, code) => {
@@ -221,9 +223,15 @@ async function construire() {
         .replace(/((?:src|href|poster)=\\?["'])(?![a-z]+:|#|\/\/|data:|\$\{|\.\.\/)([^"'\\$]+)/gi, (m, a, u) => a + adresse(u));
       return `<script${attrs}>${t}</script>`;
     });
+    /* Les modules de chaque formateur (data-mods, titres français séparés par « | ») : les titres du catalogue traduit, sans quoi
+       le nombre de cours de la carte ne se compte pas (15 novembre, le site anglais ouvert) */
+    html = html.replace(/data-mods="([^"]*)"/g, (m, l) => `data-mods="${l.split('|').map(t => D['js:' + t] ?? D[propre(t)] ?? (manque.add(t), t)).join('|')}"`);
     /* Les url(…) des styles de la page (les polices, des images) */
     html = html.replace(/<style([^>]*)>([\s\S]*?)<\/style>/g, (m, a, css) => `<style${a}>${css.replace(/url\((['"]?)(?![a-z]+:|data:|#)([^'")]+)\1\)/gi, (x, q, u) => `url(${q}${adresse(u)}${q})`)}</style>`)
       .replace(/style="([^"]*url\([^"]*)"/g, (m, st) => `style="${st.replace(/url\((['"]?|&quot;)(?![a-z]+:|data:|#)([^'")&]+)\1\)/gi, (x, q, u) => `url(${q}${adresse(u)}${q})`)}"`);
+    /* Un morceau que la récolte ne prend pas (des chiffres sans mots, « 41&nbsp;k€ ») : sa clé « html:… », remplacée telle quelle
+       dans la page traduite (15 novembre : la vidéo aux États-Unis, ses ventes par région en dollars) */
+    for (const [k, v] of Object.entries(D)) if (k.startsWith('html:')) html = html.split(k.slice(5)).join(v);
     fs.writeFileSync(path.join(SORTIE, f), vignettes(html).replace(/http-equiv="x-refresh"/g, 'http-equiv="refresh"'));
     await ctx.close();
   }
@@ -253,9 +261,10 @@ function publier() {
     /* Le choix de la langue (menu et menu mobile) : la langue mène à sa page, sans « Bientôt » */
     h = h.replace(new RegExp(`(<button type="button" class="lang-[oc]" lang="${LANGUE}") data-soon="[^"]*"(?: aria-label="[^"]*")?>(.*?)</button>`, 'g'),
       (m, deb, contenu) => `${deb} data-href="${LANGUE}/${nom}">${contenu.replace(/<small>[^<]*<\/small>$/, m.includes('lang-c') ? '$&' : '')}</button>`);
-    h = h.replace("if(o.dataset.soon)dire(o.dataset.soon,o.getAttribute('lang'));", "if(o.dataset.href){location.href=o.dataset.href+location.hash;return;}if(o.dataset.soon)dire(o.dataset.soon,o.getAttribute('lang'));");
+    if (!h.includes('if(o.dataset.href)')) h = h.replace("if(o.dataset.soon)dire(o.dataset.soon,o.getAttribute('lang'));", "if(o.dataset.href){location.href=o.dataset.href+location.hash;return;}if(o.dataset.soon)dire(o.dataset.soon,o.getAttribute('lang'));");
     /* La page dans l'autre langue, pour les moteurs de recherche */
-    if (!h.includes(`hreflang="${LANGUE}"`)) h = h.replace('</head>', `<link rel="alternate" hreflang="fr" href="./${nom}">\n<link rel="alternate" hreflang="${LANGUE}" href="${LANGUE}/${nom}">\n</head>`);
+    h = h.replace(/<link rel="alternate" hreflang=[^>]*>\n/g, '');
+    h = h.replace('</head>', `<link rel="alternate" hreflang="fr" href="${SITE}${nom}">\n<link rel="alternate" hreflang="${LANGUE}" href="${SITE}${LANGUE}/${nom}">\n<link rel="alternate" hreflang="x-default" href="${SITE}${nom}">\n</head>`);
     if (h !== avant) { fs.writeFileSync(path.join(ROOT, 'decouvrir', f), h); console.log('publié dans le menu :', f); }
   }
   console.log(`${NOMS[LANGUE] || LANGUE} : reconstruire les pages (construire) pour qu'elles entrent dans les moteurs de recherche.`);

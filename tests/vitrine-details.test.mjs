@@ -130,7 +130,7 @@ test('connexion : un simple renvoi vers la section iPhone du site', () => {
   assert.doesNotMatch(h, /<form|cx-card|\?depuis=/);
 });
 
-test('langue : bien en vue — dans la barre dès 480 px, en tête du menu sur les petits téléphones ; le français seul actif', () => {
+test('langue : bien en vue — dans la barre dès 480 px, en tête du menu sur les petits téléphones ; le français actif, l’anglais ouvert', () => {
   for (const page of ['index.html', 'module.html', 'mentions-legales.html', 'confidentialite.html', 'conditions.html']) {
     const h = lire(page);
     const sel = h.match(/<div class="lang" data-lang>([\s\S]*?)<\/div><\/div>/);
@@ -140,7 +140,11 @@ test('langue : bien en vue — dans la barre dès 480 px, en tête du menu sur l
     const menu = h.slice(h.indexOf('<nav class="menu" id="menu"'), h.indexOf('</nav>', h.indexOf('<nav class="menu" id="menu"')));
     assert.match(menu, /^<nav class="menu" id="menu" aria-label="Menu" hidden>\n    <div class="lang-row" role="group" aria-label="Langue du site"><p class="lr-h"><svg class="gl"[^>]*>[\s\S]*?<\/svg>Langue du site<\/p>/, `${page} : la langue en tête du menu`);
     assert.ok(menu.includes('<button type="button" class="lang-c on" lang="fr" aria-current="true"><b>FR</b><small>Français</small></button>'), `${page} : français actif`);
-    for (const [k, nom] of [['en', 'English'], ['es', 'Español'], ['pt', 'Português']]) {
+    /* 15 novembre (Elisa : « oui je vais l’ouvrir aujourd’hui ») : l’anglais mène à sa page (tools/langue/site.mjs publier) */
+    const en = page === 'index.html' ? 'en/' : `en/${page}`;
+    assert.ok(sel[1].includes(`<button type="button" class="lang-o" lang="en" data-href="${en}"><b>EN</b>English</button>`), `${page} : English mène à la page anglaise`);
+    assert.ok(menu.includes(`<button type="button" class="lang-c" lang="en" data-href="${en}"><b>EN</b><small>English</small></button>`), `${page} : English dans le menu`);
+    for (const [k, nom] of [['es', 'Español'], ['pt', 'Português']]) {
       assert.match(sel[1], new RegExp(`class="lang-o" lang="${k}" data-soon="[^"]+"><b>${k.toUpperCase()}</b>${nom}<small>Bientôt</small>`), `${page} : ${nom} annoncé dans la barre`);
       assert.ok(menu.includes(`aria-label="${nom} (bientôt)"><b>${k.toUpperCase()}</b><small>${nom}</small></button>`), `${page} : ${nom} dans le menu`);
     }

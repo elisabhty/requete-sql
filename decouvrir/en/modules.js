@@ -40,7 +40,7 @@ window.MODULES=[
     ['Design a solid database','Model, create the tables, set constraints and write data safely with transactions.'],
     ['Speed up and protect','Views, indexes, EXPLAIN, triggers and access rights, just like in a real company.']
   ],
-  themes:['SELECT queries','Filters and sorting','Fonctions','Aggregates','Jointures','Subqueries','CTE','Window functions','Modeling','Creating tables','Transactions','Indexes and performance','Security'],
+  themes:['SELECT queries','Filters and sorting','Fonctions','Aggregates','Joins','Subqueries','CTE','Window functions','Modeling','Creating tables','Transactions','Indexes and performance','Security'],
   programme:[
     {titre:"Introduction", sous:"Databases, tables, relationships and SELECT", lecons:[
       ["Relational databases", "Tables, keys and reading with SELECT", 648]
@@ -76,7 +76,7 @@ window.MODULES=[
       ["Order of execution", "In what order a query runs", 204],
       ["GROUP_CONCAT", "Combine the texts of a group", 173]
     ]},
-    {titre:"Jointures", sous:"Querying several tables at once", lecons:[
+    {titre:"Joins", sous:"Querying several tables at once", lecons:[
       ["INNER JOIN", "Matching the corresponding rows of two tables", 152],
       ["LEFT JOIN", "Keeping rows even without a match", 167],
       ["RIGHT JOIN", "Keeping everything on the right", 204],

@@ -155,9 +155,15 @@ d’iOS) restent en français. Le Swift demande un nouveau build Xcode.
 connexion) et le catalogue des modules, en anglais, construits par `tools/langue/site.mjs` à partir des pages françaises et de
 `tools/langue/site/en.json` (environ 960 textes). Les pages légales disent qu’elles sont une traduction et que le français fait foi.
 Les vignettes des cours sont les vignettes anglaises ; la vidéo et les avis audio restent muets (pas de voix anglaise pour eux).
-Pas encore ouvert : le menu des pages françaises annonce toujours « English version coming soon », et les pages anglaises sont en
-noindex. Le jour où l’anglais sort d’essai : `node tools/langue/site.mjs --langue en publier`, puis `construire`.
-À faire alors : la capture de l’appli (app-accueil.webp, en français), la voix de la vidéo et des avis (Jeni pour l’avis de Sofia).
+Ouvert le 15 novembre (Elisa : « oui je vais l’ouvrir aujourd’hui ») : `publier` a mis « English » dans le menu des langues des
+pages françaises (il mène à la page anglaise) et les liens hreflang dans les deux langues ; `construire` a retiré le noindex.
+La langue au premier passage : un petit script en tête de cinq pages (accueil, fiche du parcours, conditions, confidentialité,
+mentions légales ; pas la vidéo, embarquée dans l’appli, ni connexion.html, simple renvoi) envoie vers l’autre langue d’après la
+première langue du navigateur que le site parle, sinon le pays de ses réglages (français là où il se parle, anglais ailleurs).
+Un choix dans le menu des langues est retenu (localStorage `rq-langue-site`) ; `?lang=fr` ou `?lang=en` l’impose. Jamais pour un
+moteur de recherche, une page dans un cadre, ni une page ouverte depuis l’appli (`?depuis=appli`) : l’appli en anglais ouvre
+directement les pages anglaises (`siteUrl`, index.html).
+Reste : la capture de l’appli (app-accueil.webp, en français), la voix de la vidéo et des avis (Jeni pour l’avis de Sofia).
 
 La vidéo du site et la carte des salaires de l’accueil, aux États-Unis (15 novembre, 16 h 57, Elisa : « la vidéo data analyst dans le
 contexte américain, genre les salaires et tout, choisis la voix appropriée ») : les chiffres de la vidéo tiennent dans une chaîne JSON
