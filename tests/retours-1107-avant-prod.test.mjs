@@ -88,22 +88,23 @@ test('aucune répétition de plus de 255 dans la dernière version d’une fonct
   for (const [nom, d] of der) assert.deepEqual(trop(d.corps), [], `${nom} (${d.fichier})`);
   /* Le jeton de l’île : la forme et la longueur, contrôlées séparément, dans la fonction comme dans la table */
   const jeton = der.get('jeu_ile_jeton_v2');
-  assert.equal(jeton.fichier, '20261113101430_correctifs_jeton_ile_et_stat_oublier.sql');
+  assert.equal(jeton.fichier, '20261115164831_ile_langue.sql', '15 novembre : la langue du téléphone (p_langue), les mêmes contrôles');
   assert.ok(jeton.corps.includes("if p_jeton !~ '^[0-9a-f]+$' or length(p_jeton) not between 16 and 400 then\n    raise exception 'jeton invalide' using errcode = '22023';"));
   for (const garde of ["raise exception 'salle invalide'", 'delete from requete_private.ile where code = p_salle and pid = v_pid;', "raise exception 'pas dans cette salle' using errcode = '42501';",
-    'on conflict (code, pid) do update set jeton = excluded.jeton, bac = false, maj = clock_timestamp();']) assert.ok(jeton.corps.includes(garde), garde);
-  const sql = lire('supabase/migrations/' + jeton.fichier);
+    'on conflict (code, pid) do update set jeton = excluded.jeton, bac = false, maj = clock_timestamp(),']) assert.ok(jeton.corps.includes(garde), garde);
+  const sql = lire('supabase/migrations/20261113101430_correctifs_jeton_ile_et_stat_oublier.sql');
   assert.ok(sql.includes("alter table requete_private.ile drop constraint if exists ile_jeton_check;\nalter table requete_private.ile add constraint ile_jeton_check check (jeton ~ '^[0-9a-f]+$' and length(jeton) between 16 and 400);"));
   /* Les contraintes : celle de l’île est la seule à avoir eu ce défaut, et elle est remplacée après sa création */
   const fautives = migrations.filter(([, s]) => [...s.matchAll(/check\s*\(([^;]*?)\)\s*[,;\n]/gi)].some(m => trop(m[1]).length)).map(m => m[0]);
   assert.deepEqual(fautives, ['20261107193840_salle_dans_l_ile.sql']);
   assert.ok(fichiers.indexOf(jeton.fichier) > fichiers.indexOf('20261107193840_salle_dans_l_ile.sql'));
   /* La fonction Edge qui lit ces jetons et l’appli qui les confie n’ont pas changé */
-  assert.ok(lire('index.html').includes("clsRpc('jeu_ile_jeton_v2',{p_cle:clsCle(),p_salle:ev.code,p_jeton:ev.jeton})"));
+  /* 15 novembre : le téléphone donne aussi sa langue (supabase/migrations/20261115164831_ile_langue.sql) */
+  assert.ok(lire('index.html').includes("clsRpc('jeu_ile_jeton_v2',{p_cle:clsCle(),p_salle:ev.code,p_jeton:ev.jeton,p_langue:ileSalleLangue()})"));
 });
 
 test('les migrations du dépôt portent le numéro de version de la base, dans l’ordre', () => {
-  assert.equal(fichiers.at(-1), '20261114214253_joueur_niveau.sql', 'la dernière : le niveau SQL du joueur, montré dans son profil (14 novembre, 22 h 39)');
+  assert.equal(fichiers.at(-1), '20261115164831_ile_langue.sql', 'la dernière : la langue de chaque téléphone dans l’île de la salle (15 novembre, 17 h 45)');
   for (const f of fichiers) assert.match(f, /^\d{14}_[a-z0-9_]+\.sql$/, f);
   assert.equal(new Set(fichiers.map(f => f.slice(0, 14))).size, fichiers.length, 'un numéro par migration');
 });

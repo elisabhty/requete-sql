@@ -48673,15 +48673,20 @@ function ileSallePoster(etat,alerte){
   const J=JEU;if(!J||typeof fetch!=='function'||typeof clsCle!=='function')return;
   try{
     Promise.resolve(fetch(JEU_SB+'/functions/v1/jeu-ile?forceFunctionRegion=eu-west-3',{method:'POST',keepalive:true,
-      headers:{apikey:JEU_SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({cle:clsCle(),salle:J.code,etat,alerte})})).catch(()=>{});
+      headers:{apikey:JEU_SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({cle:clsCle(),salle:J.code,etat,alerte,defi_id:ileSalleDefiId()})})).catch(()=>{});
   }catch(e){}
 }
+/* 15 novembre, 17 h 45 (Elisa : « corrige stp ») : chez les autres, l’île de la salle parle leur langue. Le serveur y écrit le nom du
+   défi d’après son identifiant (defi_id ; supabase/functions/jeu-ile/titres.mjs), et l’alerte dans la langue que chaque téléphone a
+   donnée avec son jeton (p_langue). */
+function ileSalleDefiId(){try{const J=JEU,n=jeuCur(),r=J&&n>=0?J.rounds[n]:null;return r&&r.cid?String(r.cid):'';}catch(e){return '';}}
+function ileSalleLangue(){try{const L=window.REQUETE_LANGUE;return L&&/^[a-z]{2}$/.test(L.code||'')?L.code:'fr';}catch(e){return 'fr';}}
 /* Le jeton de push de l’activité (événement « salleJeton » du pont) : confié au serveur. Le téléphone n’est membre de la salle qu’une
    fois son « hello » passé par le serveur : un refus est retenté (cinq fois, toutes les 3 s). */
 function ileSalleJeton(ev,essai){
   if(!ev||!/^[A-Z0-9]{6}$/.test(ev.code||'')||!/^[0-9a-f]{16,400}$/.test(ev.jeton||'')||typeof clsRpc!=='function')return;
   if(!ileSalle||ileSalle.code!==ev.code)return;
-  clsRpc('jeu_ile_jeton_v2',{p_cle:clsCle(),p_salle:ev.code,p_jeton:ev.jeton}).catch(()=>{
+  clsRpc('jeu_ile_jeton_v2',{p_cle:clsCle(),p_salle:ev.code,p_jeton:ev.jeton,p_langue:ileSalleLangue()}).catch(()=>{
     if((essai|0)<5)setTimeout(()=>ileSalleJeton(ev,(essai|0)+1),3000);
   });
 }
@@ -53677,7 +53682,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3072';
+  const SW_CACHE='requete-2026-11-15-module-v3073';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

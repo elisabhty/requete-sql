@@ -5,6 +5,9 @@
 // « veille » et ne pousse rien. APNS_TOPIC : l’identifiant de l’app (fr.requete.app par défaut).
 import {createIleHandler} from './handler.mjs';
 import {jetonApns} from './apns.mjs';
+// 15 novembre (la salle dans l’île dans la langue de chacun) : les titres des défis par langue, pris dans le dépôt, figés à un commit
+// (comme le catalogue de jeu-verifier) ; après node scripts/build-ile-titres.mjs : pousser, mettre ici le nouveau commit, redéployer.
+import * as titres from 'https://raw.githubusercontent.com/elisabhty/requete-sql/c3ebec51795f41c101e0e75f570bbdb701d8c760/supabase/functions/jeu-ile/titres.mjs';
 
 const base = Deno.env.get('SUPABASE_URL') ?? '';
 const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -48,4 +51,4 @@ async function envoyer(hote: string, jeton: string, charge: unknown) {
   return {status: response.status, raison};
 }
 
-Deno.serve(createIleHandler({pret: !!(pem && kid && equipe), rpc, envoyer}));
+Deno.serve(createIleHandler({pret: !!(pem && kid && equipe), rpc, envoyer, titres}));

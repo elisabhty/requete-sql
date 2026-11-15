@@ -187,7 +187,7 @@ test('l’activité démarre avec la salle, suit ses changements, garde le podiu
   assert.equal(x.appels.at(-1)[0], 'salleDebut');
   /* Le jeton de push : confié au serveur, retenté si le téléphone n’est pas encore membre */
   x.run("ileSalleJeton({code:'K7P2QX',jeton:'ab12'.repeat(8)})"); await x.attendre();
-  assert.deepEqual(x.rpc.at(-1), ['jeu_ile_jeton_v2', {p_cle: 'cle'.repeat(10), p_salle: 'K7P2QX', p_jeton: 'ab12'.repeat(8)}]);
+  assert.deepEqual(x.rpc.at(-1), ['jeu_ile_jeton_v2', {p_cle: 'cle'.repeat(10), p_salle: 'K7P2QX', p_jeton: 'ab12'.repeat(8), p_langue: 'fr'}]);
   const r = page({rejet: true}); r.run('ileSalleMaintenant()'); r.run("ileSalleJeton({code:'K7P2QX',jeton:'ab12'.repeat(8)})"); await r.attendre();
   assert.equal(r.minuteurs.at(-1).ms, 3000, 'refusé : retenté dans 3 s');
   x.run("ileSalleJeton({code:'AUTRE1',jeton:'ab12'.repeat(8)})"); x.run("ileSalleJeton({code:'K7P2QX',jeton:'pas du hex'})");
@@ -324,7 +324,7 @@ test('la fonction jeu-ile : en veille sans la clé d’Apple ; membre de la sall
   /* Le point d’entrée : les en-têtes d’une Live Activity, verify_jwt désactivé (l’appareil est authentifié par sa clé) */
   const index = fs.readFileSync(path.join(ROOT, 'supabase/functions/jeu-ile/index.ts'), 'utf8');
   for (const k of ["'apns-push-type': 'liveactivity'", "'apns-topic': `${sujet}.push-type.liveactivity`", "'apns-priority': '10'", 'https://${hote}/3/device/${jeton}',
-    "const sujet = Deno.env.get('APNS_TOPIC') ?? 'fr.requete.app';", 'Deno.serve(createIleHandler({pret: !!(pem && kid && equipe), rpc, envoyer}));', 'maintenant - autorisation.depuis > 2400'])
+    "const sujet = Deno.env.get('APNS_TOPIC') ?? 'fr.requete.app';", 'Deno.serve(createIleHandler({pret: !!(pem && kid && equipe), rpc, envoyer, titres}));', 'maintenant - autorisation.depuis > 2400'])
     assert.ok(index.includes(k), k);
 });
 
