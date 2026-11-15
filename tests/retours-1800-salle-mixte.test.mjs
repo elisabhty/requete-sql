@@ -55,8 +55,8 @@ test('la salle de défi en anglais : du commentateur à la revanche', () => {
 });
 
 test('la phrase du lecteur d’écran, joueur par joueur ; les initiales hors des phrases', () => {
-  for (const [fr, en] of [['@lea : en réflexion, 0 point', '@lea: thinking, 0 point'], ['Toi : trouvé en premier, 1 200 points', 'You: found it first, 1,200 points'],
-    ['@noe : teste une requête, 230 points', '@noe: testing a query, 230 points'], ['Toi : en train d’écrire, 0 point', 'You: typing, 0 point'], ['@lea : trouvé, 460 points', '@lea: found it, 460 points']])
+  for (const [fr, en] of [['@lea : en réflexion, 0 point', '@lea: thinking, 0 points'], ['Toi : trouvé en premier, 1 200 points', 'You: found it first, 1,200 points'],
+    ['@noe : teste une requête, 230 points', '@noe: testing a query, 230 points'], ['Toi : en train d’écrire, 0 point', 'You: typing, 0 points'], ['@lea : trouvé, 460 points', '@lea: found it, 460 points']])
     assert.equal(L.t(fr), en, fr);
   assert.ok(app.includes("qui:ys.map(x=>jeuTr(`${esc(x.nom)}\\u00a0: ${premier(x)?'trouvé en premier':mot[x.etat]}, ${x.pts.toLocaleString('fr-FR')}${pt(x.pts).replace('pt','point')}`)).join(jeuTrEn()?'; ':' ; ')"));
   assert.ok(app.includes('<span class="jeu-sr" id="jeu-direct-qui" data-notrad>${t.qui}</span>'));
@@ -69,6 +69,6 @@ test('la phrase du lecteur d’écran, joueur par joueur ; les initiales hors de
   assert.equal(ctx.tr('Toi : en réflexion, 0 point'), 'Toi : en réflexion, 0 point');
   assert.equal(ctx.en(), false);
   ctx.window.REQUETE_LANGUE = { code: 'en', t: s => L.t(s) };
-  assert.equal(ctx.tr('Toi : en réflexion, 0 point'), 'You: thinking, 0 point');
+  assert.equal(ctx.tr('Toi : en réflexion, 0 point'), 'You: thinking, 0 points');
   assert.equal(ctx.en(), true);
 });

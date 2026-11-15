@@ -17,7 +17,7 @@ test('l’onboarding : la langue de l’appli sous le pays, déjà choisie, l’
   assert.ok(app.includes("<u>Choisir dans la liste</u>'}</button>${obLangueHTML()}</div>`;"), 'sous « Ce n’est pas ton pays ? Modifier »');
   const code = cut('function langueDrapeau(c){', 'function openLegal(kind){') + cut('function obLangueHTML(){', 'function obPaysListe(){');
   const ctx = {window: {}, esc: s => String(s), prefersReduceMotion: () => true, obLock: false, obRepriseGarder: s => { ctx.garde = s; }};
-  vm.runInNewContext(code + ';this.ob=obLangueHTML;this.choix=obLangue;', ctx);
+  vm.runInNewContext(code + ';this.ob=obLangueHTML;this.choix=obLangueChoisir;', ctx);
   assert.equal(ctx.ob(), '', 'sans le moteur : rien');
   ctx.window.REQUETE_LANGUE = {code: 'fr', disponibles: () => ['fr'], nom: c => c};
   assert.equal(ctx.ob(), '', 'une seule langue proposée (l’anglais en essai) : rien');
@@ -25,10 +25,10 @@ test('l’onboarding : la langue de l’appli sous le pays, déjà choisie, l’
   ctx.window.REQUETE_LANGUE = {code: 'fr', disponibles: () => ['fr', 'en'], nom: c => ({fr: 'Français', en: 'English'})[c], changer: c => { change = c; return true; }};
   const h = ctx.ob();
   assert.ok(h.includes('<p class="ob-langue-t" id="ob-langue-t">Langue de l’appli</p>') && h.includes('role="radiogroup" aria-labelledby="ob-langue-t"'));
-  assert.ok(h.includes('class="ob-langue-c on" role="radio" aria-checked="true" lang="fr" data-notrad onclick="obLangue(\'fr\',this)"><span class="lg-drapeau" aria-hidden="true">🇫🇷</span><span class="lg-nom">Français</span>'), 'la langue en cours, déjà choisie');
-  assert.ok(h.includes('class="ob-langue-c" role="radio" aria-checked="false" lang="en" data-notrad onclick="obLangue(\'en\',this)"><span class="lg-drapeau" aria-hidden="true">🇺🇸</span><span class="lg-nom">English</span>'));
+  assert.ok(h.includes('class="ob-langue-c on" role="radio" aria-checked="true" lang="fr" data-notrad onclick="obLangueChoisir(\'fr\',this)"><span class="lg-drapeau" aria-hidden="true">🇫🇷</span><span class="lg-nom">Français</span>'), 'la langue en cours, déjà choisie');
+  assert.ok(h.includes('class="ob-langue-c" role="radio" aria-checked="false" lang="en" data-notrad onclick="obLangueChoisir(\'en\',this)"><span class="lg-drapeau" aria-hidden="true">🇺🇸</span><span class="lg-nom">English</span>'));
   ctx.setTimeout = f => f();
-  vm.runInNewContext('obLangue("en",null)', ctx);
+  vm.runInNewContext('obLangueChoisir("en",null)', ctx);
   assert.equal(ctx.garde, 'pays', 'la page et les réponses gardées : l’onboarding reprend ici, dans l’autre langue');
   assert.equal(change, 'en');
   assert.ok(app.includes("valeur('prenom',()=>state.name||(typeof draft!=='undefined'&&draft&&draft.name)||'')"), 'le prénom tapé pendant l’onboarding');

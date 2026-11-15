@@ -41,7 +41,7 @@
   /* essai : la langue n'est proposée qu'aux iPhone en essai, tant que sa traduction n'est pas terminée. */
   var LANGUES = {
     fr: { nom: 'Français', locale: 'fr-FR' },
-    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=4e0d1b79', defis: 'langue-en-defis.js?v=45bd0376', entretien: 'langue-en-entretien.js?v=91e56a7f', essai: true }
+    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=d56b61fc', defis: 'langue-en-defis.js?v=45bd0376', entretien: 'langue-en-entretien.js?v=91e56a7f', essai: true }
   };
   var CLE = 'requete-langue';
 
@@ -124,6 +124,25 @@
     /* Les nombres, sauf ceux des morceaux (<1/>, <2>…</2>) */
     var i = 0;
     gabarit = gabarit.replace(/<[^>]*>|\{[a-z0-9]+\}|\d{1,3}(?: \d{3})+(?:,\d+)?|\d+(?:,\d+)?/g, function (n) { if (n.charAt(0) === '<' || n.charAt(0) === '{') return n; i++; mis[i] = nombre(n); return '{' + i + '}'; });
+    /* 15 novembre, 23 h 25 (« 0 lesson ») : le français met 0 au singulier (« 0 leçon »), l'anglais au pluriel. Avec un 0, la clé au
+       pluriel est prise si elle existe : le mot qui suit le nombre (« {1} jours de série »), sinon tous ses mots (« {1} leçons validées »). */
+    if (/\{\d+\}/.test(gabarit)) {
+      var PETITS = /^(?:de|du|des|d’|en|à|au|aux|le|la|les|l’|et|ou|sur|par|pour|avec|sans|dans)$/i;
+      var plur0 = function (tous) {
+        return gabarit.replace(/\{(\d+)\}((?:[ \u00a0][A-Za-zÀ-ÿœ’'-]+)+)/g, function (t, d, mots) {
+          if (String(mis[d]) !== '0') return t;
+          var premier = true;
+          return '{' + d + '}' + mots.replace(/[A-Za-zÀ-ÿœ’'-]+/g, function (w) {
+            if (!tous && !premier) return w;
+            premier = false;
+            return /[sx]$/i.test(w) || PETITS.test(w) ? w : w + 's';
+          });
+        });
+      };
+      var c1 = plur0(false), c2 = plur0(true);
+      if (c1 !== gabarit && Object.prototype.hasOwnProperty.call(D, c1)) gabarit = c1;
+      else if (c2 !== gabarit && Object.prototype.hasOwnProperty.call(D, c2)) gabarit = c2;
+    }
     var trad = gabarit !== cle && Object.prototype.hasOwnProperty.call(D, gabarit) ? D[gabarit] : null;
     /* 15 novembre (« les messages construits avec des chiffres ou des noms ») : une clé peut garder une place pour un texte
        quelconque, {x1}, {x2}… (« Table {x1} réinitialisée », « Leçon {1} · {x1} ») : le nom d’une table, le titre d’une leçon. Ce
@@ -139,6 +158,9 @@
           /* Le texte retenu peut garder des nombres ({2}) : renumérotés pour sa propre clé (« Jointure de {1} tables »), puis remis */
           var brut = mx[g], nums = [], ren = propre(brut).replace(/\{(\d+)\}/g, function (t, d) { nums.push(d); return '{' + nums.length + '}'; });
           var dedans = Object.prototype.hasOwnProperty.call(D, ren) ? String(D[ren]).replace(/\{(\d+)\}/g, function (t, d) { return nums[d - 1] ? '{' + nums[d - 1] + '}' : t; }) : null;
+          /* 15 novembre, 23 h 25 (« Mon objectif : Réussir un entretien » dans l’appli en anglais) : la place libre tient tout un morceau
+             (<1>Réussir un entretien</1>) : le texte du morceau est traduit, ses balises restent. */
+          if (dedans == null) { var mc = /^<(\d+)>([^<>]*)<\/\1>$/.exec(ren); if (mc && Object.prototype.hasOwnProperty.call(D, mc[2])) dedans = '<' + mc[1] + '>' + D[mc[2]] + '</' + mc[1] + '>'; }
           trad = trad.split('{x' + X[q].noms[g - 1] + '}').join(dedans != null ? dedans : brut);
         }
       }

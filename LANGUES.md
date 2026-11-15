@@ -193,6 +193,19 @@ pluriels et les accords (Prête, Prêt, Prêt·e) ont chacun leur clé. À évit
 Les adresses (15 novembre, 19 h 26, Elisa voyait encore l’entretien en français) : chaque fichier de langue est demandé avec
 l’empreinte de son contenu, mise à jour par `tools/langue/versions.mjs` (appelé par les outils qui écrivent ces fichiers).
 
+## Mon compte en anglais, et le rechargement (15 novembre, 23 h 25)
+
+- **Deux fonctions obLangue** (corrigé) : le choix de la langue dans l’onboarding (v3084) portait le même nom que la fonction qui dit
+  si l’appli est dans une autre langue ; la seconde déclaration remplaçait la première. Chaque `obLangue()` faisait vibrer, bloquait
+  l’onboarding 3 s et répondait « français » (« Lundi et jeudi à 19:00 », les prix et les dates de l’onboarding à la française). Le
+  choix s’appelle maintenant `obLangueChoisir` ; un test refuse toute nouvelle fonction déclarée deux fois.
+- **Une place libre qui tient un morceau** : « Mon objectif : <1>Réussir un entretien</1> » se traduit par « My goal: {x1} », le texte
+  du morceau traduit (les cinq objectifs).
+- **0 au pluriel en anglais** : avec un 0, le moteur prend la clé au pluriel si elle existe (« 0 lessons ») ; `plurN()` dans l’appli.
+- **L’heure du rappel** à la manière de la langue (`rappelHeureLoc` : « 7:00 PM »).
+- **Rechargement voulu** (tirer pour actualiser, la langue) : `rqVoile()` pose la touche, le nom et l’anneau sur la page qui part ;
+  `#loader.is-recharge` les garde au même endroit jusqu’à ce que la page qui arrive soit prête, puis fondu.
+
 ## Les variantes des messages (15 novembre, 20 h 30)
 
 Elisa : « il y a plusieurs versions des félicitations etc est-ce que tu as tout pris en compte pareil pour les notifications message

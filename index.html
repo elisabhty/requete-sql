@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=3bb2f983" data-defis></script>
+<script src="langues.js?v=5b39d81e" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -7563,7 +7563,11 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
      revenue (restoreNav). sessionStorage (rq-session) ne vit que le temps d’une même ouverture de l’appli : rouverte après avoir été
      fermée, elle garde son ouverture entière. Même chose après un rechargement voulu (une langue, une version). */
   var reprise=false;try{reprise=sessionStorage.getItem('rq-session')==='1';}catch(e){}
-  if(reprise){L.classList.add('is-reprise');window.__appReprise=true;return;}
+  /* 15 novembre, 23 h 25 (Elisa : « quand on fait le geste du chargement ça fait tout blanc », « quand on change de langue ça fait un
+     flash blanc ») : un rechargement voulu (tirer pour actualiser, la langue : rqVoile) garde à l’écran la touche, le nom et l’anneau,
+     de la page qui part à celle qui arrive, puis s’efface en fondu. L’appli déchargée par iOS revient toujours sur un simple aplat. */
+  var voulu=false;try{voulu=sessionStorage.getItem('rq-recharge')==='1';sessionStorage.removeItem('rq-recharge');}catch(e){}
+  if(reprise){L.classList.add('is-reprise');if(voulu)L.classList.add('is-recharge');window.__appReprise=true;return;}
   L.classList.add('is-intro');
   var calme=false;
   try{calme=matchMedia('(prefers-reduced-motion: reduce)').matches||/"reduceMotion":true/.test(localStorage.getItem('requete-sql-v3')||'');}catch(e){}
@@ -20875,7 +20879,9 @@ const LOADER_MIN_MS=1000;
 function hideLoader(){
   const loader=document.getElementById('loader');
   /* La page rechargée pendant la même ouverture de l’appli (voir l’en-tête de #loader) : elle apparaît d’un coup, telle qu’on l’avait. */
-  if(typeof window!=='undefined'&&window.__appReprise&&loader){window.nativeAppReady&&window.nativeAppReady();loader.classList.add('fade-out');loader.style.display='none';return;}
+  if(typeof window!=='undefined'&&window.__appReprise&&loader){window.nativeAppReady&&window.nativeAppReady();loader.classList.add('fade-out');
+    if(loader.classList.contains('is-recharge')&&!prefersReduceMotion())setTimeout(()=>{loader.classList.remove('is-recharge');loader.style.display='none';},420); else{loader.classList.remove('is-recharge');loader.style.display='none';}
+    return;}
   /* Dans l’appli, l’écran de lancement fixe reste jusqu’ici ; l’ouverture animée découvre ensuite l’appli (ludique.css, 37 bis). */
   if(loader&&loader.classList.contains('is-intro')&&typeof window.__introJouer==='function'){window.__introJouer();return;}
   if(window.nativeAppReady)window.nativeAppReady();
@@ -43582,7 +43588,9 @@ function infoJour(){
 }
 const LATE_CHEV_RIGHT_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
 const IMPACT_CHART_ICO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V12h4v8M10 20V7h4v13M16 20V3h4v17M3 20h18"/></svg>';
-function plur(n,mot,pl){return n+' '+(Math.abs(n)>1?(pl||mot+'s'):mot);}
+/* 15 novembre, 23 h 25 (« 0 lesson », dans l’appli en anglais) : en français, 0 et 1 sont au singulier ; en anglais, seul 1 l’est. */
+function plurN(n){return Math.abs(n)>1||(n===0&&typeof obLangue==='function'&&!!obLangue());}
+function plur(n,mot,pl){return n+' '+(plurN(n)?(pl||mot+'s'):mot);}
 function latePlanDetails(){
   const info=infoJour();
   if(!info||!info.retard.length)return null;
@@ -50953,9 +50961,12 @@ function obLangueHTML(){
   const L=typeof window!=='undefined'&&window.REQUETE_LANGUE;
   if(!L||typeof L.disponibles!=='function'||L.disponibles().length<2)return '';
   return `<div class="ob-langue"><p class="ob-langue-t" id="ob-langue-t">Langue de l’appli</p>
-      <div class="ob-langue-choix" role="radiogroup" aria-labelledby="ob-langue-t">${langueChoixHTML('ob-langue-c','obLangue')}</div></div>`;
+      <div class="ob-langue-choix" role="radiogroup" aria-labelledby="ob-langue-t">${langueChoixHTML('ob-langue-c','obLangueChoisir')}</div></div>`;
 }
-function obLangue(c,btn){
+/* 15 novembre, 23 h 25 : s’appelait obLangue, comme la fonction qui dit si l’appli est dans une autre langue (déclarée plus haut) ;
+   la seconde déclaration remplaçait la première : chaque obLangue() de l’appli (rappels, prix, dates) faisait vibrer, bloquait
+   l’onboarding 3 s et répondait « français » (« Lundi et jeudi à 19:00 » dans l’appli en anglais). */
+function obLangueChoisir(c,btn){
   if(obLock)return;
   try{obRepriseGarder('pays');}catch(e){}
   if(langueChanger(c,btn)){obLock=true;setTimeout(()=>{obLock=false;},3000);}
@@ -52325,7 +52336,7 @@ function rappelNativeSync(demander){
     try{await LN.cancel({notifications:RAPPEL_IDS.map(id=>({id}))});}catch(e){}
     if(!rappelOn())return;
     try{const p=await(demander||typeof LN.checkPermissions!=='function'?LN.requestPermissions():LN.checkPermissions());if(p&&p.display&&p.display!=='granted')return;}catch(e){return;}
-    const boutons=await rappelBoutonsPoser(LN);
+    const boutons=typeof LN.registerActionTypes==='function'?await rappelBoutonsPoser(LN):false;
     const notifications=rappelSeances(new Date(),56).filter(d=>!(typeof flammeDirectCouvre==='function'&&flammeDirectCouvre(d))).map((d,i)=>{const [title,body]=rappelMessage(d);return Object.assign({id:100+i,title,body,schedule:{at:d,allowWhileIdle:true}},boutons?{actionTypeId:RAPPEL_BOUTONS}:{});});
     try{if(notifications.length)await LN.schedule({notifications});}catch(e){}
   };
@@ -52382,10 +52393,16 @@ function rappelAuto(ms){
   }catch(e){}
 }
 /* « Prochain rappel : demain à 19:00 » (Mon compte) */
+/* 15 novembre, 23 h 25 (Elisa : « Lundi et jeudi à 19:00 », dans l’appli en anglais) : l’heure du rappel à la manière de la langue
+   (« 7:00 PM » aux États-Unis) ; en français, « 19:00 ». */
+function rappelHeureLoc(h){
+  if(!obLangue())return h;
+  try{const [a,b]=String(h).split(':').map(Number);return new Date(2024,0,1,a||0,b||0).toLocaleTimeString(obLoc(),{hour:'numeric',minute:'2-digit'});}catch(e){return h;}
+}
 function rappelQuand(t){
   const j=new Date(),n=Math.round((new Date(t.getFullYear(),t.getMonth(),t.getDate())-new Date(j.getFullYear(),j.getMonth(),j.getDate()))/864e5);
   const heure=`${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
-  if(obLangue()){const jour=n===0?obPh('aujourd’hui'):n===1?obPh('demain'):t.toLocaleDateString(obLoc(),{weekday:'long',month:'long',day:'numeric'});return obPh('{jour} à {heure}',{jour,heure});}
+  if(obLangue()){const jour=n===0?obPh('aujourd’hui'):n===1?obPh('demain'):t.toLocaleDateString(obLoc(),{weekday:'long',month:'long',day:'numeric'});return obPh('{jour} à {heure}',{jour,heure:rappelHeureLoc(heure)});}
   const jour=n===0?'aujourd’hui':n===1?'demain':`${t.toLocaleDateString('fr-FR',{weekday:'long'})} ${t.getDate()===1?'1er':t.getDate()} ${t.toLocaleDateString('fr-FR',{month:'long'})}`;
   return `${jour} à ${heure}`;
 }
@@ -52405,7 +52422,7 @@ function rappelHeuresDe(slot,heure){
 function rappelChoixHTML(heure,fSlot,fHeure,lab){
   const slot=rappelSlotId(heure);
   return `<div class="rp-seg" role="radiogroup" aria-labelledby="${lab}">${RAPPEL_SLOTS.map(s=>`<button type="button" role="radio" aria-checked="${s.id===slot}" class="rp-slot${s.id===slot?' on':''}" data-slot="${s.id}" onclick="${fSlot}('${s.id}')">${s.label}</button>`).join('')}</div>
-    <div class="rp-heures" role="radiogroup" aria-label="Heure du rappel">${rappelHeuresDe(slot,heure).map(h=>`<button type="button" role="radio" aria-checked="${h===heure}" class="rp-heure${h===heure?' on':''}" data-h="${h}" onclick="${fHeure}('${h}')">${h}</button>`).join('')}</div>`;
+    <div class="rp-heures" role="radiogroup" aria-label="Heure du rappel">${rappelHeuresDe(slot,heure).map(h=>`<button type="button" role="radio" aria-checked="${h===heure}" class="rp-heure${h===heure?' on':''}" data-h="${h}" onclick="${fHeure}('${h}')">${typeof rappelHeureLoc==='function'?rappelHeureLoc(h):h}</button>`).join('')}</div>`;
 }
 const RP_INFO_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.6h.01"/></svg>';
 function rappelFeuilleHTML(){
@@ -52421,7 +52438,7 @@ function rappelFeuilleHTML(){
       :obPh('Ton planning ne prévoit plus de séance\u00a0: pas de rappel pour l’instant.'))
     :obPh('Active les rappels pour recevoir une notification à l’heure choisie, sous réserve des autorisations de ton appareil.');
   return `<button class="acc-row rp-switch" type="button" role="switch" aria-checked="${d.on}" onclick="rappelBasculer()">
-          <div class="at"><b>Recevoir un rappel</b><small${d.on?obNt():''}>${d.on?obPh('Activé · {jours} à {heure}',{jours:obLangue()?rappelJoursTexte():rappelJoursTexte().toLowerCase(),heure:d.heure}):'Désactivé'}</small></div>
+          <div class="at"><b>Recevoir un rappel</b><small${d.on?obNt():''}>${d.on?obPh('Activé · {jours} à {heure}',{jours:obLangue()?rappelJoursTexte():rappelJoursTexte().toLowerCase(),heure:rappelHeureLoc(d.heure)}):'Désactivé'}</small></div>
           <span class="acc-toggle ${d.on?'on':''}" aria-hidden="true"><i></i></span></button>
         <div class="rp-quand">
           <p class="rp-l" id="rp-l">À quel moment&nbsp;?</p>
@@ -52452,7 +52469,7 @@ function rappelEnregistrer(){
   renderCompte();
   /* 11 novembre, 21 h 33 (Elisa : « pareil pour le rappel enregistré, ça sera une micro-interaction et pas la notif ») : la coche
      ronde se plante sur la ligne « Rappel de séance », qui affiche déjà le nouveau réglage ; le lecteur d’écran entend le détail. */
-  const dit=d.on?obPh('Rappel enregistré\u00a0: {jours} à {heure}',{jours:rappelJoursTexte(),heure:d.heure}):'Rappel désactivé';
+  const dit=d.on?obPh('Rappel enregistré\u00a0: {jours} à {heure}',{jours:rappelJoursTexte(),heure:rappelHeureLoc(d.heure)}):'Rappel désactivé';
   const ligne=()=>document.querySelector(`#scr-compte .account-setting-row[onclick="openPlusDetails('plus-reminders')"]`);
   if(typeof lqDone==='function')requestAnimationFrame(()=>lqDone(ligne(),d.on?'Enregistré':'Désactivé',dit));
   else if(typeof buzz==='function')buzz('success');
@@ -52823,9 +52840,9 @@ function renderCompte(){
       <section class="acct-block" id="acct-progress" aria-labelledby="acct-progress-t">
         <div class="acct-head"><h2 id="acct-progress-t">Ma progression</h2><span>${activitesCompte(progress.done,progress.total,{verbe:'terminée',zero:'à découvrir'})}</span></div>
         <div class="acct-stats">
-          <div class="acct-stat is-lien is-streak${st.streak?' is-on':''}" style="--i:0" role="button" tabindex="0" onclick="acctStatAller('planning')" onkeydown="if(event.key==='Enter'){acctStatAller('planning');}"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('flame')}</span><b>${st.streak}</b><small>jour${st.streak>1?'s':''} de série</small></div>
-          <div class="acct-stat is-lien" style="--i:1" role="button" tabindex="0" onclick="acctStatAller('learn')" onkeydown="if(event.key==='Enter'){acctStatAller('learn');}"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('book')}</span><b>${st.lessons}</b><small>leçon${st.lessons>1?'s':''}</small></div>
-          <div class="acct-stat is-lien is-defis" style="--i:2" role="button" tabindex="0" onclick="acctStatAller('defis')" onkeydown="if(event.key==='Enter'){acctStatAller('defis');}"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('target')}</span><b>${(+kd.pts||0).toLocaleString('fr-FR')}</b><small>point${kd.pts>1?'s':''} en défis</small><span class="kpi-chip${kd.ma?'':' is-vide'}">${kd.ma?`${kd.tr}/${kd.ma} résolu${kd.tr>1?'s':''}`:'À jouer'}</span></div>
+          <div class="acct-stat is-lien is-streak${st.streak?' is-on':''}" style="--i:0" role="button" tabindex="0" onclick="acctStatAller('planning')" onkeydown="if(event.key==='Enter'){acctStatAller('planning');}"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('flame')}</span><b>${st.streak}</b><small>jour${plurN(st.streak)?'s':''} de série</small></div>
+          <div class="acct-stat is-lien" style="--i:1" role="button" tabindex="0" onclick="acctStatAller('learn')" onkeydown="if(event.key==='Enter'){acctStatAller('learn');}"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('book')}</span><b>${st.lessons}</b><small>leçon${plurN(st.lessons)?'s':''}</small></div>
+          <div class="acct-stat is-lien is-defis" style="--i:2" role="button" tabindex="0" onclick="acctStatAller('defis')" onkeydown="if(event.key==='Enter'){acctStatAller('defis');}"><span class="acct-stat-ico is-stk" aria-hidden="true">${lqStkSvg('target')}</span><b>${(+kd.pts||0).toLocaleString(obLoc())}</b><small>point${plurN(+kd.pts||0)?'s':''} en défis</small><span class="kpi-chip${kd.ma?'':' is-vide'}">${kd.ma?`${kd.tr}/${kd.ma} résolu${kd.tr>1?'s':''}`:'À jouer'}</span></div>
         </div>
         <div class="acct-card acct-week-card">
           <div class="acct-card-head"><b>Tes ${NB_JOURS_VUS} prochains jours</b>${weekPlanned?`<span>${semaineCompte(weekComplete,weekPlanned)}</span>`:''}</div>
@@ -52854,7 +52871,7 @@ function renderCompte(){
             <button class="account-setting-row" type="button" onclick="paysChanger()"><span class="plus-row-icon is-drapeau" aria-hidden="true">${paysDuProfil()?paysDrapeau(paysDuProfil()):'🌍'}</span><span><b>Pays</b><small>${paysDuProfil()?esc(paysNom(paysDuProfil()))+(typeof paysMontre==='function'&&!paysMontre()?' · drapeau masqué':''):'Choisir mon pays'}</small></span><span class="account-setting-end">${CHEV}</span></button>
             ${langueLigneHTML(CHEV)}
             <button class="account-setting-row" type="button" onclick="openAccountPlanSettings()"><span class="plus-row-icon route is-stk">${lqStkSvg(ACCT_STK.route)}</span><span><b>Parcours et rythme</b><small>${planSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
-            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell is-stk">${lqStkSvg(ACCT_STK.bell)}</span><span><b>Rappel de séance</b><small${remind?obNt():''}>${remind?obPh('{jours} à {heure}',{jours:rappelJoursTexte(),heure:hour}):'Désactivé'}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell is-stk">${lqStkSvg(ACCT_STK.bell)}</span><span><b>Rappel de séance</b><small${remind?obNt():''}>${remind?obPh('{jours} à {heure}',{jours:rappelJoursTexte(),heure:rappelHeureLoc(hour)}):'Désactivé'}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-pacte')"><span class="plus-row-icon is-stk">${lqStkSvg('pen')}</span><span><b>Mon engagement</b><small id="acct-pacte-sum">${pacteResume()}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon reading is-stk">${lqStkSvg(ACCT_STK.reading)}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
@@ -53050,7 +53067,8 @@ function langueChanger(c,btn){
   const g=btn&&btn.closest('[role=radiogroup]');
   if(g){g.querySelectorAll('[role=radio]').forEach(b=>{const on=b.getAttribute('lang')===c;b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');});g.classList.add('is-change');}
   if(typeof buzz==='function')buzz('light');
-  setTimeout(()=>{if(!L.changer(c)&&g)g.classList.remove('is-change');},prefersReduceMotion()?0:320);
+  setTimeout(()=>{if(typeof rqVoile==='function')rqVoile();},prefersReduceMotion()?0:140);
+  setTimeout(()=>{if(!L.changer(c)){if(g)g.classList.remove('is-change');if(typeof rqVoileRetirer==='function')rqVoileRetirer();}},prefersReduceMotion()?0:320);
   return true;
 }
 function openLegal(kind){
@@ -53744,6 +53762,16 @@ boot();
    quand l’accueil anime quelque chose. Désormais les trois écouteurs sont passifs et le geste reste à Safari : l’écran garde son
    rebond natif, la pastille se dessine par-dessus, dans l’espace libéré en haut. Pas de geste dans un champ de saisie, une liste
    déjà défilée, ou quand l’écran utilise déjà le doigt (glisser une activité du planning, un sticker). */
+/* 15 novembre, 23 h 25 : avant un rechargement voulu, la touche, le nom et l’anneau, sur le fond de l’appli, en fondu (0,18 s) ; la
+   page qui arrive les garde au même endroit (#loader.is-recharge) jusqu’à ce qu’elle soit prête. */
+function rqVoile(){
+  try{sessionStorage.setItem('rq-recharge','1');}catch(e){}
+  if(document.querySelector('.rq-voile'))return;
+  const v=document.createElement('div');v.className='rq-voile';v.setAttribute('aria-hidden','true');
+  v.innerHTML='<div class="logo-badge">&gt;_</div><b class="ld-name">Requête</b><div class="spinner"></div>';
+  document.body.appendChild(v);void v.offsetWidth;v.classList.add('on');
+}
+function rqVoileRetirer(){const v=document.querySelector('.rq-voile');if(v)v.remove();try{sessionStorage.removeItem('rq-recharge');}catch(e){}}
 (function pullToRefresh(){
   const stage=document.querySelector('#app > .stage'); if(!stage)return;
   const ptr=document.createElement('div'); ptr.className='ptr'; ptr.setAttribute('aria-hidden','true');
@@ -53803,7 +53831,7 @@ boot();
     try{ if(navigator.vibrate&&navigator.userActivation&&navigator.userActivation.hasBeenActive)navigator.vibrate(8); }catch(err){}
     /* Le service worker vérifie d’abord s’il y a une nouvelle version ; la page est rechargée de toute façon,
        après au moins 0,7 s de rotation, pour qu’on la voie tourner. */
-    const t0=Date.now(), go=()=>setTimeout(()=>location.reload(),Math.max(150,700-(Date.now()-t0)));
+    const t0=Date.now(), go=()=>setTimeout(()=>{ if(typeof rqVoile==='function')rqVoile(); setTimeout(()=>location.reload(),180); },Math.max(150,700-(Date.now()-t0)));
     const sw=navigator.serviceWorker;
     if(sw&&sw.getRegistration){ Promise.race([sw.getRegistration().then(r=>r&&r.update()),new Promise(r=>setTimeout(r,1200))]).then(go,go); }
     else go();
@@ -53859,7 +53887,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3089';
+  const SW_CACHE='requete-2026-11-15-module-v3090';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

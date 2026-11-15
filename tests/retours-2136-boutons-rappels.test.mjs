@@ -36,7 +36,7 @@ test('les rappels portent les boutons « Voir mon planning » et « Plus tard »
   assert.deepEqual(JSON.parse(JSON.stringify(journal.types)), { types: [{ id: 'RAPPEL', actions: [{ id: 'planning', title: 'See my schedule', foreground: true }, { id: 'plus-tard', title: 'Later' }] }] });
   assert.equal(await ctx.rappelBoutonsPoser({}), false, 'un plugin sans boutons : des rappels sans boutons, comme avant');
   const sync = fn('rappelNativeSync');
-  assert.ok(sync.includes('const boutons=await rappelBoutonsPoser(LN);') && sync.includes('boutons?{actionTypeId:RAPPEL_BOUTONS}:{}'), 'chaque rappel programmé');
+  assert.ok(sync.includes("const boutons=typeof LN.registerActionTypes==='function'?await rappelBoutonsPoser(LN):false;") && sync.includes('boutons?{actionTypeId:RAPPEL_BOUTONS}:{}'), 'chaque rappel programmé');
   assert.ok(en.includes('"Voir mon planning": "See my schedule",') && en.includes('"Plus tard": "Later",'));
   assert.ok(en.includes('"Ton planning t’attend juste après.": "Your schedule is waiting right after.",'));
 });

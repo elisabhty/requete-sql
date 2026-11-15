@@ -87,7 +87,7 @@ test('réf. 2 : les notifications ne sonnent que les jours de séance, à l’he
     "  semaineOffset=0;jourSel=null;save();renderPlanning();\n  try{rappelNativeSync();}catch(e){}"])
     assert.ok(app.includes(k), k);
   /* Mon compte : les jours, plus « Rappel quotidien » */
-  assert.ok(app.includes("<span><b>Rappel de séance</b><small${remind?obNt():''}>${remind?obPh('{jours} à {heure}',{jours:rappelJoursTexte(),heure:hour}):'Désactivé'}</small></span>") && !app.includes('Rappel quotidien'));
+  assert.ok(app.includes("<span><b>Rappel de séance</b><small${remind?obNt():''}>${remind?obPh('{jours} à {heure}',{jours:rappelJoursTexte(),heure:rappelHeureLoc(hour)}):'Désactivé'}</small></span>") && !app.includes('Rappel quotidien'));
 });
 
 test('réf. 2 : la page du rappel, « À quel moment ? » comme dans Mon compte (5 novembre, 12 h 12), les jours de séance, et tout change sur place', () => {
