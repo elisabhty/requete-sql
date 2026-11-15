@@ -78,7 +78,8 @@ test('achat.js : dans le doute, pas d’offre (personne ne lit « −50 % » pou
 const bloc = html.slice(html.indexOf("const OB_SORTIE_VUE='requete-offre-bienvenue';"), html.indexOf('async function obPaywallRestaurer'));
 /* Les espaces insécables (et fines) d’un montant, ramenées à une espace pour comparer ; les « &nbsp; » du HTML restent tels quels */
 const nb = s => String(s).replace(/[\u00a0\u202f]/g, ' ');
-const ecrit = html.slice(html.indexOf('function obPrixEcrit(prix,devise,texte){'), html.indexOf('function obPrixTexte(k){')) + html.slice(html.indexOf('function obDevise(x,devise,entier){'), html.indexOf('function obOffreInfo(){'));
+/* 15 novembre : les montants et les phrases dans la langue de l’appli (obLoc, obPh… ; ici le français) */
+const ecrit = html.slice(html.indexOf('function obLangue(){'), html.indexOf('function obEuros(x){')) + html.slice(html.indexOf('function obPrixEcrit(prix,devise,texte){'), html.indexOf('function obPrixTexte(k){')) + html.slice(html.indexOf('function obDevise(x,devise,entier){'), html.indexOf('function obOffreInfo(){'));
 function page({dispo = true, prix = {prix: 44.99, texte: '44,99 €', devise: 'EUR', intro: {prix: 22.49, texte: '22,49 €'}}, vue = false} = {}) {
   const store = vue ? {'requete-offre-bienvenue': '1'} : {}, stats = [], pieds = [], vues = [];
   const ctx = {window: {REQUETE_ACHAT: {sortieDispo: () => dispo, prix: k => (k === 'bienvenue' ? prix : null), acheter: () => Promise.resolve(false)}},

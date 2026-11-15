@@ -106,5 +106,5 @@ test('3. « Ta collection » et « 7/21 débloqués » ; les autres textes parle
 
 test('la nouvelle version arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=386">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3047';") && app.includes("const SW_CACHE='requete-2026-11-15-module-v3047';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3048';") && app.includes("const SW_CACHE='requete-2026-11-15-module-v3048';"));
 });

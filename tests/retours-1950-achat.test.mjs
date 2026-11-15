@@ -81,9 +81,10 @@ test('le paywall affiche les prix de la boutique quand ils sont là, et charge a
   /* 13 novembre, 2 h 20 : le prix et la devise de la boutique, écrits par l’app (obPrixEcrit) ; son texte tout fait seulement sans devise */
   assert.match(html, /function obPrixTexte\(k\)\{const b=obPrixBoutique\(k\);return b\?obPrixEcrit\(b\.prix,b\.devise,b\.texte\):obEuros\(OB_OFFRES\[k\]\.prix\);\}/);
   assert.match(html, /function obPrixEcrit\(prix,devise,texte\)\{return obDevise\(prix,devise\)\|\|String\(texte\|\|''\)\.replace\(\/ \/g,'\\u00a0'\);\}/);
-  assert.match(html, /<b>\$\{obPrixTexte\(k\)\}<\/b> \$\{sur\(OB_OFFRES\[k\]\.par\)\}/);
-  assert.match(html, /Soit <\/span><b>\$\{parSemaineTexte\}<\/b> par semaine/);
-  assert.ok(html.includes('`S’abonner pour ${prix}`') && html.includes('puis ${prix} ${o.par} à partir du') && html.includes('${prix} aujourd’hui, puis'), 'le bouton et le pied suivent aussi');
+  assert.match(html, /<b>\$\{obPrixTexte\(k\)\}<\/b> \$\{obPh\(sur\(OB_OFFRES\[k\]\.par\)\)\}/);
+  assert.match(html, /\$\{obPh\('Soit'\)\} <\/span><b>\$\{parSemaineTexte\}<\/b> \$\{obPh\('par semaine'\)\}/);
+  /* 15 novembre : ces phrases passent par leur gabarit (obPh), traduit dans la langue de l’appli */
+  assert.ok(html.includes("obPh('S’abonner pour {prix}',{prix})") && html.includes("obPh('{essai}, puis {prix} {par} à partir du {date}.'") && html.includes("obPh('{prix} aujourd’hui, puis {quand}.'"), 'le bouton et le pied suivent aussi');
   assert.match(readFileSync(new URL('../sw.js', import.meta.url), 'utf8'), /'\.\/achat\.js\?v=7',/);
 });
 
@@ -116,6 +117,7 @@ test('l’essai vient de la boutique : offre gratuite et statut 2 seulement ; sa
 test('le paywall : l’essai, sa durée et la date du premier prélèvement viennent de la boutique ; sans réponse, ni « 0 € » ni « aujourd’hui »', () => {
   const cut = (a, b) => { const i = html.indexOf(a); assert.ok(i >= 0, a); const j = html.indexOf(b, i + a.length); assert.ok(j > i, b); return html.slice(i, j); };
   const ctx = vm.createContext({window: {}, OB_OFFRES: {an: {essai: 3}, semaine: {}}});
+  vm.runInContext(cut('function obLangue(){', 'function obEuros(x){'), ctx);
   vm.runInContext(cut('function obEssai(k){', '/* Les prix de la boutique Apple du pays de la personne'), ctx);
   vm.runInContext(cut('function obDateApresEssai(e){', '\n/* ---------- Le paywall, refonte'), ctx);
   assert.deepEqual({...ctx.obEssai('an')}, {n: 3, unite: 'jour'}, 'sans boutique (le site) : l’essai d’OB_OFFRES');
@@ -130,8 +132,8 @@ test('le paywall : l’essai, sa durée et la date du premier prélèvement vien
   const dans = jours => { const d = new Date(); d.setDate(d.getDate() + jours); return d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'long'}).replace(/^1 /, '1er '); };
   assert.equal(ctx.obDateApresEssai({n: 1, unite: 'semaine'}), dans(7)); assert.equal(ctx.obDateApresEssai(3), dans(3));
   /* Le bouton, la pastille et le pied */
-  assert.ok(html.includes('const libelle=essai?`Essayer gratuitement ${obEssaiTexte(essai)}`:`S’abonner pour ${prix}`;'));
+  assert.ok(html.includes("const libelle=essai?`Essayer gratuitement ${obEssaiTexte(essai)}`:obPh('S’abonner pour {prix}',{prix});"));
   assert.ok(html.includes('<i class="pw-essai">${obEssaiTexte(essaiAn)} d’essai</i>'));
-  assert.ok(html.includes(':`<b class="pw-sans">${prix} ${o.par}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `;'), 'sans réponse : le prix et le renouvellement');
+  assert.ok(html.includes(':`<b class="pw-sans"${obNt()}>${prix} ${obPh(o.par)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `;'), 'sans réponse : le prix et le renouvellement');
   assert.ok(!/jours d’essai/.test(html.replace(/\/\*[\s\S]*?\*\//g, '')), 'plus aucun « jours d’essai » écrit en dur');
 });

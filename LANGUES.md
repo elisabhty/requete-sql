@@ -126,7 +126,9 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
   `assets/voix/en/<cours>/` et dans la vidéo (`voix` de `assets/anim/en/<cours>.js`). Chaque fichier garde l’id du français ;
-  `cles` donne la légende française de chaque phrase. Une voix anglaise native : Tara, « Polished Audio Description » (nF5xXwlriNhsorW8Fykg ; choix d’Elisa, 23 h 56).
+  `cles` donne la légende française de chaque phrase. Une voix anglaise native : Brielle (6u6JbqKdaQy89ENzLSju ; choix d’Elisa le
+  15 novembre, à la place de Tara, dont l’accent ne lui plaisait pas). L’avis audio de Sofia B. dans l’onboarding a sa voix
+  anglaise à part (`tools/voix/en/avis.json`, Jeni) ; une fois générée, elle va dans `decouvrir/avis/en/` et `OB_TEMOINS_LANGUE`.
   Module 2 (15 novembre) : les douze fichiers sont prêts (`tools/voix/en/as.json` à `limit-offset.json`, environ 32 400
   caractères) ; `node tools/voix/generer.mjs --toutes --langue en` les génère tous. Le code y est dit en toutes lettres
   (`<=` : « less than or equal to », `'2023-03-01'` : « 2023, dash, 03, dash, 01 », `ASC` : « ascending ») ; le « À retenir »
@@ -137,14 +139,19 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   22 Mo pour les treize) et écrit la voix dans `assets/anim/en/<cours>.js` (`voix`, entre les repères « Voix off ») ; la page et
   sa voix française ne changent pas. Une vidéo anglaise ne dure pas tout à fait autant que la française : sa durée est dans
   `LV_DUREES` (index.html) et sur sa vignette, refaite après la voix.
+- **L’onboarding entier** (15 novembre, « bcp de phrases en français encore ») : le paywall, l’offre de bienvenue, le rappel et
+  l’avis audio. Une phrase qui porte un montant ou une date se traduit par son gabarit (`obPh('{prix} aujourd’hui, puis {quand}.', …)`,
+  le gabarit dans langue-en.js), puis reçoit ses montants, écrits à la manière de la langue (`obLoc()` : « €44.99 », « $39.99 »,
+  « November 18 », « −86% ») ; en anglais l’élément porte `data-notrad` (`obNt()`), déjà dans la langue. En français, chaque
+  phrase reste au caractère près celle d’avant. Les jours du rappel et leurs initiales sont écrits dans la langue (« Monday and
+  Thursday », « M T W T F S S ») ; `aria-valuetext` se traduit comme `aria-label`.
 - **À reprendre avec les défis** : dans une salle, le serveur (`jeu-verifier`) vérifie la requête sur la base française ; une
   requête écrite en anglais sur un défi de la base des cours y serait refusée. À régler avant de traduire les défis.
 - **Ensuite** : les écrans des leçons et des défis (le cadre autour du contenu) ; puis les cours, module par module :
   les textes des vidéos (`assets/anim/<cours>.html`), leurs voix en anglais (`tools/voix/` ; environ 258 000 caractères au
   total, soit autant de crédits ElevenLabs, à valider avant toute dépense ; le moteur des vidéos attend déjà la fin de chaque
   phrase, une voix plus longue ou plus courte ne décale rien), les leçons, les défis, les cartes.
-- **Aussi à prévoir** : les initiales des jours (« L M M J V S D » de la semaine et du planning : des lettres seules, que le
-  moteur ne traduit pas ; à écrire avec `REQUETE_LANGUE.locale`), le détail « en réflexion, 0 point » des joueurs d’une salle
+- **Aussi à prévoir** : le détail « en réflexion, 0 point » des joueurs d’une salle
   (une phrase par combinaison : à traduire morceau par morceau dans le code), les stickers dont l’image porte du français
   (« 1er défi », « 10 leçons », « jours », « NIV. »… : 15 images, environ 6 500 crédits pour les refaire), les dates et les nombres (`'fr-FR'` est écrit en dur à une cinquantaine d’endroits ;
   `REQUETE_LANGUE.locale` donne la bonne valeur), les noms des produits de la base et les filtres `LIKE`, les noms de pays, les

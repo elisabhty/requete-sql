@@ -43104,7 +43104,7 @@ const FREQS=[
   {k:2,i:'2',t:"2 jours / semaine",d:"Lundi et jeudi"}
 ];
 const PATTERN={2:[1,4],3:[1,3,5],5:[1,2,3,4,5],7:[0,1,2,3,4,5,6]};
-const JOURS=['D','L','M','M','J','V','S'];
+const JOURS=(()=>{/* 15 novembre : les initiales des jours dans la langue de l’appli (M T W T F S S en anglais) */try{const L=window.REQUETE_LANGUE;if(L&&L.code&&L.code!=='fr'&&L.locale)return [0,1,2,3,4,5,6].map(d=>new Date(2024,0,7+d).toLocaleDateString(L.locale,{weekday:'narrow'}));}catch(e){}return ['D','L','M','M','J','V','S'];})();
 /* Un défi : environ 6 minutes ; c’est aussi la durée d’une leçon sans vidéo connue (dureeActiviteS). */
 const MIN_PAR_ACTIVITE=6;
 /* Elisa, 11 novembre, 16 h 36 : « il ne faut pas qu’une personne ait plus de 4 cours dans son planning par jour ». Le rythme
@@ -46777,9 +46777,11 @@ const PAYS_FUSEAUX=Object.fromEntries(('Europe/Paris:FR Europe/Monaco:MC Europe/
   ' Australia/Brisbane:AU Australia/Perth:AU Australia/Adelaide:AU Australia/Hobart:AU Australia/Darwin:AU Pacific/Auckland:NZ'+
   ' Pacific/Fiji:FJ Pacific/Port_Moresby:PG Pacific/Efate:VU Pacific/Apia:WS Pacific/Tongatapu:TO Pacific/Guam:GU').split(' ').map(x=>x.split(':')));
 let paysNoms=null;
+/* 15 novembre : les noms dans la langue de l’appli (« Germany » en anglais), le français sinon ; le secours reste français. */
+function paysLangue(){try{const L=window.REQUETE_LANGUE;return L&&L.code&&L.code!=='fr'?L.code:'fr';}catch(e){return 'fr';}}
 function paysNom(code){
   if(PAYS_NOMS_COURTS[code])return PAYS_NOMS_COURTS[code];
-  try{ if(!paysNoms)paysNoms=new Intl.DisplayNames(['fr'],{type:'region'}); const n=paysNoms.of(code); if(n&&n!==code)return n; }catch(e){}
+  try{ if(!paysNoms)paysNoms=new Intl.DisplayNames([paysLangue()],{type:'region'}); const n=paysNoms.of(code); if(n&&n!==code)return n; }catch(e){}
   return PAYS_NOMS_SECOURS[code]||code;
 }
 /* Le drapeau : les deux lettres du pays en symboles régionaux (FR → 🇫🇷), que l’iPhone dessine en drapeau. */
@@ -46793,7 +46795,7 @@ function paysDetecte(){
   return null;
 }
 function paysSansAccents(t){ return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’'\-]/g,' ').toLowerCase(); }
-function paysListe(){ return PAYS_CODES.map(code=>({code,nom:paysNom(code)})).sort((a,b)=>a.nom.localeCompare(b.nom,'fr',{sensitivity:'base'})); }
+function paysListe(){ return PAYS_CODES.map(code=>({code,nom:paysNom(code)})).sort((a,b)=>a.nom.localeCompare(b.nom,paysLangue(),{sensitivity:'base'})); }
 function paysDuProfil(){ const p=state.profile&&state.profile.pays; return PAYS_CODES.includes(p)?p:''; }
 /* Déjà inscrit avant cette page : le pays deviné, sans rien demander, pour que le drapeau soit là (Mon compte permet d’en changer). */
 function paysCompleter(){
@@ -47436,7 +47438,25 @@ function obDraftDepuisEtat(){
    dans App Store Connect (offre de lancement de l’abonnement annuel) ; quelqu’un qui l’a déjà eu ne le revoit pas
    (REQUETE_ACHAT.essaiDispo, une fois l’achat branché). */
 const OB_OFFRES={an:{prix:44.99,titre:'Annuel',par:'par an',semaines:52,essai:3},semaine:{prix:5.99,titre:'Hebdomadaire',par:'par semaine',semaines:1}};
-function obEuros(x){return (Math.round(x*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:Number.isInteger(x)?0:2,maximumFractionDigits:2})+' €';}
+/* 15 novembre (Elisa, l’onboarding en anglais : « bcp de phrases en français encore ») : les montants et les dates s’écrivent à la
+   manière de la langue de l’appli (« 44,99 € » en français, « €44.99 » en anglais ; « 18 novembre », « November 18 »). Les phrases du
+   paywall qui portent un montant ou une date se traduisent par leur gabarit (obPh : « {prix} aujourd’hui, puis {quand}. », dans
+   langue-en.js), puis reçoivent leurs montants ; en anglais, elles portent data-notrad (obNt) : déjà dans la langue, la traduction de
+   la page n’y touche plus. En français, rien ne change : le gabarit rempli est la phrase d’avant, au caractère près. */
+function obLangue(){try{const L=window.REQUETE_LANGUE;return L&&L.code&&L.code!=='fr'?L:null;}catch(e){return null;}}
+function obLoc(){const L=obLangue();return (L&&L.locale)||'fr-FR';}
+function obNt(){return obLangue()?' data-notrad':'';}
+/* « −86 % » en français ; « −86% » en anglais */
+function obMoins(n){return obLangue()?`−${n}%`:`−${n}&nbsp;%`;}
+function obPh(g,v){
+  let s=String(g);const L=obLangue();
+  if(L&&typeof L.t==='function'){try{const c=s.replace(/&nbsp;/g,' '),r=L.t(c);if(r!=null&&r!==c)s=String(r);}catch(e){}}
+  return v?s.replace(/\{(\w+)\}/g,(t,k)=>Object.prototype.hasOwnProperty.call(v,k)?v[k]:t):s;
+}
+function obEuros(x){
+  if(obLangue()){try{return new Intl.NumberFormat(obLoc(),{style:'currency',currency:'EUR',minimumFractionDigits:Number.isInteger(x)?0:2,maximumFractionDigits:2}).format(Math.round(x*100)/100);}catch(e){}}
+  return (Math.round(x*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:Number.isInteger(x)?0:2,maximumFractionDigits:2})+' €';
+}
 /* 14 novembre, 19 h 12 (l’audit App Review, règle 3.1.2 ; Elisa : « On travaille sur essai 3 jours ») : l’essai n’est plus écrit en
    dur. Dans l’app, il ne se montre que si la boutique d’Apple le confirme : une offre de lancement gratuite sur ce produit, et ce
    compte y a droit (REQUETE_ACHAT.essai, achat.js). Sa durée est celle de la boutique : {n, unite}, « 3 jours », « 1 semaine ».
@@ -47481,7 +47501,7 @@ function obPrixTexte(k){const b=obPrixBoutique(k);return b?obPrixEcrit(b.prix,b.
    Les décimales sont celles de la devise (deux pour l’euro et le dollar, aucune pour le yen) ; entier : sans décimales. */
 function obDevise(x,devise,entier){
   if(!devise)return '';
-  try{return new Intl.NumberFormat('fr-FR',Object.assign({style:'currency',currency:devise},entier?{minimumFractionDigits:0,maximumFractionDigits:0}:{})).format(x);}catch(e){return '';}
+  try{return new Intl.NumberFormat(obLoc(),Object.assign({style:'currency',currency:devise},entier?{minimumFractionDigits:0,maximumFractionDigits:0}:{})).format(x);}catch(e){return '';}
 }
 function obOffreInfo(){
   const an=OB_OFFRES.an,se=OB_OFFRES.semaine,ba=obPrixBoutique('an'),bs=obPrixBoutique('semaine');
@@ -47491,18 +47511,19 @@ function obOffreInfo(){
      le prix par semaine de RevenueCat s’écrivait à l’anglaise, et le « 0 € » restait en euros. Les deux suivent maintenant la devise
      de la boutique, écrite à la française comme le prix facturé ; le texte de RevenueCat ne sert plus que sans devise connue. */
   const parSemaineTexte=(ba&&obDevise(parSemaine,ba.devise))||(ba&&ba.parSemaine)||obEuros(parSemaine);
-  const zero=(ba&&obDevise(0,ba.devise,true))||'0&nbsp;€';
+  const zero=(ba&&obDevise(0,ba.devise,true))||(obLangue()?obEuros(0):'0&nbsp;€');
   /* Ce qu’on économise en un an face à 52 semaines payées à la semaine (5,99 × 52 − 44,99 = 266 €), arrondi à l’euro du dessous.
      Avec les prix de la boutique, dans la devise du pays (REQUETE_ACHAT.prix(…).devise) ; sans devise connue, on ne l’affiche pas. */
   const gain=Math.floor(ps*an.semaines-pa);let economie='';
   if(gain>0){if(!ba&&!bs)economie=obEuros(gain);
-    else if(ba&&ba.devise&&(!bs||!bs.devise||bs.devise===ba.devise)){try{economie=new Intl.NumberFormat('fr-FR',{style:'currency',currency:ba.devise,maximumFractionDigits:0}).format(gain);}catch(e){}}}
+    else if(ba&&ba.devise&&(!bs||!bs.devise||bs.devise===ba.devise)){try{economie=new Intl.NumberFormat(obLoc(),{style:'currency',currency:ba.devise,maximumFractionDigits:0}).format(gain);}catch(e){}}}
   return {parSemaine,eco,parSemaineTexte,economie,zero};
 }
 /* Le jour du premier prélèvement après l’essai (« 3 jours gratuits, puis 44,99 € par an à partir du 14 novembre ») */
 function obDateApresEssai(e){
   const d=new Date(),n=typeof e==='number'?e:(e&&e.n)||0,u=typeof e==='number'?'jour':(e&&e.unite)||'jour';
   if(u==='semaine')d.setDate(d.getDate()+7*n);else if(u==='mois')d.setMonth(d.getMonth()+n);else if(u==='an')d.setFullYear(d.getFullYear()+n);else d.setDate(d.getDate()+n);
+  if(obLangue())try{return d.toLocaleDateString(obLoc(),{day:'numeric',month:'long'});}catch(e){}
   return d.toLocaleDateString('fr-FR',{day:'numeric',month:'long'}).replace(/^1 /,'1er ');
 }
 /* ---------- Le paywall, refonte (Elisa, 11 novembre, 1 h 42, d’après sa maquette et les conseils qui l’accompagnent) ----------
@@ -47534,7 +47555,7 @@ function obPaywallHTML(){
   const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||0,nLecons=typeof TOTAL!=='undefined'?TOTAL:71;
   const fixe=typeof mascotReduced==='function'&&mascotReduced(),essaiAn=obEssai('an'),etatPrix=obPrixEtat();
   const sur=par=>par.replace(/^par /,'/&nbsp;');
-  const prixHtml=k=>`<span class="pw-o-p"><b>${obPrixTexte(k)}</b> ${sur(OB_OFFRES[k].par)}</span>`;
+  const prixHtml=k=>`<span class="pw-o-p"${obNt()}><b>${obPrixTexte(k)}</b> ${obPh(sur(OB_OFFRES[k].par))}</span>`;
   const carte=(k,corps,label)=>{const on=o===k;
     return `<button type="button" class="pw-offre is-${k}${on?' is-on':''}" role="radio" aria-checked="${on}" aria-label="${escAttr(label)}" data-offre="${k}" onclick="obPaywallChoisir('${k}')">${corps}</button>`;};
   const an=OB_OFFRES.an,se=OB_OFFRES.semaine;
@@ -47544,13 +47565,13 @@ function obPaywallHTML(){
   /* 13 novembre, 2 h 20 : la pastille de l’essai et « Soit … par semaine » sont rangées ensemble (pw-o-l). Avec un montant long
      (« Soit 0,76 $US par semaine »), elles se touchaient : elles se resserrent un peu (is-long) pour tenir côte à côte, et si la
      place manque encore, la seconde passe dessous, à droite, sous le prix. */
-  const reperes=[economie?['pieces',`Économise<br><b>${economie}</b>`]:null,['infini','Accès<br><b>illimité</b>'],
-    essaiAn?['agenda',`<b>${zero}</b><br>aujourd’hui`]:['agenda','Un paiement<br><b>par an</b>']].filter(Boolean);
-  const carteAn=carte('an',`<span class="pw-reco">${PW_ICO.couronne}Meilleur choix</span><span class="pw-badge">−${eco}&nbsp;%</span>
+  const reperes=[economie?['pieces',`${obPh('Économise')}<br><b>${economie}</b>`,1]:null,['infini','Accès<br><b>illimité</b>'],
+    essaiAn?['agenda',`<b>${zero}</b><br>${obPh('aujourd’hui')}`,1]:['agenda','Un paiement<br><b>par an</b>']].filter(Boolean);
+  const carteAn=carte('an',`<span class="pw-reco">${PW_ICO.couronne}Meilleur choix</span><span class="pw-badge">${obMoins(eco)}</span>
       <span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${an.titre}</span>${prixHtml('an')}
-      <span class="pw-o-l${essaiAn&&parSemaineTexte.replace(/&nbsp;/g,' ').length>7?' is-long':''}">${essaiAn?`<span class="pw-o-e"><i class="pw-essai">${obEssaiTexte(essaiAn)} d’essai</i></span>`:''}<span class="pw-o-s"><span class="pw-soit">Soit </span><b>${parSemaineTexte}</b> par semaine</span></span>
-      <span class="pw-o-plus">${reperes.map(([i,t])=>`<span>${PW_ICO[i]}<span>${t}</span></span>`).join('')}</span>`,
-    `${an.titre}, ${obPrixTexte('an')} ${an.par}${essaiAn?`, ${obEssaiTexte(essaiAn)} d’essai`:''}, soit ${parSemaineTexte} par semaine`);
+      <span class="pw-o-l${essaiAn&&parSemaineTexte.replace(/&nbsp;/g,' ').length>7?' is-long':''}">${essaiAn?`<span class="pw-o-e"><i class="pw-essai">${obEssaiTexte(essaiAn)} d’essai</i></span>`:''}<span class="pw-o-s"${obNt()}><span class="pw-soit">${obPh('Soit')} </span><b>${parSemaineTexte}</b> ${obPh('par semaine')}</span></span>
+      <span class="pw-o-plus">${reperes.map(([i,t,m])=>`<span>${PW_ICO[i]}<span${m?obNt():''}>${t}</span></span>`).join('')}</span>`,
+    obPh('{titre}, {prix} {par}{essai}, soit {semaine} par semaine',{titre:obPh(an.titre),prix:obPrixTexte('an'),par:obPh(an.par),essai:essaiAn?`, ${obPh(`${obEssaiTexte(essaiAn)} d’essai`)}`:'',semaine:parSemaineTexte}));
   /* 11 novembre, 19 h 20 (Elisa : « remplacer “– Sans essai” par un avantage plus valorisant » ; « Accès immédiat » au lieu d’« Accès
      complet », « Résiliable à tout moment » au lieu de « Sans essai ») : trois avantages, plus de tiret « ce qu’elle n’a pas ». */
   /* Sur deux lignes chacun, comme les trois repères de l’annuelle (« Économise / 266 € ») : « Résiliable à tout moment » tient dans la
@@ -47559,7 +47580,7 @@ function obPaywallHTML(){
   const inclus=[['coche','Accès<br>immédiat'],['coche','Tous les<br>niveaux'],['coche','Résiliable à<br>tout moment']];
   const carteSe=carte('semaine',`<span class="pw-o-radio" aria-hidden="true"></span><span class="pw-o-t">${se.titre}</span>${prixHtml('semaine')}
       <span class="pw-o-inclus">${inclus.map(([i,t])=>`<span class="${i==='moins'?'is-non':''}">${PW_ICO[i]}${t}</span>`).join('')}</span>`,
-    `${se.titre}, ${obPrixTexte('semaine')} ${se.par}, ${inclus.map(([,t])=>t.replace('<br>',' ').toLowerCase()).join(', ')}`);
+    `${obPh(se.titre)}, ${obPrixTexte('semaine')} ${obPh(se.par)}, ${inclus.map(([,t])=>obPh(t.replace('<br>',' ')).toLowerCase()).join(', ')}`);
   const preuve=typeof OB_COMMUNAUTE==='number'&&OB_COMMUNAUTE>0?`<p class="pw-preuve">${PW_ICO.laurier}<span class="pw-preuve-t"><b>+${OB_COMMUNAUTE.toLocaleString('fr-FR')} apprenant·es</b> font déjà confiance à Requête<small>Chiffre et avis issus du site requeteapp.com</small></span>${PW_ICO.laurier}</p>`:'';
   /* 12 novembre, 16 h 34 : une fois l’offre de bienvenue vue (et refusée), elle reste à portée, sans insister : « Offre −50 % » dans
      la barre du haut, à côté de « Restaurer ». Elle ne disparaît pas dans le dos de la personne. */
@@ -47586,20 +47607,20 @@ function obPaywallPied(){
   const k=draft.offre==='semaine'?'semaine':'an',o=OB_OFFRES[k],essai=obEssai(k),prix=obPrixTexte(k);
   /* Le bouton dit ce qu’il fait : l’essai, ou le prix exact. Dessous : trois réassurances, puis, avec l’essai, la date et le montant
      du premier prélèvement (règle d’Apple : ce qui se passe à la fin de l’essai est dit en clair). */
-  const libelle=essai?`Essayer gratuitement ${obEssaiTexte(essai)}`:`S’abonner pour ${prix}`;
-  const confiance=`<span class="pw-confiance"><span>${PW_ICO.cadenas}Paiement Apple</span><span>${PW_ICO.renouv}Annulable</span><span>${PW_ICO.bouclier}Données protégées</span></span>`;
+  const libelle=essai?`Essayer gratuitement ${obEssaiTexte(essai)}`:obPh('S’abonner pour {prix}',{prix});
+  const confiance=`<span class="pw-confiance"${obNt()}><span>${PW_ICO.cadenas}${obPh('Paiement Apple')}</span><span>${PW_ICO.renouv}${obPh('Annulable')}</span><span>${PW_ICO.bouclier}${obPh('Données protégées')}</span></span>`;
   /* 13 novembre, 2 h 41 : tant que la boutique n’a pas donné ses prix, ni prix ni achat ; sans réponse, « Réessayer ». */
   const etatPrix=obPrixEtat();
   if(etatPrix!=='oui'){
-    const liens=`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
+    const liens=`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener"${obNt()}>${obLangue()?obPh('Conditions d’utilisation'):'Conditions'}</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
     obSetFooter(etatPrix==='echec'?'Réessayer':'Chargement des offres…',etatPrix==='echec'?obPaywallRecharger:null,'','',{html:confiance+liens},etatPrix!=='echec'||obPwBusy);
     return;
   }
   /* 14 novembre, 19 h 12 : sans réponse de la boutique sur l’essai, ni « 0 € » ni « … aujourd’hui » : le prix et le renouvellement. */
-  const texte=essai?`<b class="pw-sans">${obEssaiTexte(essai)} d’essai, puis ${prix} ${o.par} à partir du ${obDateApresEssai(essai)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
-    :obEssaiConnu(k)?`<b class="pw-sans">${prix} aujourd’hui, puis ${k==='an'?'chaque année':'chaque semaine'}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
-    :`<b class="pw-sans">${prix} ${o.par}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `;
-  const legal=confiance+texte+`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
+  const texte=essai?`<b class="pw-sans"${obNt()}>${obPh('{essai}, puis {prix} {par} à partir du {date}.',{essai:obPh(`${obEssaiTexte(essai)} d’essai`),prix,par:obPh(o.par),date:obDateApresEssai(essai)})}</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
+    :obEssaiConnu(k)?`<b class="pw-sans"${obNt()}>${obPh('{prix} aujourd’hui, puis {quand}.',{prix,quand:obPh(k==='an'?'chaque année':'chaque semaine')})}</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
+    :`<b class="pw-sans"${obNt()}>${prix} ${obPh(o.par)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `;
+  const legal=confiance+texte+`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener"${obNt()}>${obLangue()?obPh('Conditions d’utilisation'):'Conditions'}</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
   obSetFooter(libelle,obPaywallAcheter,'','',{html:legal},obPwBusy);
 }
 /* Les prix de la boutique viennent d’arriver (ou de manquer) : le paywall ouvert se repeint, sans rejouer son entrée. */
@@ -47694,18 +47715,18 @@ function obSortieHTML(){
   const x=obSortieInfo();if(!x)return '';
   const fixe=typeof mascotReduced==='function'&&mascotReduced();
   const nDefis=(typeof CHALLENGES!=='undefined'&&CHALLENGES.length)||0,nLecons=typeof TOTAL!=='undefined'?TOTAL:71;
-  const reperes=[x.economie?['pieces',`Économise<br><b>${x.economie}</b>`]:null,['infini','Accès<br><b>illimité</b>'],['renouv','Résiliable à<br><b>tout moment</b>']].filter(Boolean);
+  const reperes=[x.economie?['pieces',`${obPh('Économise')}<br><b>${x.economie}</b>`,1]:null,['infini','Accès<br><b>illimité</b>'],['renouv','Résiliable à<br><b>tout moment</b>']].filter(Boolean);
   return `<div class="ob-screen ob-paywall is-sortie"><div class="ob-flow-top ob-flow-solo pw-top">${obBackButton()}</div>
     <div class="pw-hero"><img class="pw-chat is-triste" src="assets/chat-triste${fixe?'-fixe':''}.webp" width="306" height="343" alt="" draggable="false"><p class="pw-bulle">Tu nous quittes déjà&nbsp;?</p>
       <span class="pw-tag">Offre de bienvenue&nbsp;🎁</span>
-      <h1 class="ob-title" id="ob-title"><em>−${x.pct}&nbsp;%</em> sur ta première année</h1>
+      <h1 class="ob-title" id="ob-title"${obNt()}>${obPh('<em>−{pct}&nbsp;%</em> sur ta première année',{pct:x.pct})}</h1>
       <p class="pw-but">Débloque tout Requête pendant un&nbsp;an.</p></div>
-    <div class="pw-sortie" role="group" aria-label="${escAttr(`Ton accès annuel : ${x.intro} au lieu de ${x.plein} pour la première année, puis ${x.plein} par an. Résiliable à tout moment.`)}">
-      <span class="pw-badge" aria-hidden="true">−${x.pct}&nbsp;%</span>
+    <div class="pw-sortie" role="group" aria-label="${escAttr(obPh('Ton accès annuel : {intro} au lieu de {plein} pour la première année, puis {plein} par an. Résiliable à tout moment.',{intro:x.intro,plein:x.plein}))}">
+      <span class="pw-badge" aria-hidden="true">${obMoins(x.pct)}</span>
       <span class="pw-s-t" aria-hidden="true">Ton accès annuel</span>
-      <span class="pw-s-p" aria-hidden="true"><b>${x.intro}</b><span class="pw-s-au">au lieu de <s>${x.plein}</s></span></span>
-      <span class="pw-s-l" aria-hidden="true"><span class="pw-s-puis">pour la première année, puis ${x.plein}/an.</span></span>
-      <span class="pw-o-plus" aria-hidden="true">${reperes.map(([i,t])=>`<span>${PW_ICO[i]}<span>${t}</span></span>`).join('')}</span></div>
+      <span class="pw-s-p" aria-hidden="true"${obNt()}><b>${x.intro}</b><span class="pw-s-au">${obPh('au lieu de')} <s>${x.plein}</s></span></span>
+      <span class="pw-s-l" aria-hidden="true"${obNt()}><span class="pw-s-puis">${obPh('pour la première année, puis {plein}/an.',{plein:x.plein})}</span></span>
+      <span class="pw-o-plus" aria-hidden="true">${reperes.map(([i,t,m])=>`<span>${PW_ICO[i]}<span${m?obNt():''}>${t}</span></span>`).join('')}</span></div>
     <ul class="pw-plus">
       <li>${PW_ICO.video}<span><b>${nLecons}&nbsp;leçons vidéo</b>et leurs exercices</span></li>
       <li>${PW_ICO.manette}<span><b>${nDefis}&nbsp;défis</b>en solo ou entre amis</span></li>
@@ -47715,9 +47736,9 @@ function obSortieHTML(){
 function obSortiePied(){
   const x=obSortieInfo();if(!x)return;
   /* Ce qui est facturé, en clair et en premier (règle 3.1.2 d’Apple) : le montant d’aujourd’hui, puis celui de chaque année. */
-  const confiance=`<span class="pw-confiance"><span>${PW_ICO.cadenas}Paiement Apple</span><span>${PW_ICO.renouv}Annulable</span><span>${PW_ICO.bouclier}Données protégées</span></span>`;
-  const legal=confiance+`<b class="pw-sans">${x.intro} aujourd’hui pour la première année, puis ${x.plein} par an.</b> Pas d’essai gratuit sur cette offre. Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
-    +`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener">Conditions</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
+  const confiance=`<span class="pw-confiance"${obNt()}><span>${PW_ICO.cadenas}${obPh('Paiement Apple')}</span><span>${PW_ICO.renouv}${obPh('Annulable')}</span><span>${PW_ICO.bouclier}${obPh('Données protégées')}</span></span>`;
+  const legal=confiance+`<b class="pw-sans"${obNt()}>${obPh('{intro} aujourd’hui pour la première année, puis {plein} par an.',{intro:x.intro,plein:x.plein})}</b> Pas d’essai gratuit sur cette offre. Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
+    +`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener"${obNt()}>${obLangue()?obPh('Conditions d’utilisation'):'Conditions'}</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
   obSetFooter(`J’en profite à −${x.pct}\u00a0%`,obSortieAcheter,obPwBusy?'':'Non merci',obSortieRefuser,{html:legal},obPwBusy);
 }
 function obSortieRefuser(){if(obPwBusy)return;if(typeof buzz==='function')buzz('light');obPaywallVue(false);}
@@ -50792,6 +50813,11 @@ const OB_TEMOINS=[
 /* 12 novembre (réf. 1, sur l’étape « 1 000+ personnes apprécient Requête ») : « ne mets que cette personne, pas les autres » : l’avis de
    Sofia B. seul, sans les pastilles ni les flèches pour passer à un autre. Les trois avis restent ceux du site (OB_TEMOINS). */
 function obTemoinsListe(){return OB_TEMOINS.slice(0,1);}
+/* 15 novembre (Elisa : « voix sophia » en anglais) : l’avis audio dans la langue de l’appli quand il existe
+   (decouvrir/avis/<langue>/…, voix générée par tools/voix/<langue>/avis.json) : sa voix, sa durée et sa forme d’onde remplacent
+   celles du français ; son texte vient de langue-<langue>.js. */
+const OB_TEMOINS_LANGUE={};
+try{const L=window.REQUETE_LANGUE,x=L&&L.code!=='fr'&&OB_TEMOINS_LANGUE[L.code];if(x)OB_TEMOINS.forEach(r=>{if(x[r.prenom])Object.assign(r,x[r.prenom]);});}catch(e){}
 /* « Plus de 1 000 personnes accompagnées » : un chiffre affiché seulement quand il est vérifié. Un nombre ici le montre au-dessus des
    avis (« Plus de 1 000 personnes accompagnées ») ; null le cache. Elisa, 4 novembre, 14 h 50 : « vrai chiffre, 1000+, car j’ai un
    site web » (on y apprend sans compte : le serveur ne compte pas ces personnes). */
@@ -51863,10 +51889,12 @@ function rappelJours(){
 const JOURS_NOMS=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
 function rappelJoursTexte(jours){
   jours=jours||rappelJours();
-  if(jours.length>=7)return 'Chaque jour';
-  if(jours.length===5&&[1,2,3,4,5].every(d=>jours.includes(d)))return 'En semaine';
-  const n=[1,2,3,4,5,6,0].filter(d=>jours.includes(d)).map(d=>JOURS_NOMS[d]);
-  const t=n.length>1?`${n.slice(0,-1).join(', ')} et ${n[n.length-1]}`:(n[0]||'');
+  if(jours.length>=7)return obPh('Chaque jour');
+  if(jours.length===5&&[1,2,3,4,5].every(d=>jours.includes(d)))return obPh('En semaine');
+  /* 15 novembre : dans une autre langue, les jours dans la langue (« Monday and Thursday ») */
+  const L=obLangue();
+  const n=[1,2,3,4,5,6,0].filter(d=>jours.includes(d)).map(d=>L?new Date(2024,0,7+d).toLocaleDateString(obLoc(),{weekday:'long'}):JOURS_NOMS[d]);
+  const t=n.length>1?obPh('{a} et {b}',{a:n.slice(0,-1).join(', '),b:n[n.length-1]}):(n[0]||'');
   return t.charAt(0).toUpperCase()+t.slice(1);
 }
 /* Les messages du rappel (Elisa, 5 novembre, 19 h 41 : « remplace celle actuelle sur mon portable ») : huit, qui changent d’une
@@ -52060,8 +52088,10 @@ function rappelAuto(ms){
 /* « Prochain rappel : demain à 19:00 » (Mon compte) */
 function rappelQuand(t){
   const j=new Date(),n=Math.round((new Date(t.getFullYear(),t.getMonth(),t.getDate())-new Date(j.getFullYear(),j.getMonth(),j.getDate()))/864e5);
+  const heure=`${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+  if(obLangue()){const jour=n===0?obPh('aujourd’hui'):n===1?obPh('demain'):t.toLocaleDateString(obLoc(),{weekday:'long',month:'long',day:'numeric'});return obPh('{jour} à {heure}',{jour,heure});}
   const jour=n===0?'aujourd’hui':n===1?'demain':`${t.toLocaleDateString('fr-FR',{weekday:'long'})} ${t.getDate()===1?'1er':t.getDate()} ${t.toLocaleDateString('fr-FR',{month:'long'})}`;
-  return `${jour} à ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+  return `${jour} à ${heure}`;
 }
 /* Le rappel dans Mon compte (Elisa, 5 novembre, 12 h 12, réf. 5 et 6) : « Recevoir un rappel » (Désactivé, ou les jours et l’heure),
    « À quel moment ? » (Matin, Après-midi, Soir, puis les heures), une note sur l’autorisation de l’appareil, et « Enregistrer mes
@@ -52089,18 +52119,18 @@ function rappelFeuilleHTML(){
   /* Safari d’iPhone, hors écran d’accueil : pas de notifications du tout ; on le dit plutôt que de promettre un rappel. */
   const absent=d.on&&!natif&&typeof Notification==='undefined';
   const prochain=d.on?rappelSeances(new Date(),1,d.heure)[0]:null;
-  const note=bloque?'Les notifications sont bloquées pour ce site\u00a0: autorise-les dans les réglages de ton navigateur.'
-    :absent?'Ce navigateur n’affiche pas de notifications\u00a0: ton rappel ne pourra pas sonner ici.'
-    :d.on?(prochain?`Prochain rappel\u00a0: ${rappelQuand(prochain)}.`
-      :'Ton planning ne prévoit plus de séance\u00a0: pas de rappel pour l’instant.')
-    :'Active les rappels pour recevoir une notification à l’heure choisie, sous réserve des autorisations de ton appareil.';
+  const note=bloque?obPh('Les notifications sont bloquées pour ce site\u00a0: autorise-les dans les réglages de ton navigateur.')
+    :absent?obPh('Ce navigateur n’affiche pas de notifications\u00a0: ton rappel ne pourra pas sonner ici.')
+    :d.on?(prochain?obPh('Prochain rappel\u00a0: {quand}.',{quand:rappelQuand(prochain)})
+      :obPh('Ton planning ne prévoit plus de séance\u00a0: pas de rappel pour l’instant.'))
+    :obPh('Active les rappels pour recevoir une notification à l’heure choisie, sous réserve des autorisations de ton appareil.');
   return `<button class="acc-row rp-switch" type="button" role="switch" aria-checked="${d.on}" onclick="rappelBasculer()">
-          <div class="at"><b>Recevoir un rappel</b><small>${d.on?`Activé · ${rappelJoursTexte().toLowerCase()} à ${d.heure}`:'Désactivé'}</small></div>
+          <div class="at"><b>Recevoir un rappel</b><small${d.on?obNt():''}>${d.on?obPh('Activé · {jours} à {heure}',{jours:obLangue()?rappelJoursTexte():rappelJoursTexte().toLowerCase(),heure:d.heure}):'Désactivé'}</small></div>
           <span class="acc-toggle ${d.on?'on':''}" aria-hidden="true"><i></i></span></button>
         <div class="rp-quand">
           <p class="rp-l" id="rp-l">À quel moment&nbsp;?</p>
           ${rappelChoixHTML(d.heure,'rappelMoment','rappelChoisirHeure','rp-l')}
-          <p class="rp-note${bloque||absent?' is-ko':''}"><span class="rp-note-i">${RP_INFO_SVG}</span><span>${note}</span></p>
+          <p class="rp-note${bloque||absent?' is-ko':''}"><span class="rp-note-i">${RP_INFO_SVG}</span><span${obNt()}>${note}</span></p>
         </div>
         <div class="rp-pied"><button type="button" class="lq-btn rp-go" onclick="rappelEnregistrer()">Enregistrer mes préférences</button></div>`;
 }
@@ -52126,7 +52156,7 @@ function rappelEnregistrer(){
   renderCompte();
   /* 11 novembre, 21 h 33 (Elisa : « pareil pour le rappel enregistré, ça sera une micro-interaction et pas la notif ») : la coche
      ronde se plante sur la ligne « Rappel de séance », qui affiche déjà le nouveau réglage ; le lecteur d’écran entend le détail. */
-  const dit=d.on?`Rappel enregistré\u00a0: ${rappelJoursTexte()} à ${d.heure}`:'Rappel désactivé';
+  const dit=d.on?obPh('Rappel enregistré\u00a0: {jours} à {heure}',{jours:rappelJoursTexte(),heure:d.heure}):'Rappel désactivé';
   const ligne=()=>document.querySelector(`#scr-compte .account-setting-row[onclick="openPlusDetails('plus-reminders')"]`);
   if(typeof lqDone==='function')requestAnimationFrame(()=>lqDone(ligne(),d.on?'Enregistré':'Désactivé',dit));
   else if(typeof buzz==='function')buzz('success');
@@ -52529,7 +52559,7 @@ function renderCompte(){
             ${paysDuProfil()?`<label class="account-setting-row dx-drapeau-row"><span class="plus-row-icon is-stk" aria-hidden="true">${lqStkSvg('target')}</span><span><b>Afficher mon drapeau</b><small>${typeof paysMontre==='function'&&!paysMontre()?'Masqué dans les défis':'Dans les défis, à côté de ton pseudo'}</small></span><input type="checkbox" role="switch" class="pc-switch" ${typeof paysMontre==='function'&&!paysMontre()?'':'checked'} onchange="paysMontrer(this.checked)" aria-label="Afficher mon drapeau dans les défis"></label>`:''}
             ${langueLigneHTML(CHEV)}
             <button class="account-setting-row" type="button" onclick="openAccountPlanSettings()"><span class="plus-row-icon route is-stk">${lqStkSvg(ACCT_STK.route)}</span><span><b>Parcours et rythme</b><small>${planSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
-            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell is-stk">${lqStkSvg(ACCT_STK.bell)}</span><span><b>Rappel de séance</b><small>${remind?`${rappelJoursTexte()} à ${hour}`:'Désactivé'}</small></span><span class="account-setting-end">${CHEV}</span></button>
+            <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reminders')"><span class="plus-row-icon bell is-stk">${lqStkSvg(ACCT_STK.bell)}</span><span><b>Rappel de séance</b><small${remind?obNt():''}>${remind?obPh('{jours} à {heure}',{jours:rappelJoursTexte(),heure:hour}):'Désactivé'}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-pacte')"><span class="plus-row-icon is-stk">${lqStkSvg('pen')}</span><span><b>Mon engagement</b><small id="acct-pacte-sum">${pacteResume()}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-reading')"><span class="plus-row-icon reading is-stk">${lqStkSvg(ACCT_STK.reading)}</span><span><b>Confort de lecture</b><small>${readingSummary}</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
@@ -53517,7 +53547,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3047';
+  const SW_CACHE='requete-2026-11-15-module-v3048';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

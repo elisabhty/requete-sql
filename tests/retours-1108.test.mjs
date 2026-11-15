@@ -33,7 +33,7 @@ test('réf. 1 : choisir une source ne fait plus rejouer l’entrée de toutes le
 });
 
 test('réf. 2 : le rappel, les jours du parcours (pendant l’onboarding, ceux de l’étape des jours)', () => {
-  const ctx = vm.createContext({ PATTERN, state: { plan: { freq: 5 } }, draft: { freq: 3 }, document: { getElementById: () => ({ classList: { contains: c => c === 'on' } }) } });
+  const ctx = vm.createContext({ obLangue: () => null, obLoc: () => 'fr-FR', obNt: () => '', obPh: (g, v) => (v ? String(g).replace(/\{(\w+)\}/g, (t, k) => (k in v ? v[k] : t)) : String(g)), PATTERN, state: { plan: { freq: 5 } }, draft: { freq: 3 }, document: { getElementById: () => ({ classList: { contains: c => c === 'on' } }) } });
   vm.runInContext(rappel.replace('const JOURS_NOMS=', 'var JOURS_NOMS='), ctx);
   assert.deepEqual([...vm.runInContext('rappelJours()', ctx)], [1, 3, 5], 'onboarding ouvert : les jours choisis');
   ctx.document = { getElementById: () => ({ classList: { contains: () => false } }) };
@@ -87,7 +87,7 @@ test('réf. 2 : les notifications ne sonnent que les jours de séance, à l’he
     "  semaineOffset=0;jourSel=null;save();renderPlanning();\n  try{rappelNativeSync();}catch(e){}"])
     assert.ok(app.includes(k), k);
   /* Mon compte : les jours, plus « Rappel quotidien » */
-  assert.ok(app.includes("<span><b>Rappel de séance</b><small>${remind?`${rappelJoursTexte()} à ${hour}`:'Désactivé'}</small></span>") && !app.includes('Rappel quotidien'));
+  assert.ok(app.includes("<span><b>Rappel de séance</b><small${remind?obNt():''}>${remind?obPh('{jours} à {heure}',{jours:rappelJoursTexte(),heure:hour}):'Désactivé'}</small></span>") && !app.includes('Rappel quotidien'));
 });
 
 test('réf. 2 : la page du rappel, « À quel moment ? » comme dans Mon compte (5 novembre, 12 h 12), les jours de séance, et tout change sur place', () => {

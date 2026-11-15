@@ -125,7 +125,7 @@ test('réf. 4 : l’e-mail du compte connecté remplit le champ vide ; sinon, ce
 /* Le rappel de Mon compte dans un faux DOM. */
 function rappel({ store = {}, perm = 'default', sansNotif = false } = {}) {
   const body = { innerHTML: '', contains: () => false, querySelector: () => null }, appels = [];
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({ obLangue: () => null, obLoc: () => 'fr-FR', obNt: () => '', obPh: (g, v) => (v ? String(g).replace(/\{(\w+)\}/g, (t, k) => (k in v ? v[k] : t)) : String(g)), 
     localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = String(v); } }, PATTERN: { 7: [0, 1, 2, 3, 4, 5, 6], 5: [1, 2, 3, 4, 5] },
     state: { plan: { freq: 7 } }, draft: null, window: {}, navigator: { vibrate() {} }, Notification: sansNotif ? undefined : { permission: perm, requestPermission: () => appels.push('permission') },
     document: { activeElement: null, documentElement: { classList: { contains: () => false } }, getElementById: id => (id === 'rp-body' ? body : null), querySelector: s => ({ sel: s }) },
@@ -221,5 +221,5 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 test('les versions', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=386">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=73">') && sw.includes("'./onboarding-vitrine.css?v=73',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-15-module-v3047' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-15-module-v3048' && app.includes(`const SW_CACHE='${cache}';`));
 });

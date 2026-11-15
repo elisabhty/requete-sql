@@ -242,7 +242,7 @@
   var FORME = { B: 1, STRONG: 1, I: 1, EM: 1, U: 1, SMALL: 1, SPAN: 1, MARK: 1, SUP: 1, SUB: 1, A: 1, LABEL: 1 };
   var TEL_QUEL = { CODE: 1, KBD: 1, BR: 1, IMG: 1, svg: 1, SVG: 1, WBR: 1 };
   var SAUTE = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, PRE: 1, NOSCRIPT: 1, TEMPLATE: 1, IFRAME: 1 };
-  var ATTRIBUTS = ['placeholder', 'aria-label', 'title', 'alt'];
+  var ATTRIBUTS = ['placeholder', 'aria-label', 'title', 'alt', 'aria-valuetext'];
   var PHRASE_MAX = 700;
   var fait = typeof WeakMap === 'function' ? new WeakMap() : { get: function () {}, set: function () {} };   // élément ou nœud → ce qu'on y a écrit
   var obs = null;

@@ -316,3 +316,60 @@ test('l’onboarding ajouté le 14 novembre en anglais, et sa première requête
     "--n:${7+obSqlL('id, prenom, ville').length}", "--n:${17+obSqlL('ville').length}", 'aria-label="${escAttr(obJoursLabel(nWeek,joursOn))}"'])
     assert.ok(app.includes(k), k);
 });
+
+/* Elisa, 15 novembre, 1 h 49 : « fais attention dans l’onboarding. Beaucoup de phrases en français encore, et la voix de Sofia, et la
+   requête en français (SELECT prenom) ; la femme a un accent indien, je veux 6u6JbqKdaQy89ENzLSju ».
+   Le paywall et l’offre de bienvenue : les phrases qui portent un montant ou une date se traduisent par leur gabarit (obPh) et
+   s’écrivent avec les montants de la langue (« €44.99 », « $39.99 ») ; en français, au caractère près celles d’avant. Le rappel :
+   les jours dans la langue. La voix anglaise des vidéos : Brielle ; l’avis de Sofia B. : sa voix anglaise à générer (avis.json). */
+test('l’onboarding entier en anglais : le paywall, l’offre de bienvenue, le rappel ; la voix Brielle et l’avis de Sofia B.', () => {
+  const debut = app.indexOf('function obLangue(){'), fin = app.indexOf('\n}', app.indexOf('function obEuros(x){')) + 2;
+  const bloc = app.slice(debut, fin);
+  const fr = vm.createContext({window: {}, Intl, Object, String});
+  vm.runInContext(bloc, fr);
+  assert.equal(vm.runInContext('obEuros(44.99)', fr), '44,99 €');
+  assert.equal(vm.runInContext('obMoins(86)', fr), '−86&nbsp;%');
+  assert.equal(vm.runInContext('obNt()', fr), '');
+  assert.equal(vm.runInContext("obPh('{essai}, puis {prix} {par} à partir du {date}.',{essai:'3 jours d’essai',prix:'44,99 €',par:'par an',date:'18 novembre'})", fr),
+    '3 jours d’essai, puis 44,99 € par an à partir du 18 novembre.');
+  const {L} = anglais();
+  const en = vm.createContext({window: {REQUETE_LANGUE: L}, Intl, Object, String});
+  vm.runInContext(bloc, en);
+  assert.equal(vm.runInContext('obEuros(44.99)', en), '€44.99');
+  assert.equal(vm.runInContext('obMoins(86)', en), '−86%');
+  assert.equal(vm.runInContext('obNt()', en), ' data-notrad');
+  assert.equal(vm.runInContext("obPh('{essai}, puis {prix} {par} à partir du {date}.',{essai:obPh('3 jours d’essai'),prix:'$39.99',par:obPh('par an'),date:'November 18'})", en),
+    '3-day trial, then $39.99 per year starting November 18.');
+  assert.equal(vm.runInContext("obPh('{prix} aujourd’hui, puis {quand}.',{prix:'$4.99',quand:obPh('chaque semaine')})", en), '$4.99 today, then every week.');
+  assert.equal(vm.runInContext("obPh('<em>−{pct}&nbsp;%</em> sur ta première année',{pct:50})", en), '<em>50% off</em> your first year');
+  for (const [f, e] of [['Choisis ton offre', 'Choose your plan'], ['Paiement Apple', 'Paid via Apple'], ['Données protégées', 'Data protected'],
+    ['Renouvellement automatique, sauf annulation 24 h avant (réglages Apple).', 'Renews automatically unless canceled at least 24 hours before (Apple settings).'],
+    ['Conditions d’utilisation', 'Terms of Use'], ['Tu nous quittes déjà ?', 'Leaving already?'], ['J’en profite à −50 %', 'Claim my 50% off'],
+    ['Activé · {jours} à {heure}', 'On · {jours} at {heure}'], ['Prochain rappel : {quand}.', 'Next reminder: {quand}.'], ['{a} et {b}', '{a} and {b}'],
+    ['Écouter l’avis de Sofia B.', 'Play Sofia B.’s review'], ['Mettre en pause l’avis d’Aminata C.', 'Pause Aminata C.’s review'], ['0:05 sur 0:18', '0:05 of 0:18'], ['Me rappeler à 19 h 30', 'Remind me at 19:30']])
+    assert.equal(L.t(f), e, f);
+  for (const k of ["const prixHtml=k=>`<span class=\"pw-o-p\"${obNt()}><b>${obPrixTexte(k)}</b> ${obPh(sur(OB_OFFRES[k].par))}</span>`;",
+    "`<b class=\"pw-sans\"${obNt()}>${obPh('{essai}, puis {prix} {par} à partir du {date}.',",
+    "const zero=(ba&&obDevise(0,ba.devise,true))||(obLangue()?obEuros(0):'0&nbsp;€');",
+    "try{return new Intl.NumberFormat(obLoc(),Object.assign({style:'currency',currency:devise}",
+    "<span class=\"pw-confiance\"${obNt()}><span>${PW_ICO.cadenas}${obPh('Paiement Apple')}</span>",
+    "${obLangue()?obPh('Conditions d’utilisation'):'Conditions'}</a>",
+    "const t=n.length>1?obPh('{a} et {b}',{a:n.slice(0,-1).join(', '),b:n[n.length-1]}):(n[0]||'');",
+    "if(L&&L.code&&L.code!=='fr'&&L.locale)return [0,1,2,3,4,5,6].map(d=>new Date(2024,0,7+d).toLocaleDateString(L.locale,{weekday:'narrow'}));",
+    "const OB_TEMOINS_LANGUE={", "if(x)OB_TEMOINS.forEach(r=>{if(x[r.prenom])Object.assign(r,x[r.prenom]);});"])
+    assert.ok(app.includes(k), k);
+  assert.ok(MOTEUR.includes("var ATTRIBUTS = ['placeholder', 'aria-label', 'title', 'alt', 'aria-valuetext'];"), 'le temps lu de l’avis audio');
+  /* La voix des vidéos anglaises : Brielle, partout ; l’avis de Sofia B. : Jeni, une voix à part */
+  let total = 0;
+  for (const c of ['bases-relationnelles', 'as', 'distinct', ...M2]) {
+    const j = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.deepEqual(j.voix, {id: '6u6JbqKdaQy89ENzLSju', nom: 'Brielle'}, c);
+    total += j.elements.reduce((s, e) => s + e.texte.length, 0);
+  }
+  const avis = JSON.parse(lire('tools/voix/en/avis.json'));
+  assert.equal(avis.langue, 'en'); assert.equal(avis.cours, 'avis'); assert.equal(avis.elements.length, 1);
+  assert.equal(avis.elements[0].id, 'sofia-b'); assert.ok(avis.elements[0].texte.startsWith('[excited] I landed my first job in data!'));
+  assert.notEqual(avis.voix.id, '6u6JbqKdaQy89ENzLSju');
+  total += avis.elements[0].texte.length;
+  assert.ok(total > 38000 && total < 45000, `${total} caractères`);
+});
