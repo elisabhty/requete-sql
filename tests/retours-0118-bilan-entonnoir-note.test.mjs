@@ -84,7 +84,7 @@ test('l’entonnoir continue après l’accueil : 1re leçon commencée, 1re et 
   /* La page de confidentialité le dit, avec sa date */
   const p = lire('decouvrir/confidentialite.html');
   assert.ok(p.includes('Le même décompte continue après l’accueil&nbsp;: la première leçon commencée, la première et la deuxième leçon terminées, et les fois où l’appli demande à iOS de te proposer de la noter (ta note, elle, n’arrive jamais à Requête).'));
-  assert.ok(p.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 14 novembre 2026</p>'));   // 14 : le jeu suit le compte
+  assert.ok(p.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 15 novembre 2026</p>'));   // 14 : le jeu suit le compte
 });
 
 /* La note : l’accueil hors de l’app, avec une date, des modules et une série qu’on choisit */

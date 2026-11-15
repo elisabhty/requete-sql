@@ -161,5 +161,5 @@ test('les textes : l’accueil ne promet plus sans compte ; la confidentialité 
   assert.ok(app.includes("'Avec un compte, ta progression te suit sur tous tes appareils.'") && !app.includes('Ta progression sera sauvegardée sur tous tes appareils.'));
   assert.ok(app.includes('Avec un compte&nbsp;: leçons, défis, notes, planning, ton pseudo, tes points et tes parties sont sauvegardés et te suivent sur tes autres appareils.'));
   const conf = readFileSync(new URL('../decouvrir/confidentialite.html', import.meta.url), 'utf8');
-  assert.ok(conf.includes('l’identifiant de joueur tiré au hasard par ton appareil (celui qui porte ton pseudo et tes points au classement)') && conf.includes('Dernière mise à jour&nbsp;: 14 novembre 2026'));
+  assert.ok(conf.includes('l’identifiant de joueur tiré au hasard par ton appareil (celui qui porte ton pseudo et tes points au classement)') && conf.includes('Dernière mise à jour&nbsp;: 15 novembre 2026'));
 });

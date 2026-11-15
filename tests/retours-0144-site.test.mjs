@@ -148,7 +148,7 @@ test('confidentialité : l’appli sur iPhone, le compte, l’abonnement par l�
   const p = site['confidentialite.html'], t = corps('confidentialite.html');
   /* 14 novembre : le compte est facultatif (11 h 32) */
   assert.ok(p.includes('<p class="lead">Requête est une appli pour iPhone&nbsp;: tu peux t’y connecter avec Apple ou Google (c’est facultatif), et ton compte sauvegarde alors ta progression. Ce site, lui, la présente. Voici précisément ce qui circule, et pourquoi.</p>'));
-  assert.ok(p.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 14 novembre 2026</p>'));
+  assert.ok(p.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 15 novembre 2026</p>'));
   assert.ok(p.includes('sont enregistrés dans l’appli, sur ton iPhone. Une partie est aussi sauvegardée avec ton compte (voir «&nbsp;Ton compte&nbsp;»)&nbsp;; ce qui sort de ton iPhone est détaillé plus bas.</p>'));
   assert.ok(p.includes('sont lus et transformés en tables directement sur ton iPhone&nbsp;: ils ne quittent pas ton appareil.'));
   assert.ok(p.includes('<li><a href="#compte">Ton compte</a></li>') && p.includes('<li><a href="#abonnement">Abonnement Requête Premium</a></li>'), 'le sommaire suit les titres');

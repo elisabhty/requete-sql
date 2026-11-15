@@ -7516,6 +7516,8 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     /* 15 novembre, 20 h 55 : la fin d’une partie */
     "Le bilan s’affiche dans <1>{1}</1> s": "The summary appears in <1>{1}</1> s",
     /* 15 novembre, 21 h : la page du pays avec le prénom */
-    "Tu vis <1>où</1>, {x1} ?": "<1>Where</1> do you live, {x1}?"
+    "Tu vis <1>où</1>, {x1} ?": "<1>Where</1> do you live, {x1}?",
+    /* 15 novembre, 21 h 10 : le drapeau dans la feuille du pays */
+    "{x1} · drapeau masqué": "{x1} · flag hidden"
   }
 });

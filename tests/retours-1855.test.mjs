@@ -130,8 +130,13 @@ test('le pays part avec le pseudo, une fois, et null quand on le masque', async 
   assert.deepEqual(J(c.appels.filter(a => a[0] === 'jeu_pays').at(-1)[1].p_pays), null);
   assert.equal(c.ctx.state.salle.paysVoir, false);
   assert.equal(c.ctx.state.salle.paysEnv, '');
-  /* Mon compte : la ligne « Afficher mon drapeau », sous le pays */
-  assert.ok(app.includes('<label class="account-setting-row dx-drapeau-row">') && app.includes('<b>Afficher mon drapeau</b>') && app.includes('onchange="paysMontrer(this.checked)" aria-label="Afficher mon drapeau dans les défis"'));
+  /* Mon compte : « Afficher mon drapeau », dans la feuille du pays depuis le 15 novembre (21 h 10) ; la ligne Pays dit quand il est masqué */
+  assert.ok(!app.includes('dx-drapeau-row'), 'plus dans la liste des réglages');
+  assert.ok(app.includes('<b>Afficher mon drapeau</b>') && app.includes('onchange="paysDrapeauBascule(this)" aria-label="Afficher mon drapeau dans les défis"'));
+  assert.ok(fn('paysChanger', '\n}\n').includes('},{drapeau:!!paysDuProfil()});'), 'la feuille du pays, ouverte depuis Mon compte, le propose');
+  assert.ok(app.includes("${o&&o.drapeau&&typeof paysDrapeauOptHTML==='function'?paysDrapeauOptHTML():''}"), 'sous le titre de la feuille');
+  assert.ok(app.includes("(typeof paysMontre==='function'&&!paysMontre()?' · drapeau masqué':'')"), 'la ligne Pays le dit');
+  assert.ok(fn('paysDrapeauBascule', '\n}\n').includes('paysMontrer(inp.checked);'));
   assert.ok(fn('psAdopter', '\n}\n').includes("if(typeof paysSync==='function')setTimeout(paysSync,0);"), 'dès que le pseudo est réservé');
   assert.ok(fn('paysChanger', '\n}\n').includes("if(typeof paysSync==='function')paysSync();"), 'quand le pays change');
 });
@@ -253,9 +258,9 @@ test('sans la nouvelle base, le classement retombe sur l’ancien Top 12, en pag
 test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les versions', () => {
   const conf = lire('decouvrir/confidentialite.html');
   assert.ok(conf.includes('Une salle publique (le choix proposé quand tu en crées une) apparaît dans la liste des salles ouvertes («&nbsp;Rejoins une partie&nbsp;»)'));
-  assert.ok(conf.includes('Ton pays y est enregistré avec lui, pour afficher ton drapeau à côté de ton pseudo dans les défis&nbsp;; tu peux le masquer dans Mon compte («&nbsp;Afficher mon drapeau&nbsp;»).'));
+  assert.ok(conf.includes('Ton pays y est enregistré avec lui, pour afficher ton drapeau à côté de ton pseudo dans les défis&nbsp;; tu peux le masquer dans Mon compte › Pays («&nbsp;Afficher mon drapeau&nbsp;»).'));
   assert.ok(conf.includes('Les autres joueurs voient le classement (5 joueurs par page, avec leur drapeau)'));
-  assert.ok(conf.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 14 novembre 2026</p>'), 'mise à jour le 6 novembre (les durées de conservation), le 11 (l’alerte en notification), le 12 (le compte), puis le 14 (le jeu suit le compte)');
+  assert.ok(conf.includes('<p class="lg-maj">Dernière mise à jour&nbsp;: 15 novembre 2026</p>'), 'mise à jour le 6 novembre (les durées de conservation), le 11 (l’alerte en notification), le 12 (le compte), puis le 14 (le jeu suit le compte)');
   const ios = lire('IOS.md');
   assert.ok(ios.includes('- **Défis en trois onglets**') && ios.includes('« Localisation approximative » (le pays)'));
   const ms = lire('multiplayer-security.js');
@@ -263,5 +268,5 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   assert.ok(app.includes('<script src="multiplayer-security.js?v=12"></script>') && sw.includes("'./multiplayer-security.js?v=12',"));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=386">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-15-module-v3085');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-15-module-v3086');
 });

@@ -210,7 +210,7 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
     assert.ok(lire('decouvrir/' + f).includes(`vitrine.css?v=${v}`), `${f} : la feuille du site à jour`);
   /* 6 novembre : les conditions (l’app pour iPhone, plus « bientôt ») et la confidentialité (les durées de conservation) changent */
   /* Mentions légales : le 13 aussi, depuis que l’éditrice y est nommée (retours-1129-pages-legales.test.mjs) */
-  for (const [f, jour] of [['conditions.html', 14], ['mentions-legales.html', 13], ['confidentialite.html', 14]]) {   // 14 : le compte facultatif, le jeu suit le compte   // 12 : le compte de l’appli iPhone ; 13 : le décompte après l’accueil, puis l’appli sur iPhone seulement (conditions aussi)
+  for (const [f, jour] of [['conditions.html', 14], ['mentions-legales.html', 13], ['confidentialite.html', 15]]) {   // 14 : le compte facultatif, le jeu suit le compte   // 12 : le compte de l’appli iPhone ; 13 : le décompte après l’accueil, puis l’appli sur iPhone seulement (conditions aussi)
     const p = lire('decouvrir/' + f);
     assert.ok(p.includes('«&nbsp;Contacte-nous&nbsp;»') && !p.includes('Nous contacter') && p.includes(`Dernière mise à jour&nbsp;: ${jour} novembre 2026`), f);
   }
@@ -221,5 +221,5 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 test('les versions', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=386">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=73">') && sw.includes("'./onboarding-vitrine.css?v=73',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-15-module-v3085' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-15-module-v3086' && app.includes(`const SW_CACHE='${cache}';`));
 });

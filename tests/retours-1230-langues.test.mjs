@@ -175,7 +175,7 @@ test('index.html : langues.js juste après maj.js, le prénom confié au moteur,
   assert.ok(app.includes('    ${langueReglageHTML()}\n    <details class="plus-details" id="plus-contact">'), 'le réglage « Langue », dans Mon compte, avant « Contacte-nous »');
   /* 13 novembre, 15 h 17 : « mets la langue en bas du pays » */
   const reglages = app.slice(app.indexOf('aria-labelledby="acct-settings-t"'));
-  assert.ok(reglages.indexOf('${langueLigneHTML(CHEV)}') > reglages.indexOf('dx-drapeau-row') && reglages.indexOf('${langueLigneHTML(CHEV)}') < reglages.indexOf('<b>Parcours et rythme</b>'), 'sa ligne dans les réglages, sous « Pays » (et son drapeau)');
+  assert.ok(reglages.indexOf('${langueLigneHTML(CHEV)}') > reglages.indexOf('onclick="paysChanger()"') && reglages.indexOf('${langueLigneHTML(CHEV)}') < reglages.indexOf('<b>Parcours et rythme</b>'), 'sa ligne dans les réglages, sous « Pays » (le drapeau est dans la feuille du pays depuis le 15 novembre)');
   const d = app.indexOf('function langueLigneHTML(chevron){'), f = app.indexOf('function openLegal(kind){');
   const ctx = {window: {}, esc: s => String(s)};
   vm.runInNewContext(app.slice(d, f) + ';this.html=langueReglageHTML;this.ligne=langueLigneHTML;', ctx);

@@ -156,7 +156,7 @@ test('« Comment sont calculés les points ? » : une rangée bien visible sous 
 test('chaque classe des défis a son style : l’onglet Joueurs avait perdu ses deux boutons à 10 h 16', () => {
   const classes = new Set([...app.matchAll(/class="([^"]*)"/g)].flatMap(m => m[1].split(/[\s$]+/)).map(k => (k.match(/^dx-[a-z0-9-]+/) || [''])[0]).filter(Boolean));
   const sans = [...classes].filter(k => !new RegExp(`\\.${k}(?![a-z0-9-])`).test(lq)).sort();
-  assert.deepEqual(sans, ['dx-drapeau-row', 'dx-pager'], 'seuls des repères pour le script restent sans style à eux');
+  assert.deepEqual(sans, ['dx-pager'], 'seuls des repères pour le script restent sans style à eux');
   for (const k of ['html.lq #scr-defis .dx-duo{display:flex;gap:10px;margin-top:14px}', 'html.lq #scr-defis .dx-sec{flex:1;min-height:46px;padding:10px 8px;border:2px solid var(--card-border);',
     'html.lq #scr-defis .dx-sec.on{border-color:var(--accent);background:var(--accent-soft)}', '@media (max-width:350px){html.lq #scr-defis .dx-me{gap:10px;padding:12px}'])
     assert.ok(lq.includes(k), k);
@@ -173,5 +173,5 @@ test('la salle ouverte se dit visible par les autres joueurs, partout où l’on
 test('les versions : la feuille de style et le cache', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=386">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-15-module-v3085' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-15-module-v3086' && app.includes(`const SW_CACHE='${cache}';`));
 });

@@ -137,7 +137,8 @@ test('le drapeau sur le rond du compte : l’onglet Compte, Mon compte, et la li
   ctx.paysDuProfil = () => ''; ctx.renderLearnAvatar();
   assert.equal(el.innerHTML, 'E', 'sans pays : l’initiale seule');
   assert.ok(app.includes('<span class="acct-pic" aria-hidden="true"><span class="acct-avatar">${esc(initial)}<i>${ACCT_PEN_SVG}</i>${paysDuProfil()?`<b class="acct-drapeau">${paysDrapeau(paysDuProfil())}</b>`:\'\'}</span>'));   // 6 novembre, 6 h 10 : l’avatar et son « Niv. 2 » dessous
-  assert.ok(app.includes('<button class="account-setting-row" type="button" onclick="paysChanger()"><span class="plus-row-icon is-drapeau" aria-hidden="true">${paysDuProfil()?paysDrapeau(paysDuProfil()):\'🌍\'}</span><span><b>Pays</b><small>${paysDuProfil()?esc(paysNom(paysDuProfil())):\'Choisir mon pays\'}</small></span>'));
+  /* 15 novembre (21 h 10) : la ligne dit aussi quand le drapeau est masqué (son réglage est dans la feuille du pays) */
+  assert.ok(app.includes('<button class="account-setting-row" type="button" onclick="paysChanger()"><span class="plus-row-icon is-drapeau" aria-hidden="true">${paysDuProfil()?paysDrapeau(paysDuProfil()):\'🌍\'}</span><span><b>Pays</b><small>${paysDuProfil()?esc(paysNom(paysDuProfil()))+(typeof paysMontre===\'function\'&&!paysMontre()?\' · drapeau masqué\':\'\'):\'Choisir mon pays\'}</small></span>'));
   const ch = cut('function paysChanger(){', '\n}\n');
   assert.ok(ch.includes('state.profile=Object.assign({},state.profile||{},{pays:code,paysAuto:false});save();') && ch.includes('renderCompte();'));
 });
