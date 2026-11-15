@@ -123,7 +123,8 @@ test('le SQL : une requête récrite pour la base anglaise (tables, colonnes sel
     ['select clients.nom, produits.nom from clients, produits', 'select customers.last_name, products.name from customers, products'],
     ['SELECT NOM FROM CLIENTS', 'SELECT LAST_NAME FROM CUSTOMERS'],
     ['SELECT p.nom AS produit, SUM(co.quantite) FROM commandes AS co INNER JOIN produits AS p ON p.id = co.produit_id GROUP BY p.nom',
-      'SELECT p.name AS produit, SUM(co.quantity) FROM orders AS co INNER JOIN products AS p ON p.id = co.product_id GROUP BY p.name'],
+      /* 15 novembre (le module 5) : l’alias aussi, comme ceux des vidéos (base.defauts : produit : product) */
+      'SELECT p.name AS product, SUM(co.quantity) FROM orders AS co INNER JOIN products AS p ON p.id = co.product_id GROUP BY p.name'],
     ['SELECT \'nom\' AS texte -- la colonne nom\nFROM fidelite WHERE points > 100', 'SELECT \'nom\' AS texte -- la colonne nom\nFROM loyalty WHERE points > 100'],
     ['SELECT COUNT(*) FROM commandes WHERE date_commande >= \'2024-01-01\'', 'SELECT COUNT(*) FROM orders WHERE order_date >= \'2024-01-01\''],
   ];

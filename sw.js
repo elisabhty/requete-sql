@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-15-module-v3054';
+const CACHE = 'requete-2026-11-15-module-v3055';
 
 const PRECACHE = [
   './safari-surface.css?v=14',
@@ -269,6 +269,26 @@ const PRECACHE = [
   './assets/anim/en/ordre-execution-thumb.webp',
   './assets/anim/en/group-concat.js?v=1',
   './assets/anim/en/group-concat-thumb.webp',
+  './assets/anim/en/inner-join.js?v=1',
+  './assets/anim/en/inner-join-thumb.webp',
+  './assets/anim/en/left-join.js?v=1',
+  './assets/anim/en/left-join-thumb.webp',
+  './assets/anim/en/right-join.js?v=1',
+  './assets/anim/en/right-join-thumb.webp',
+  './assets/anim/en/full-outer-join.js?v=1',
+  './assets/anim/en/full-outer-join-thumb.webp',
+  './assets/anim/en/cross-join.js?v=1',
+  './assets/anim/en/cross-join-thumb.webp',
+  './assets/anim/en/jointure-3-tables.js?v=1',
+  './assets/anim/en/jointure-3-tables-thumb.webp',
+  './assets/anim/en/join-group-by.js?v=1',
+  './assets/anim/en/join-group-by-thumb.webp',
+  './assets/anim/en/self-join.js?v=1',
+  './assets/anim/en/self-join-thumb.webp',
+  './assets/anim/en/plusieurs-conditions-on.js?v=1',
+  './assets/anim/en/plusieurs-conditions-on-thumb.webp',
+  './assets/anim/en/quel-join-choisir.js?v=1',
+  './assets/anim/en/quel-join-choisir-thumb.webp',
   './assets/anim/conference-nutrition.webp',
   './assets/anim/evenement-ephemere.webp',
   './assets/anim/colis-dechire.webp',

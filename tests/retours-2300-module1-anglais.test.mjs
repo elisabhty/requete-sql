@@ -493,7 +493,7 @@ test('le module 4 en entier : chaque vidéo charge ses textes anglais, gardés n
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(/Course\(\{(codeSel: '[^']+', )?duration: DURATION,/.test(pg), c);
   }
-  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4].map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4].map(c => `'${c}'`).join(',') + ','));
   for (const [c, t] of [['count', 'produits'], ['agregats', 'produits'], ['group-by', 'clients'], ['group-by-colonnes', 'commandes'], ['having', 'clients'], ['ordre-execution', 'commandes'], ['group-concat', 'commandes']])
     assert.ok(lire(`assets/anim/${c}.html`).includes(`<body data-table="${t}">`), c);
   for (const c of ['count', 'agregats', 'group-by', 'having', 'group-concat']) assert.ok(lire(`assets/anim/${c}.html`).includes("Course({codeSel: '.mini', duration: DURATION,"), c);
@@ -545,4 +545,73 @@ test('la voix anglaise du module 4 : Brielle, les ids du français, les agrégat
     total += en.elements.reduce((a, e) => a + e.texte.length, 0);
   }
   assert.ok(total > 16000 && total < 20000, `${total} caractères (autant de crédits)`);
+});
+
+/* Elisa, 15 novembre, 7 h 51 : « prochain ». Le module 5 (Jointures) en anglais : dix vidéos. Le moteur a appris : les tables
+   propres à une page (« Quel JOIN choisir ? » : medecins, bassins, livres… dans en/quel-join-choisir.js), un alias posé sur une
+   autre carte (SELF JOIN : « c1.client_id »), les en-têtes de tableau et les cartes de code trop larges en anglais (thFit, .mini). */
+const M5 = ['inner-join', 'left-join', 'right-join', 'full-outer-join', 'cross-join', 'jointure-3-tables', 'join-group-by', 'self-join', 'plusieurs-conditions-on', 'quel-join-choisir'];
+
+test('le module 5 en entier : chaque vidéo charge ses textes anglais, gardés nombre pour nombre, avec sa vignette, préchargés', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  for (const c of M5) {
+    const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X').replace('? points', '').replace('? rows', '').replace('? customer', '')), `${c} : la typographie anglaise : ${v}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
+    assert.ok(/<body data-table="(clients|produits|commandes)">/.test(pg), c);
+  }
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5].map(c => `'${c}'`).join(',') + ']};'));
+  const q = lire('assets/anim/quel-join-choisir.html');
+  assert.ok(q.includes("Course({codeSel: '.qy, .tb2 .h, .gr.hd span', duration: DURATION,") && q.includes('html[lang="en"] #s0 .title span.sp{margin-right:0}'));
+  assert.ok(lire('assets/anim/full-outer-join.html').includes('<span class="k" data-id="${id}" data-en="#${id}">n°${id}</span>'));
+  /* Les tables des six cas, pour cette page seulement */
+  const {L, ctx} = anglais();
+  vm.runInNewContext(lire('assets/anim/en/quel-join-choisir.js'), ctx);
+  assert.equal(L.sql('SELECT rendez_vous.patient, medecins.nom AS medecin FROM rendez_vous INNER JOIN medecins ON rendez_vous.medecin_id = medecins.id'),
+    'SELECT appointments.patient, doctors.name AS doctor FROM appointments INNER JOIN doctors ON appointments.doctor_id = doctors.id');
+  assert.equal(L.sql('SELECT s.nom, m.nom AS manager FROM salaries AS s JOIN salaries AS m ON s.manager_id = m.id'), 'SELECT s.name, m.name AS manager FROM employees AS s JOIN employees AS m ON s.manager_id = m.id');
+  assert.ok(MOTEUR.includes("if (B && TRAD.base) ['tables', 'defauts', 'valeurs'].forEach("));
+  /* Un alias posé ailleurs, un préfixe inconnu : la table du contexte */
+  const {L: L2} = anglais();
+  assert.equal(L2.sql(' c1.client_id = c2.client_id AND c1.date_commande = c2.date_commande', 'commandes FROM commandes AS c1 JOIN commandes AS c2'), ' c1.customer_id = c2.customer_id AND c1.order_date = c2.order_date');
+  assert.equal(L2.sql(' t.nom', 'SELECT t.nom FROM (SELECT nom FROM clients) t'), ' t.last_name');
+  assert.equal(L2.sql('SELECT COUNT(*) AS nombre_commandes FROM commandes'), 'SELECT COUNT(*) AS order_count FROM orders');
+  /* En anglais, les en-têtes et les cartes de code trop larges prennent une police plus petite ; le français ne change pas */
+  assert.ok(core.includes('const thFit = () => {\n  if (!LG) return;') && core.includes('    codeFit();\n    thFit();\n'));
+  assert.ok(core.includes("  $$('.mini').forEach(m => {"));
+  for (const [fr, en] of [['conserve <1>toutes les lignes de la table de gauche</1>, même sans correspondance dans la table de droite.', 'keeps <1>every row of the left table</1>, even with no match in the right table.'],
+    ['Condition {1} : c’est le client de la commande. Condition {2} : il habite à Paris.'.replace('{1}', '1').replace('{2}', '2'), 'Condition 1: it’s the order’s customer. Condition 2: they live in Paris.']])
+    assert.equal(L2.t(fr), en, fr);
+  const sj = textesDe('self-join');
+  assert.equal(sj['n°{1}'], '#{1}'); assert.equal(sj['client {1} · {2} {m1}'], 'customer {1} · {m1} {2}');
+});
+
+test('la voix anglaise du module 5 : Brielle, les ids du français, les jointures dites comme on les lit', () => {
+  const br = JSON.parse(lire('tools/voix/en/bases-relationnelles.json')), prep = lire('tools/voix/preparer-langue.mjs');
+  assert.ok(prep.includes("const M = (typeof MOMENTS !== 'undefined' ? MOMENTS : typeof PICKS !== 'undefined' ? PICKS : []).map("), 'les moments de « Quel JOIN choisir ? »');
+  const DIRE = new Function(prep.slice(prep.indexOf('const B = '), prep.indexOf('const parFichier')) + '\nreturn DIRE;')();
+  for (const [x, dit] of [['No customer matches it: INNER JOIN leaves it out of the result.', 'No customer matches it: inner join leaves it out of the result.'],
+    ['Here it filters on products.name, a column of the third table.', 'Here it filters on products dot name, a column of the third table.'],
+    ["Your turn! Where does WHERE products.name = 'Magnesium' go?", 'Your turn! Where does where products dot name equals Magnesium go?']])
+    assert.equal(DIRE(x), dit, x);
+  let total = 0;
+  for (const c of M5) {
+    const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.equal(en.langue, 'en'); assert.equal(en.cours, c); assert.deepEqual(en.voix, br.voix, c); assert.equal(en.modele, fr.modele);
+    const ids = fr.elements.map(e => e.id), chs = ids.filter(i => /^ch/.test(i));
+    assert.deepEqual(en.elements.map(e => e.id), ids.filter(i => en.elements.some(e => e.id === i)), `${c} : l’ordre du français`);
+    assert.ok(!en.elements.some(e => e.id === chs[chs.length - 1]), `${c} : le « Pour finir » n’est pas joué dans l’appli`);
+    for (const e of en.elements) {
+      const t = e.texte.replace(/^\[\w+\]\s*/, '');
+      assert.ok(t.length > 3, `${c} ${e.id} : vide`);
+      assert.ok(!/[«»<>=≠→⇔|+*%_×−']|\w\(|\w\.\w|&[a-z]+;|Pour finir|idées à retenir|\b(SELECT|FROM|WHERE|JOIN|INNER|LEFT|RIGHT|CROSS|COUNT|GROUP BY|NULL|DISTINCT)\b/.test(t), `${c} ${e.id} : ${t}`);
+      if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
+    }
+    total += en.elements.reduce((a, e) => a + e.texte.length, 0);
+  }
+  assert.ok(total > 25000 && total < 31000, `${total} caractères (autant de crédits)`);
 });

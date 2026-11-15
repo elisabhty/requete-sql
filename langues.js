@@ -190,6 +190,12 @@
       if (j >= 0 && L[j].g === 'nom' && L[j].v.toUpperCase() === 'AS') j = suivant(j);
       if (j >= 0 && L[j].g === 'nom' && !T[L[j].v.toLowerCase()] && !/^(ON|USING|WHERE|GROUP|ORDER|HAVING|LIMIT|JOIN|INNER|LEFT|RIGHT|FULL|CROSS|NATURAL|UNION|EXCEPT|INTERSECT|SET|VALUES|AS)$/i.test(L[j].v)) { alias[L[j].v.toLowerCase()] = nomTable; L[j].alias = true; }
     }
+    /* Les alias posés ailleurs dans le contexte (15 novembre, SELF JOIN : « FROM commandes AS c1 » sur une autre carte que
+       « c1.client_id ») : un préfixe inconnu de la requête y est cherché. */
+    if (contexte) { var C = decouper(String(contexte)).filter(function (x) { return x.g !== 'autre' || /\S/.test(x.v); });
+      for (i = 0; i + 1 < C.length; i++) { var tc = C[i].g === 'nom' ? C[i].v.toLowerCase() : ''; tc = T[tc] ? tc : deja[tc] || ''; if (!tc || (C[i + 1].v === '.')) continue;
+        j = i + 1; if (C[j].g === 'nom' && C[j].v.toUpperCase() === 'AS') j++;
+        if (j < C.length && C[j].g === 'nom' && !T[C[j].v.toLowerCase()] && !deja[C[j].v.toLowerCase()] && !/^(ON|USING|WHERE|GROUP|ORDER|HAVING|LIMIT|JOIN|INNER|LEFT|RIGHT|FULL|CROSS|NATURAL|UNION|EXCEPT|INTERSECT|SET|VALUES|AS)$/i.test(C[j].v) && !alias[C[j].v.toLowerCase()]) alias[C[j].v.toLowerCase()] = tc; } }
     for (i = 0; i < L.length; i++) {
       var e = L[i];
       if (e.g === 'chaine') { var c = e.v.slice(1, -1).replace(/''/g, "'"); if (Object.prototype.hasOwnProperty.call(valeursBase, c)) e.v = "'" + String(valeursBase[c]).replace(/'/g, "''") + "'"; continue; }
@@ -202,7 +208,9 @@
       if (p >= 0 && L[p].v === '.') {
         var q = precedent(p), prefixe = q >= 0 && L[q].g === 'nom' ? L[q].v.toLowerCase() : '';
         table = L[q] && L[q].table ? L[q].table : alias[prefixe] || '';
-        if (!table) continue;   // préfixe inconnu (une sous-requête nommée) : laissé
+        /* Préfixe inconnu (une sous-requête nommée, un alias posé sur une autre carte) : la table du contexte qui a cette colonne */
+        if (!table) { for (j = 0; j < autour.length && !table; j++) if (Object.prototype.hasOwnProperty.call(T[autour[j]][1], nom)) table = autour[j]; }
+        if (!table) continue;
       } else {
         /* Sans préfixe : la table citée la plus proche qui a cette colonne */
         var mieux = -1;
@@ -459,6 +467,10 @@
       if (!TRAD) TRAD = { textes: {}, base: null, mots: null };
       var D = contenu.textes || {}, k;
       for (k in D) TRAD.textes[k] = D[k];
+      /* Les tables propres à une page (15 novembre, « Quel JOIN choisir ? » : medecins, bassins, livres…) : ses tables, ses alias et ses
+         valeurs s'ajoutent à la base de la langue, pour cette page seulement. */
+      var B = contenu.base;
+      if (B && TRAD.base) ['tables', 'defauts', 'valeurs'].forEach(function (n) { if (!B[n]) return; var x = TRAD.base[n] = Object.assign({}, TRAD.base[n] || {}); for (var t in B[n]) x[t] = B[n][t]; });
       connues = null;
       if (contenu.voix) API.voix = contenu.voix;
       try { if (document.body) passer(document.body); } catch (e) {}

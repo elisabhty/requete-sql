@@ -94,6 +94,29 @@ const codeFit = () => {
     b.querySelectorAll('.ln').forEach(l => { const r = document.createRange(); r.selectNodeContents(l); large = Math.max(large, r.getBoundingClientRect().width); });
     if (large > dispo) b.style.fontSize = (Math.floor(parseFloat(cs.fontSize) * dispo / large * 2) / 2) + 'px';
   });
+  /* Les cartes de code (.mini) : une requête anglaise plus longue (loyalty.points) que la française, sans déborder du bouton ▶ */
+  $$('.mini').forEach(m => {
+    const box = m.getBoundingClientRect();
+    if (!m.offsetWidth || !box.width || getComputedStyle(m).display === 'inline') return;
+    const cs = getComputedStyle(m), k = box.width / m.offsetWidth, go = m.querySelector('.go');
+    const gauche = box.left + (parseFloat(cs.paddingLeft) + m.clientLeft) * k;
+    const dispo = (m.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)) * k - (go ? go.getBoundingClientRect().width + 12 * k : 0);
+    let large = 0;
+    m.childNodes.forEach(n => { if (n === go) return; const r = document.createRange(); r.selectNode(n); const rr = r.getBoundingClientRect(); if (rr.width) large = Math.max(large, rr.right - gauche); });
+    if (dispo > 0 && large > dispo) m.style.fontSize = (Math.floor(parseFloat(cs.fontSize) * dispo / large * 2) / 2) + 'px';
+  });
+};
+/* 15 novembre (le module 5 en anglais) : un en-tête de tableau trop long dans une autre langue (first_name à la place de prenom)
+   prend une police plus petite, cellule par cellule ; le français ne change pas. */
+const thFit = () => {
+  if (!LG) return;
+  $$('.th > div, .hd > span, .hd > div').forEach(d => {
+    const box = d.getBoundingClientRect();
+    if (!d.offsetWidth || !box.width || d.firstElementChild) return;
+    const cs = getComputedStyle(d), k = box.width / d.offsetWidth, dispo = (d.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 4) * k;
+    const r = document.createRange(); r.selectNodeContents(d); const large = r.getBoundingClientRect().width;
+    if (large > dispo && dispo > 0) d.style.fontSize = (Math.floor(parseFloat(cs.fontSize) * dispo / large * 2) / 2) + 'px';
+  });
 };
 function fr(h){
   if (LG) return LG.html(h);
@@ -1454,6 +1477,7 @@ function Course(cfg){
     await document.fonts.ready;
     smsFit();
     codeFit();
+    thFit();
     chromeTimeline(chapters, captions, duration);
     cfg.build();
     let rest = [];

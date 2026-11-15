@@ -133,6 +133,15 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   `mois` : `month`, `colonne` : `column`). Le code hors des éditeurs (les cartes `.mini`, les étapes `.cl`) se récrit avec
   `Course({codeSel: …})`. Une date jour/mois se lit mois/jour en anglais (`{2}/{1}`, ou `data-en` sur une case dessinée) ; un
   mot dessiné lettre par lettre prend son `data-en` (ORDRE : ORDER) ; un nombre décimal seul aussi (`23,9875` : `23.9875`).
+- **Le module 5** (15 novembre, « prochain ») : Jointures, les dix vidéos (INNER, LEFT, RIGHT, FULL OUTER, CROSS, trois tables,
+  JOIN + GROUP BY, SELF JOIN, plusieurs conditions dans ON, Quel JOIN choisir : environ 1 560 textes), leurs vignettes et les
+  bilans des leçons. Ce qu’elles ont appris au moteur :
+  - une page peut ajouter ses propres tables à la base de la langue (`base` dans `assets/anim/en/<cours>.js`, fusionnée par
+    `ajouter`) : « Quel JOIN choisir ? » et ses six cas (medecins : doctors, bassins : tanks, livres : books…) ;
+  - un alias posé ailleurs dans le contexte (« FROM commandes AS c1 » sur une autre carte) sert à `c1.client_id` ; un préfixe
+    inconnu prend la table du contexte qui a la colonne ;
+  - en anglais, un en-tête de tableau trop long (`first_name`) et une carte de code `.mini` trop large prennent une police plus
+    petite (`thFit`, `codeFit` dans core.js) ; le français ne change pas.
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
@@ -154,6 +163,9 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   Module 4 (15 novembre) : les sept fichiers sont prêts (`tools/voix/en/count.json` à `group-concat.json`, environ 17 800
   caractères) ; les agrégats se disent comme on les lit (`COUNT(*)` « count star », `AVG(price)` « A-V-G of price »,
   `GROUP_CONCAT(id, ', ')` « group concat of ID, comma space », `GROUP BY` « group by »).
+  Module 5 (15 novembre) : les dix fichiers sont prêts (`tools/voix/en/inner-join.json` à `quel-join-choisir.json`, environ
+  27 900 caractères) ; les jointures se disent en minuscules (« inner join »), un nom qualifié avec « dot » (« products dot
+  name »), `<>` « not-equal ».
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

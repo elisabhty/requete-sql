@@ -23,7 +23,8 @@ const D = await p.evaluate(() => {
   /* dans la langue (fr() traduit) ; WHERE a son propre moteur, sans plain() */
   const t = h => typeof plain === 'function' ? plain(h) : fr(h).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, '\u00a0').replace(/\s+/g, ' ').trim();
   const caps = {}, caps0 = {}; CAPTIONS.forEach(c => { caps[vkey(c[2])] = t(c[2]); caps0[vkey(c[2])] = String(c[2]).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, '\u00a0').replace(/\s+/g, ' ').trim(); });
-  const M = (typeof MOMENTS !== 'undefined' ? MOMENTS : []).map(m => ({prompt: t(m.prompt), tip: m.tip ? t(m.tip) : ''}));
+  /* « Quel JOIN choisir ? » : ses moments s'appellent PICKS */
+  const M = (typeof MOMENTS !== 'undefined' ? MOMENTS : typeof PICKS !== 'undefined' ? PICKS : []).map(m => ({prompt: t(m.prompt), tip: m.tip ? t(m.tip) : ''}));
   const O = (typeof OPENS !== 'undefined' ? OPENS : []).map(o => t(o.prompt));
   const page = typeof pontPage === 'function' ? pontPage() : (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
   const L = typeof liensDe === 'function' ? liensDe(page) : null;
@@ -51,6 +52,10 @@ const PARLE = s => s
   .replace(/INSTR\(([a-z_]+), ' '\)/g, (t, a) => `in-string of ${a}, space`)
   .replace(/UPPER\(([a-z_]+)\) \+ ' ' \+ ([a-z_]+)/g, 'upper of $1, plus a space, plus $2')
   .replace(/CAST\('?([^'()]+?)'? AS ([A-Z]+)\)/gi, (t, a, b) => `cast ${a} as ${b.toLowerCase()}`)
+  /* Module 5 (15 novembre) : les jointures */
+  .replace(/<>/g, 'not-equal').replace(/, and AND adds\b/g, ', while the AND keyword adds')
+  .replace(/\b(INNER|LEFT|RIGHT|CROSS|SELF) JOIN\b/g, (t, a) => a.toLowerCase() + ' join').replace(/\bFULL OUTER JOIN\b/g, 'full outer join').replace(/\bJOIN\b/g, 'join')
+  .replace(/\b([a-z][a-z_]*\d?)\.([a-z][a-z_]*)\b/g, '$1 dot $2').replace(/'([A-Z][a-zA-Z ]*)'/g, '$1')
   .replace(/\bCOUNT\(\*\)/g, 'count star').replace(/\bCOUNT\(DISTINCT ([a-z_]+)\)/g, 'count distinct $1')
   .replace(/\bGROUP BY\b/g, 'group by').replace(/\bHAVING\b/g, 'having').replace(/, ', '\)/g, ', comma space)').replace(/separator ', '/g, 'separator comma space')
   .replace(new RegExp(`\\b(${FNRE})\\(\\)`, 'g'), (t, f) => FN[f])
