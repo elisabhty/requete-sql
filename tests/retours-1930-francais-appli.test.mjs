@@ -111,6 +111,9 @@ test('les captures d’Elisa (19 h 38) : le bonjour avec un prénom d’une lett
   L.valeur('prenom', () => 'j');
   const attendus = {
     '<1>Bonsoir</1>, <2>j</2> !': '<1>Good evening</1>, <2>j</2>!', 'Bonsoir, j': 'Good evening, j',
+    /* 19 h 46 (« pareil pour bonne aprem etc ») : les trois bonjours, avec ou sans prénom */
+    '<1>Bonjour</1>, <2>j</2> !': '<1>Hello</1>, <2>j</2>!', '<1>Bon après-midi</1>, <2>j</2> !': '<1>Good afternoon</1>, <2>j</2>!',
+    'Bonjour, j': 'Hello, j', '<1>Bon après-midi</1>, j': '<1>Good afternoon</1>, j', '<1>Bon après-midi</1> !': '<1>Good afternoon</1>!',
     'Entre ton code !': 'Enter your code!', 'Combien de manches ?': 'How many rounds?', 'Qui peut rejoindre ?': 'Who can join?',
     '<1>2</1> <2>manches</2> <3>12 min max</3>': '<1>2</1> <2>rounds</2> <3>12 min max</3>', 'joueurs max': 'players max',
     'Le défi démarre quand tu le décides.': 'The challenge starts when you decide.', 'Accomplissement': 'Achievement'

@@ -6846,6 +6846,8 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     /* la pastille des joueurs de la salle (son nombre en gras, dans son morceau) */
     "<1><2>{1}</2> joueurs max</1>": "<1><2>{1}</2> players max</1>",
     /* « joueurs max », seul à côté de son nombre */
-    "joueurs max": "players max"
+    "joueurs max": "players max",
+    /* le titre lu par VoiceOver l’après-midi, avec un prénom d’une lettre (« Bon après-midi » ne se coupe pas : il est dans son morceau) */
+    "<1>Bon après-midi</1>, {x1}": "<1>Good afternoon</1>, {x1}"
   }
 });
