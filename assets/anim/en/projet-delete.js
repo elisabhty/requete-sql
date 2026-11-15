@@ -231,3 +231,41 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     entrepot: ['warehouse', {id: 'id', nom: 'name', categorie: 'category', prix: 'price', stock: 'stock'}]},
     defauts: {bien_etre: 'wellness', boutique: 'shop'}}
 });
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/projet-delete/', v: '9aa00fb7', intro: ["ch00",0.05,6.15],
+  caps: [
+    ["vs6auej","ch01",0.03,5.31],
+    ["v108vst6","ch01",5.48,8.96],
+    ["vnzuc7q","ch01",9.46,11.07],
+    ["vd73g5w","ch02",0.06,2.97],
+    ["v454daq","ch02",3.15,3.86],
+    ["vavdj30","ch02",4.52,9.53],
+    ["v19sral4","ch02",9.86,12.52],
+    ["v454daq","ch02",12.91,13.61],
+    ["v1u2yi89","ch02",14.25,17.27],
+    ["v1ltyz8o","ch02",17.55,20.94],
+    ["v2uwery","ch03",0,3.12],
+    ["vtky6ex","ch03",3.39,7.54],
+    ["v454daq","ch03",7.86,8.6],
+    ["vus3irz","ch03",9.05,13.01],
+    ["vk14bca","ch03",13.34,15.73],
+    ["vvzlgic","ch03",15.94,18.129],
+    ["v7p23kf","ch04",0.01,3.32],
+    ["v1ko8i3g","ch04",3.54,6.65],
+    ["v454daq","ch04",6.95,7.7],
+    ["vspxpgs","ch04",8.09,13.44],
+    ["vjcw1mw","ch04",13.79,18.25],
+    ["v1r2hzki","ch04",18.65,21.473],
+    ["vhs79dd","ch05",0,1.69],
+    ["v8ndfx2","ch05",1.88,4.33],
+    ["v454daq","ch05",4.63,5.39],
+    ["vdqpjzq","ch05",5.73,9.82],
+    ["v1um611z","ch05",10.2,12.78],
+    ["vp98gpu","ch05",13.15,17.711],
+    ["v1pbrzk6","ch06",0,3.34],
+    ["v454daq","ch06",3.46,4.19],
+    ["v5bnr3t","ch06",4.56,8.7],
+    ["v1hovod4","ch06",8.98,14.7]],
+  say: {"at1":["at1",1.15,4.46],"at2":["at2",1.12,4.85],"at3":["at3",1.18,4.676],"at4":["at4",1.18,4.911],"at5":["at5",1.14,4.42],"at6":["at6",1.17,3.61],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]}}});
+/* Fin de la voix off */

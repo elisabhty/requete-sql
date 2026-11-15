@@ -224,3 +224,43 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     inscriptions_excel: ['enrollments_excel', {client: 'customer', atelier: 'workshop', date_atelier: 'workshop_date', coach: 'coach', email_coach: 'coach_email', inscrit_le: 'enrolled_on'}]},
     defauts: {bien_etre: 'wellness', boutique: 'shop'}}
 });
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/projet-drop/', v: '2f44800f', intro: ["ch00",0.06,7.09],
+  caps: [
+    ["vs6auej","ch01",0.02,5.41],
+    ["v1oubwvd","ch01",5.66,9.31],
+    ["vjfqv6j","ch01",9.68,15.33],
+    ["v1wio3rq","ch01",15.65,19.43],
+    ["vdnb08z","ch01",19.77,24.88],
+    ["v454daq","ch01",25.21,25.95],
+    ["v9ehi74","ch01",26.28,31.086],
+    ["v3y4sc1","ch02",0,2.4],
+    ["v17dkzmq","ch02",2.7,6.69],
+    ["v1il93ad","ch02",6.97,10.18],
+    ["v454daq","ch02",10.46,11.468],
+    ["vy8wqg2","ch03",0.07,2.68],
+    ["v454daq","ch03",2.88,3.65],
+    ["vrrykj4","ch03",3.96,6.85],
+    ["v1hoypmx","ch04",0,1.72],
+    ["v1i5e69p","ch04",1.97,7.91],
+    ["vrwabaw","ch04",8.19,9.95],
+    ["v454daq","ch04",10.26,11.02],
+    ["v88vc8f","ch04",11.43,16.79],
+    ["vkovmc6","ch04",17.13,20.9],
+    ["v1nqi2jn","ch05",0,2.14],
+    ["v3zh6hp","ch05",2.3,7.8],
+    ["v11i7zgv","ch05",8.02,10.59],
+    ["v454daq","ch05",10.9,11.62],
+    ["v1b0h0gp","ch05",11.99,16.33],
+    ["v1c754dd","ch05",16.6,21.36],
+    ["v1xss5k","ch06",0.03,2.72],
+    ["v1yz9os","ch06",2.94,5.86],
+    ["v171uz4i","ch06",6.14,10.21],
+    ["v16vvpo2","ch06",10.47,13.16],
+    ["v454daq","ch06",13.61,14.41],
+    ["vo89o09","ch06",14.71,18.14],
+    ["vcn26zq","ch06",18.44,22.71],
+    ["v1lwbbo4","ch06",23.08,28.06]],
+  say: {"at1":["at1",1.09,3.49],"at2":["at2",1.02,3.77],"at3":["at3",1.18,3.15],"at4":["at4",1.15,3.96],"at5":["at5",1.05,3.631],"at6":["at6",1.12,4.45],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]}}});
+/* Fin de la voix off */

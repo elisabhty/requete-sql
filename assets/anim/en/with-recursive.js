@@ -219,3 +219,45 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
   /* La CTE récursive de la vidéo (WITH RECURSIVE jours(jour) AS …), pour cette page seulement */
   base: {tables: {jours: ['days', {jour: 'day'}]}}
 });
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/with-recursive/', v: '1d1d8642', intro: ["ch00",0.04,7],
+  caps: [
+    ["v1a57zqf","ch01",0,3.88],
+    ["v13rzyt8","ch01",4.21,7.92],
+    ["v147isk6","ch01",8.22,11.49],
+    ["v3d6amu","ch01",11.77,16.118],
+    ["vxlbpl5","ch02",0,3.48],
+    ["vt84vmn","ch02",3.74,6.09],
+    ["voy2hi1","ch02",6.41,9.66],
+    ["vtrpkjv","ch02",9.99,12.1],
+    ["v197korp","ch02",12.45,17.25],
+    ["vfskgp1","ch02",17.59,19.75],
+    ["vd18h4n","ch02",19.98,23.719],
+    ["vxnho72","ch03",0.04,4.05],
+    ["vseqim","ch03",4.08,6.48],
+    ["vq5tf7x","ch03",6.81,9.26],
+    ["vc226bt","ch03",9.71,18.23],
+    ["vyvz41g","ch03",18.53,22.07],
+    ["v1r7m6y","ch03",22.46,25.67],
+    ["v1agdat3","ch03",26.04,30.929],
+    ["v7rw73a","ch04",0.04,3.92],
+    ["v7hbl4f","ch04",4.23,9.33],
+    ["vf66tii","ch04",9.58,13.49],
+    ["v1ok4equ","ch04",13.85,20.36],
+    ["vlc07my","ch04",20.34,23.71],
+    ["v11t4ur7","ch04",24.06,28.29],
+    ["v1q93dyj","ch04",28.7,32.34],
+    ["vcone7p","ch04",32.6,37.29],
+    ["vqzwumq","ch05",0,3.42],
+    ["v1rv2v3g","ch05",3.8,10.55],
+    ["v2rp5rb","ch05",10.9,15.65],
+    ["v1nf6zgt","ch05",15.94,20.349],
+    ["vgh6d4r","ch06",0.03,6.26],
+    ["ve7l9dn","ch06",6.6,11.39],
+    ["vbrqwxz","ch06",11.76,15.93],
+    ["v1qeiu3i","ch06",16.36,22.55],
+    ["v19qrbnw","ch06",22.89,26.62]],
+  say: {"at1":["at1",0.05,3.09],"at2":["at2",0.07,8.78],"at3":["at3",0.08,4.56],"indice1":["indice1",0,2.82],"lienavant":["lienavant",0,5],"lienapres":["lienapres",0.04,4.48],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]},
+  toi: {"at1":[0.93,1.11],"at2":[0.93,1.24],"at3":[0.97,1.2]}}});
+/* Fin de la voix off */

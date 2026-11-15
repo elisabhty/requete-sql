@@ -393,6 +393,12 @@ recadrage sur la zone du sticker français dans un carré de 768 px.
   `LV_DUREES` (index.html) et sur sa vignette, refaite après la voix.
   Les fichiers d’une voix se demandent sous `?v=<version>` (`v` du bloc de voix, tirée de leur contenu par integrer.mjs) : une
   voix refaite sous les mêmes noms n’est jamais servie par un cache (15 novembre, 2 h 47 : l’ancienne voix restait dans l’appli).
+  **Toutes les vidéos parlent anglais (15 novembre, 21 h 40)** : Elisa a généré les voix restantes sur son Mac (73 fichiers de
+  voix, 1 374 fichiers, rien ne manquait) ; les 52 vidéos qui restaient sont intégrées (`integrer.mjs <cours> --langue en`), avec
+  leur durée (`LV_DUREES`, 71 vidéos) et leur vignette, et la vidéo du site anglais (`integrer-site.mjs --langue en`,
+  decouvrir/en/voix/). GROUP BY n’avait pas ses réactions : `generer.mjs` les comptait faites parce qu’un dossier
+  `sortie/en/group-by-colonnes` commence par « group-by- » ; elles ont été reprises de ce dossier (même texte, même voix). Les voix
+  anglaises pèsent 111 Mo dans l’appli (les françaises 108 Mo) : une mise à jour à distance les fait télécharger à chaque iPhone.
   **Une seule voix et une seule photo pour tous les modules** (Elisa, 15 novembre, 2 h 57 et 3 h : « on garde cette voix et cette
   photo », « la blonde ») : Brielle (la voix par défaut de preparer-langue.mjs) et la photo de la formatrice blonde des modules 1 et
   2 (`formatrice.webp`, core.css), quel que soit le formateur du module en français ; l’onboarding anglais présente sa formatrice.

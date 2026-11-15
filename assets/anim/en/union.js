@@ -220,3 +220,46 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
   /* Les libellés des indicateurs, écrits dans les requêtes (SELECT 'Nombre de clients' AS indicateur …) */
   base: {valeurs: {'Nombre de clients': 'Number of customers', 'Nombre de commandes': 'Number of orders', 'Nombre de produits': 'Number of products', 'Nombre en stock': 'Number in stock'}}
 });
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/union/', v: '10028b0b', intro: ["ch00",0.07,6.06],
+  caps: [
+    ["vik4q8g","ch01",0.02,3.12],
+    ["v1kyjcw6","ch01",3.32,8.52],
+    ["v1z11fds","ch01",9.12,15.03],
+    ["vwwurnw","ch01",15.49,20.9],
+    ["v21kjjl","ch02",0.01,4.28],
+    ["v1pd2wdn","ch02",4.59,8.45],
+    ["v9on0xn","ch02",8.76,11.91],
+    ["vzhmha2","ch02",12.27,15.961],
+    ["vg8xlov","ch03",0.02,5.97],
+    ["v1di8nf4","ch03",6.46,12.35],
+    ["vfnbwec","ch03",12.69,19.44],
+    ["v1yn7sgq","ch03",19.97,22.68],
+    ["vj5ox5r","ch03",23.02,27.57],
+    ["vgs2mab","ch03",27.84,34.09],
+    ["vqfit2x","ch03",34.36,38.53],
+    ["v1mqi1zd","ch03",38.71,43.076],
+    ["v1kagcid","ch04",0,4.28],
+    ["v1mu31n4","ch04",4.51,8.21],
+    ["v1kpu490","ch04",8.74,10.87],
+    ["v1o16ak8","ch04",11.2,14.36],
+    ["vxk9hbs","ch04",14.63,21.52],
+    ["v1a2hjdx","ch04",22,25.29],
+    ["vgklpwf","ch04",25.69,29.24],
+    ["vxsalsp","ch04",29.4,31.83],
+    ["vypoupd","ch04",32.28,35.81],
+    ["vvyn1f","ch04",36.04,38.93],
+    ["v1vf4g41","ch04",39.31,42.919],
+    ["vznb3i7","ch05",0,3.94],
+    ["v1opai19","ch05",4.22,7.13],
+    ["v1dolds2","ch05",7.4,11.14],
+    ["vd70fr4","ch05",11.54,15.67],
+    ["v1eip6od","ch05",16.03,20.14],
+    ["v1mh29g3","ch06",0.03,6.25],
+    ["v9l4s0p","ch06",6.58,11.1],
+    ["v1vhl7ya","ch06",11.44,18.77],
+    ["vaozjef","ch06",19.13,23.97]],
+  say: {"at1":["at1",0.07,4.8],"at2":["at2",0,5.1],"at3":["at3",0.07,5.03],"lienavant":["lienavant",0.07,4.77],"lienapres":["lienapres",0.07,4.9],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]},
+  toi: {"at1":[0.94,1.17],"at2":[0.84,1.08],"at3":[0.93,1.24]}}});
+/* Fin de la voix off */

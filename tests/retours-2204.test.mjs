@@ -86,8 +86,8 @@ test('à l’ouverture et au retour dans l’appli : le jour noté, puis les rap
   x.run('rappelVu();rappelAuto(400)'); x.minuteur(); await x.attendre();
   assert.deepEqual(x.appels.map(a => a[0]), ['annule', 'programme']);
   assert.deepEqual(x.appels[1][1], [J(1), J(2)], 'ouverte : plus de rappel ce soir');
-  assert.ok(app.includes("    if(document.visibilityState!=='hidden')rappelVu();   // ouverte aujourd’hui : pas de rappel aujourd’hui (22 h 04)\n    tickRappel();"));
-  assert.ok(app.includes("if(document.visibilityState==='visible'){ rappelVu(); tickRappel(); rappelAuto(400); }"));
+  assert.ok(app.includes("    if(document.visibilityState!=='hidden'){rappelVu();if(typeof rappelPlusTardAnnuler==='function')rappelPlusTardAnnuler();}   // ouverte aujourd’hui : pas de rappel aujourd’hui (22 h 04)\n    tickRappel();"));
+  assert.ok(app.includes("if(document.visibilityState==='visible'){ rappelVu(); if(typeof rappelPlusTardAnnuler==='function')rappelPlusTardAnnuler(); tickRappel(); rappelAuto(400); }"));
 });
 
 test('« Adapter mon rythme » : les rappels suivent le nouveau planning', () => {
@@ -108,5 +108,5 @@ test('Mon compte : « Prochain rappel : demain à 10:00. », sans la phrase sur 
   const f = cut('function rappelFeuilleHTML(){', 'function rappelPeindre(){');
   assert.ok(f.includes("    :d.on?(prochain?obPh('Prochain rappel\\u00a0: {quand}.',{quand:rappelQuand(prochain)})"));
   assert.ok(!app.includes('Il suit ton planning\\u00a0: les jours de séance seulement'), 'la dernière phrase est partie');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3087';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3088';"), 'le cache de l’appli change');
 });

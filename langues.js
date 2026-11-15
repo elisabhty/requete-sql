@@ -41,7 +41,7 @@
   /* essai : la langue n'est proposée qu'aux iPhone en essai, tant que sa traduction n'est pas terminée. */
   var LANGUES = {
     fr: { nom: 'Français', locale: 'fr-FR' },
-    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=2d89470c', defis: 'langue-en-defis.js?v=45bd0376', entretien: 'langue-en-entretien.js?v=91e56a7f', essai: true }
+    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=4e0d1b79', defis: 'langue-en-defis.js?v=45bd0376', entretien: 'langue-en-entretien.js?v=91e56a7f', essai: true }
   };
   var CLE = 'requete-langue';
 

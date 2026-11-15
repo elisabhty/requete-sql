@@ -196,3 +196,39 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     "WHERE avant le regroupement, HAVING après": "WHERE before grouping, HAVING after"
   }
 });
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/group-concat/', v: '5a374458', intro: ["ch00",0.05,6.38],
+  caps: [
+    ["vpv4ng5","ch01",0.03,3.81],
+    ["v1gjyma3","ch01",4.11,9.19],
+    ["v1qrv79u","ch01",9.44,13.93],
+    ["vkfuhny","ch01",14.29,18.364],
+    ["v16d10qt","ch02",0,3.85],
+    ["v5pmxm9","ch02",4.08,7.17],
+    ["v1cm14bp","ch02",7.45,10.56],
+    ["vlgds1l","ch03",0.01,3.57],
+    ["v1cxpozo","ch03",3.9,6.65],
+    ["vnh0lnq","ch03",6.72,11.6],
+    ["v4y18nf","ch03",12.04,14.6],
+    ["vmj2n8q","ch03",14.58,20.15],
+    ["v16cbhy5","ch03",20.59,23.83],
+    ["vkn5zfa","ch03",24.04,28.27],
+    ["vx5uyph","ch03",28.74,33.33],
+    ["vlzog4p","ch04",0.03,3.13],
+    ["v94yb8f","ch04",3.11,6.79],
+    ["v10p3pb6","ch04",7.12,9.98],
+    ["v1dx0dfv","ch04",10.11,13.55],
+    ["v1i2gc23","ch04",14.03,20.41],
+    ["v1aycdko","ch04",20.79,24.77],
+    ["v1lsdird","ch05",0,4.08],
+    ["v1j115gg","ch05",4.42,9.46],
+    ["v1o5dqh7","ch05",9.75,16.13],
+    ["v1yfhwxa","ch05",16.56,21.48],
+    ["v15o3hqp","ch05",21.79,28.291],
+    ["v1ibrwwq","ch06",0,4.24],
+    ["v1wbnhgd","ch06",4.5,7.65],
+    ["vvsdlyb","ch06",7.98,11.9]],
+  say: {"at1":["at1",0.07,3.71],"at2":["at2",0.05,6.57],"at3":["at3",0.07,5.46],"indice2":["indice2",0.04,2.92],"lienavant":["lienavant",0.04,4.362],"lienapres":["lienapres",0.04,3.866],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]},
+  toi: {"at1":[0.97,1.12],"at2":[0.94,1.09],"at3":[0.94,1.12]}}});
+/* Fin de la voix off */

@@ -477,7 +477,7 @@ test('la voix anglaise du module 3 : intégrée, versionnée, durées et vignett
     for (const f of mp3) { HV.update(f); HV.update(fs.readFileSync(path.join(OUT, f))); }
     assert.ok(lire(`assets/anim/en/${c}.js`).includes(`{voix: {dir: '../voix/en/${c}/', v: '${HV.digest('hex').slice(0, 8)}',`), `${c} : la version de ses fichiers`);
   }
-  assert.ok(app.includes("'limit-offset':'3 min 56','fonctions-texte':'3 min 40','fonctions-numeriques':'2 min 51','fonctions-dates':'2 min 59','conversion-types':'3 min 08','case':'2 min 49','coalesce':'2 min 33'}};"));
+  assert.ok(app.includes("'limit-offset':'3 min 56','fonctions-texte':'3 min 40','fonctions-numeriques':'2 min 51','fonctions-dates':'2 min 59','conversion-types':'3 min 08','case':'2 min 49','coalesce':'2 min 33',"));
 });
 
 /* Elisa, 15 novembre, 7 h 17 : « oui » (le module 4 après le module 3). Agrégats et regroupements : COUNT, SUM/AVG/MIN/MAX,

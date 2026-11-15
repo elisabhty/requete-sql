@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=2aba6e5e" data-defis></script>
+<script src="langues.js?v=3bb2f983" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -20971,10 +20971,10 @@ async function boot(){
     setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)
   /* Hors ligne à l’ouverture : le pseudo est réservé au retour du réseau. */
   window.addEventListener('online',()=>{try{psVerifier();}catch(e){}});
-    if(document.visibilityState!=='hidden')rappelVu();   // ouverte aujourd’hui : pas de rappel aujourd’hui (22 h 04)
+    if(document.visibilityState!=='hidden'){rappelVu();if(typeof rappelPlusTardAnnuler==='function')rappelPlusTardAnnuler();}   // ouverte aujourd’hui : pas de rappel aujourd’hui (22 h 04)
     tickRappel();
     setInterval(tickRappel,30000);
-    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ rappelVu(); tickRappel(); rappelAuto(400); } });   // un nouveau jour : les rappels glissent (21 h 41) ; l’appli ouverte : pas de rappel ce jour-là (22 h 04)
+    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ rappelVu(); if(typeof rappelPlusTardAnnuler==='function')rappelPlusTardAnnuler(); tickRappel(); rappelAuto(400); } });   // un nouveau jour : les rappels glissent (21 h 41) ; l’appli ouverte : pas de rappel ce jour-là (22 h 04)
     initSpotlight();
     initStudyClock();
     demarrageOk=true;
@@ -32010,7 +32010,7 @@ const LV_VIGNETTES={en:['bases-relationnelles','as','distinct','where','comparer
   'projet-droits']};
 /* La durée d’une vidéo dans une autre langue : sa voix ne dure pas tout à fait autant que la française (15 novembre, la voix anglaise
    des modules 1 et 2). Elle remplace celle du français partout où l’appli l’affiche (la leçon, la liste, le bouton de la vidéo). */
-const LV_DUREES={en:{'bases-relationnelles':'10 min 41','as':'1 min 52','distinct':'2 min 34','where':'2 min 06','comparer':'2 min 40','and-or':'2 min 41','not':'2 min 55','null':'2 min 13','like':'3 min 13','in':'2 min 44','between':'2 min 36','order-by':'2 min 22','limit-offset':'3 min 56','fonctions-texte':'3 min 40','fonctions-numeriques':'2 min 51','fonctions-dates':'2 min 59','conversion-types':'3 min 08','case':'2 min 49','coalesce':'2 min 33'}};
+const LV_DUREES={en:{'bases-relationnelles':'10 min 41','as':'1 min 52','distinct':'2 min 34','where':'2 min 06','comparer':'2 min 40','and-or':'2 min 41','not':'2 min 55','null':'2 min 13','like':'3 min 13','in':'2 min 44','between':'2 min 36','order-by':'2 min 22','limit-offset':'3 min 56','fonctions-texte':'3 min 40','fonctions-numeriques':'2 min 51','fonctions-dates':'2 min 59','conversion-types':'3 min 08','case':'2 min 49','coalesce':'2 min 33','agregats':'3 min 06','any-all':'3 min 50','count':'2 min 28','cross-join':'2 min 42','exists':'3 min 58','fenetres-glissantes':'3 min 14','first-last-ntile':'3 min 42','fonctions-rang':'3 min 00','full-outer-join':'3 min 17','group-by':'2 min 35','group-by-colonnes':'3 min 23','group-concat':'2 min 57','having':'2 min 39','inner-join':'2 min 31','insert-select':'3 min 18','intersect-except':'3 min 01','join-group-by':'2 min 49','jointure-3-tables':'3 min 46','lag-lead':'3 min 28','left-join':'2 min 48','ordre-execution':'3 min 23','over':'3 min 24','plusieurs-conditions-on':'3 min 25','projet-alter':'4 min 54','projet-cles':'4 min 59','projet-concurrence':'4 min 20','projet-create':'4 min 35','projet-delete':'3 min 00','projet-droits':'4 min 42','projet-drop':'2 min 42','projet-index':'3 min 42','projet-insert':'4 min 01','projet-merge':'3 min 12','projet-normaliser':'3 min 55','projet-ondelete':'4 min 16','projet-procedures':'3 min 16','projet-savepoint':'4 min 21','projet-schemas':'2 min 26','projet-transaction':'4 min 45','projet-trigger':'4 min 24','projet-uml':'5 min 16','projet-update':'3 min 17','projet-vue':'4 min 01','quel-join-choisir':'3 min 30','right-join':'3 min 25','self-join':'3 min 14','sous-requete-from':'3 min 25','sous-requete-in':'3 min 58','sous-requete-select':'3 min 31','union':'3 min 44','with-cte':'4 min 01','with-recursive':'3 min 34'}};
 try{const L=window.REQUETE_LANGUE,d=L&&LV_DUREES[L.code];if(d)allLessons.forEach(l=>{const k=l.video&&/anim\/([^/.?]+)\.html/.exec(l.video.anim||'');if(k&&d[k[1]])l.video.duree=d[k[1]];});}catch(e){}
 function lvVignette(v){
   try{const L=window.REQUETE_LANGUE,m=/assets\/anim\/([\w-]+)-thumb\./.exec(v.thumb||'');
@@ -49439,7 +49439,7 @@ function raccourcisBrancher(){
   setTimeout(()=>{try{statWidgetsPoses();}catch(e){}},6000);   // 20 h 04 : les widgets posés, une fois par jour
   /* 13 novembre, 19 h 52, statistiques : un rappel touché (la notification ouvre l’app) */
   const LN=C.Plugins&&C.Plugins.LocalNotifications;
-  if(LN&&typeof LN.addListener==='function')try{LN.addListener('localNotificationActionPerformed',e=>{const id=+(e&&e.notification&&e.notification.id)||0;if(typeof stat==='function')stat('rappel_ouvert',undefined,{k:id>=100?'seance':'n'+id});});}catch(e){}
+  if(LN&&typeof LN.addListener==='function')try{LN.addListener('localNotificationActionPerformed',e=>{const id=+(e&&e.notification&&e.notification.id)||0,a=String(e&&e.actionId||'tap');if(typeof stat==='function')stat('rappel_ouvert',undefined,{k:id>=100?'seance':'n'+id,a:a.slice(0,12)});try{rappelBouton(a,e&&e.notification);}catch(err){}});}catch(e){}
   if(typeof C.addListener==='function')C.addListener('RequeteWidget','raccourci',e=>raccourciOuvrir(e&&e.type));
 }
 /* 11 h 08 (réf. 3, « le lien ne fonctionne pas vers les défis ») : touché pendant l’onboarding (ou en pleine séance), le raccourci ne
@@ -49467,9 +49467,9 @@ function raccourciOuvrir(type){
   /* Les boutons de la salle dans l’île (7 novembre) : Partager, Lancer, Rejouer agissent sur la salle ouverte (ileSalleAction). */
   const salle=/\.salle-(partager|lancer|rejouer)$/.exec(type);
   if(salle){if(typeof ileSalleAction==='function')ileSalleAction(salle[1]);return;}
-  const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu'),avis=type.endsWith('.avis'),seance=type.endsWith('.seance'),cartes=type.endsWith('.cartes');
-  if(!requete&&!adieu&&!avis&&!seance&&!cartes)return;
-  if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':seance?'Termine ton parcours de bienvenue : ta flamme t’attend juste après !':cartes?'Termine ton parcours de bienvenue : tes cartes mémo t’attendent juste après !':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
+  const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu'),avis=type.endsWith('.avis'),seance=type.endsWith('.seance'),cartes=type.endsWith('.cartes'),planning=type.endsWith('.planning');
+  if(!requete&&!adieu&&!avis&&!seance&&!cartes&&!planning)return;
+  if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':seance?'Termine ton parcours de bienvenue : ta flamme t’attend juste après !':cartes?'Termine ton parcours de bienvenue : tes cartes mémo t’attendent juste après !':planning?'Termine ton parcours de bienvenue : ton planning t’attend juste après !':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
   /* 14 novembre, 12 h 27 (l’audit avant la mise en production) : sans abonnement, le paywall garde l’appli ; un raccourci (widget,
      île, icône) n’ouvre plus de leçon ni d’onglet dessous. */
   if(typeof obGardeBloque==='function'&&obGardeBloque())return;
@@ -49477,6 +49477,7 @@ function raccourciOuvrir(type){
     if(requete&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la, les défis t’attendent juste après.','info');
     else if(seance&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la\u00a0: ta flamme s’allume à la fin.','info');
     else if(cartes&&typeof toast==='function')toast('Tu es déjà en séance','Tes cartes mémo t’attendent juste après.','info');
+    else if(planning&&typeof toast==='function')toast('Tu es déjà en séance','Ton planning t’attend juste après.','info');
     return;
   }
   if(seance){
@@ -49488,6 +49489,7 @@ function raccourciOuvrir(type){
     if(id!=null)setTimeout(()=>{try{openItem(id,0);}catch(e){}},350);
   }
   else if(cartes)switchTab('collection');   // l’album des cartes mémo (le widget La carte mémo, tout à jour)
+  else if(planning)switchTab('planning');   // « Voir mon planning », le bouton des rappels (15 novembre, 21 h 36)
   else if(requete)switchTab('defis');
   else if(avis){
     /* « Juge-nous (gentiment) » : le formulaire « Contacte-nous », sur « Autre chose » (un mot sur Requête), sauf si un sujet est déjà
@@ -52320,10 +52322,44 @@ function rappelNativeSync(demander){
     try{await LN.cancel({notifications:RAPPEL_IDS.map(id=>({id}))});}catch(e){}
     if(!rappelOn())return;
     try{const p=await(demander||typeof LN.checkPermissions!=='function'?LN.requestPermissions():LN.checkPermissions());if(p&&p.display&&p.display!=='granted')return;}catch(e){return;}
-    const notifications=rappelSeances(new Date(),56).filter(d=>!(typeof flammeDirectCouvre==='function'&&flammeDirectCouvre(d))).map((d,i)=>{const [title,body]=rappelMessage(d);return {id:100+i,title,body,schedule:{at:d,allowWhileIdle:true}};});
+    const boutons=await rappelBoutonsPoser(LN);
+    const notifications=rappelSeances(new Date(),56).filter(d=>!(typeof flammeDirectCouvre==='function'&&flammeDirectCouvre(d))).map((d,i)=>{const [title,body]=rappelMessage(d);return Object.assign({id:100+i,title,body,schedule:{at:d,allowWhileIdle:true}},boutons?{actionTypeId:RAPPEL_BOUTONS}:{});});
     try{if(notifications.length)await LN.schedule({notifications});}catch(e){}
   };
   rappelFile=(rappelFile||Promise.resolve()).then(go,go);
+}
+/* Les boutons des rappels (Elisa, 15 novembre, 21 h 36 : « Tu peux mettre ces boutons sur tous les notifs actuels : Voir mon planning
+   et Plus tard ») : un appui long sur la notification les montre. Le plugin LocalNotifications de l’appli sait déjà les poser
+   (registerActionTypes : une catégorie d’iOS), sans rien de natif en plus ; ils sont reposés à chaque programmation, dans la langue de
+   l’appli. « Voir mon planning » ouvre l’appli sur Planning (le chemin des raccourcis : l’onboarding, le paywall ou une séance en cours
+   d’abord). « Plus tard » ne l’ouvre pas : la notification part, et revient une heure après, avec le même message, sauf si cette heure
+   tombe après 22 h 30 (on ne réveille personne) ; ouvrir l’appli entre-temps l’annule. Sans appui long, toucher la notification ouvre
+   l’appli, comme avant. */
+const RAPPEL_BOUTONS='RAPPEL',RAPPEL_PLUS_TARD_ID=99,RAPPEL_PLUS_TARD_MS=36e5;
+async function rappelBoutonsPoser(LN){
+  if(!LN||typeof LN.registerActionTypes!=='function')return false;
+  const T=typeof natifT==='function'?natifT:(x=>x);
+  try{await LN.registerActionTypes({types:[{id:RAPPEL_BOUTONS,actions:[{id:'planning',title:T('Voir mon planning'),foreground:true},{id:'plus-tard',title:T('Plus tard')}]}]});return true;}
+  catch(e){return false;}
+}
+/* Quand relancer un rappel remis à plus tard (null : trop tard ce soir) */
+function rappelPlusTardQuand(maintenant){
+  const t=new Date(+maintenant+RAPPEL_PLUS_TARD_MS),limite=new Date(maintenant);
+  limite.setHours(22,30,0,0);
+  if(t>limite||t.getDate()!==new Date(maintenant).getDate())return null;
+  return t;
+}
+function rappelBouton(action,notif){
+  if(action==='planning'){raccourciOuvrir('fr.requete.app.planning');return;}
+  if(action!=='plus-tard')return;
+  const C=window.Capacitor,LN=C&&C.Plugins&&C.Plugins.LocalNotifications,at=rappelPlusTardQuand(new Date());
+  if(!LN||!at||!notif)return;
+  const n={id:RAPPEL_PLUS_TARD_ID,title:String(notif.title||''),body:String(notif.body||''),schedule:{at,allowWhileIdle:true},actionTypeId:RAPPEL_BOUTONS};
+  Promise.resolve(LN.cancel({notifications:[{id:RAPPEL_PLUS_TARD_ID}]})).catch(()=>{}).then(()=>LN.schedule({notifications:[n]})).catch(()=>{});
+}
+/* L’appli ouverte pour de bon (au premier plan) : le rappel remis à plus tard n’a plus lieu d’être. */
+function rappelPlusTardAnnuler(){
+  try{const C=window.Capacitor,LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;if(LN)Promise.resolve(LN.cancel({notifications:[{id:RAPPEL_PLUS_TARD_ID}]})).catch(()=>{});}catch(e){}
 }
 /* Automatique (21 h 41) : après chaque enregistrement (save), au retour dans l’appli et à l’ouverture, on reprogramme si ce qui
    est prévu a changé. Rien pendant l’onboarding : sa fin programme le rappel d’après le planning créé. */
@@ -53820,7 +53856,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3087';
+  const SW_CACHE='requete-2026-11-15-module-v3088';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

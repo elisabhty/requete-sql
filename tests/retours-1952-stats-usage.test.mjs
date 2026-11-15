@@ -13,7 +13,7 @@ const fn = n => { const a = app.indexOf(`function ${n}(`); assert.ok(a > 0, n); 
 
 test('chaque moment envoie son type, sans contenu', () => {
   const lieux = [
-    ['raccourcisBrancher', "LN.addListener('localNotificationActionPerformed',e=>{const id=+(e&&e.notification&&e.notification.id)||0;if(typeof stat==='function')stat('rappel_ouvert',undefined,{k:id>=100?'seance':'n'+id});});"],
+    ['raccourcisBrancher', "LN.addListener('localNotificationActionPerformed',e=>{const id=+(e&&e.notification&&e.notification.id)||0,a=String(e&&e.actionId||'tap');if(typeof stat==='function')stat('rappel_ouvert',undefined,{k:id>=100?'seance':'n'+id,a:a.slice(0,12)});"],
     ['raccourciOuvrir', "stat('raccourci',undefined,{k:type.replace(/^fr\\.requete\\.app\\./,'').split(/[|.]/)[0].slice(0,24)});"],
     ['repondreQcm', "stat('qcm',choix===q.b?1:0,{l:id,q:i});"],
     ['setEntretienMark', "stat('entretien',mark==='ok'?1:0,{q:String(id).slice(0,20)});"],

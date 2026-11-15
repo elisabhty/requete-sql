@@ -285,3 +285,46 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {
     defauts: {nom: 'name', medecin: 'doctor', bassin: 'tank', animal: 'animal', parfum: 'flavor', format: 'format', patient: 'patient'}
   }
 });
+/* Voix off (tools/voix/integrer.mjs --langue en, voix Brielle d’ElevenLabs, eleven_v4) : chaque phrase calée sur sa légende
+   française, [clé de la légende, fichier, début, fin] en secondes ; say : les phrases dites à part. */
+window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../voix/en/quel-join-choisir/', v: '90bf66f4', intro: ["ch00",0,10.23],
+  caps: [
+    ["v7buxnm","ch01",0.02,4.2],
+    ["v1gzdhcu","ch01",4.48,8.17],
+    ["v1wsfpee","ch01",8.53,11.15],
+    ["vkjfjds","ch01",11.34,13.86],
+    ["v1qgqeiy","ch01",14.29,19.81],
+    ["v454daq","ch01",20.18,20.97],
+    ["v134tbxa","ch01",21.18,27.1],
+    ["v454daq","ch01",27.42,28.16],
+    ["v1dpqchy","ch01",28.42,32.601],
+    ["v19cpsxa","ch02",0.02,4.25],
+    ["v1rk5x73","ch02",4.53,10.53],
+    ["v454daq","ch02",10.89,11.63],
+    ["vtbvny","ch02",11.96,17.84],
+    ["v4strjk","ch02",18.12,21.71],
+    ["v1ntufie","ch03",0.01,4.82],
+    ["vx313im","ch03",5.11,10.26],
+    ["v454daq","ch03",10.7,11.45],
+    ["vv74san","ch03",11.78,16.73],
+    ["v454daq","ch03",17.05,17.8],
+    ["v1qeu5zv","ch03",18.11,23.719],
+    ["v155ctt6","ch04",0.02,5.15],
+    ["vcknw7n","ch04",5.41,8.1],
+    ["vibdhtx","ch04",8.3,10.79],
+    ["vms1bsg","ch04",11.03,15.6],
+    ["v454daq","ch04",16.1,16.92],
+    ["vg79bf6","ch04",17.28,21.473],
+    ["v8bmqn4","ch05",0.02,4.52],
+    ["v10teww1","ch05",4.85,8.81],
+    ["v454daq","ch05",9.22,10.01],
+    ["vzw4ay7","ch05",10.33,17.96],
+    ["vdrqh7a","ch06",0.03,3.26],
+    ["v11qwmkz","ch06",3.49,8.38],
+    ["v454daq","ch06",8.74,9.47],
+    ["v1zh464","ch06",9.72,15.58],
+    ["v454daq","ch06",15.9,16.65],
+    ["vaw7kjw","ch06",16.9,22.85],
+    ["vbqfgks","ch06",23.12,28.291]],
+  say: {"at1":["at1",1.07,4.87],"at2":["at2",1.11,4.44],"at3":["at3",1.19,5.53],"at4":["at4",1.2,4.62],"at5":["at5",1.3,6.25],"at6":["at6",1.14,4.2],"at7":["at7",1.17,4.754],"at8":["at8",1.17,3.553],"at9":["at9",1.14,3.33],"lienavant":["lienavant",0.04,3.9],"lienapres":["lienapres",0,3.73],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]}}});
+/* Fin de la voix off */
