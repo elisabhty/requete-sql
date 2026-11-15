@@ -84,6 +84,24 @@ la langue dans le groupe d'apps, clé « langue »).
 - Les noms SQL des questions de poche hors de la base des cours (ateliers, avis, entrepot…) sont dans `base.defauts` ; les valeurs
   écrites entre guillemets (`'Inconnu'`, `'Cher'`), dans `base.valeurs`.
 
+## Le site (decouvrir/)
+
+Le site se traduit en pages statiques, dans `decouvrir/<langue>/`, à partir des pages françaises et d'un dictionnaire
+(`tools/langue/site/<langue>.json`, gardé dans le dépôt) :
+
+1. `site.mjs --langue en recolter` : les textes à traduire (`travail/en/site-a-traduire.json`) ; un bloc de texte et sa mise en
+   forme sont une seule clé (« Apprends le <b>SQL</b> »), un dessin (svg, img) y devient `<1/>`. Ce que l'appli traduit déjà
+   (titres des cours, avis) est repris de `langue-<code>.js`.
+2. Écrire les traductions dans le dictionnaire (une clé, sa traduction ; un morceau court de script que la récolte ne prend pas
+   s'écrit sous `js:` suivi de la chaîne telle qu'elle est dans le code : `"js: fichier": " file"`).
+3. `site.mjs --langue en construire`, puis `verifier` (du français visible, une adresse cassée).
+4. Le jour où la langue de l'appli sort d'essai : `site.mjs --langue en publier`, puis `construire` (le menu des pages françaises
+   y mène, les pages entrent dans les moteurs de recherche).
+
+Une page française modifiée : le test `retours-1300-site-anglais` le signale (empreintes de `decouvrir/en/sources.json`) ;
+recolter, traduire ce qui est nouveau, construire. La voix de la vidéo et des avis se cherche dans `decouvrir/en/voix/` et
+`decouvrir/en/avis/` : muette tant qu'elle n'y est pas.
+
 ## La voix
 
 `tools/voix/preparer-langue.mjs <cours>` prépare la voix anglaise (Brielle) depuis les légendes traduites ; ses règles de

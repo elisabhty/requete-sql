@@ -118,6 +118,16 @@ Limites connues : l’alerte « @léa entre dans la salle » est écrite par le 
 défi dans l’île des autres joueurs est celui de la langue de celui qui l’envoie. Les titres des App Intents du widget (Raccourcis
 d’iOS) restent en français. Le Swift demande un nouveau build Xcode.
 
+## Le site en anglais (15 novembre)
+
+`decouvrir/en/` : les sept pages du site (accueil, fiche du parcours, vidéo, conditions, confidentialité, mentions légales,
+connexion) et le catalogue des modules, en anglais, construits par `tools/langue/site.mjs` à partir des pages françaises et de
+`tools/langue/site/en.json` (environ 960 textes). Les pages légales disent qu’elles sont une traduction et que le français fait foi.
+Les vignettes des cours sont les vignettes anglaises ; la vidéo et les avis audio restent muets (pas de voix anglaise pour eux).
+Pas encore ouvert : le menu des pages françaises annonce toujours « English version coming soon », et les pages anglaises sont en
+noindex. Le jour où l’anglais sort d’essai : `node tools/langue/site.mjs --langue en publier`, puis `construire`.
+À faire alors : la capture de l’appli (app-accueil.webp, en français), la voix de la vidéo et des avis (Jeni pour l’avis de Sofia).
+
 ## Où on en est
 
 - **Fait** : le système ; l’onboarding en anglais (le pilote) ; l’interface (14 novembre, 22 h 51 : « Tout traduire ») : l’accueil,
