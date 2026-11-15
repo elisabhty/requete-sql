@@ -171,7 +171,7 @@ test('index.html : langues.js juste après maj.js, le prénom confié au moteur,
   const i = app.indexOf('<script src="maj.js?v=2"></script>'), j = app.indexOf(`<script src="langues.js?v=${VER('langues.js')}" data-defis></script>`);
   assert.ok(i > 0 && j > i && j < app.indexOf('<script src="vendor/sqljs/sql-wasm.js"></script>'));
   assert.ok(sw.includes(`'./langues.js?v=${VER('langues.js')}',`) && sw.includes(`'./langue-en.js?v=${VER('langue-en.js')}',`));
-  assert.ok(app.includes("window.REQUETE_LANGUE.valeur('prenom',()=>state.name)"));
+  assert.ok(app.includes("window.REQUETE_LANGUE.valeur('prenom',()=>state.name||(typeof draft!=='undefined'&&draft&&draft.name)||'')"), 'pendant l’onboarding, le prénom tapé');
   assert.ok(app.includes('    ${langueReglageHTML()}\n    <details class="plus-details" id="plus-contact">'), 'le réglage « Langue », dans Mon compte, avant « Contacte-nous »');
   /* 13 novembre, 15 h 17 : « mets la langue en bas du pays » */
   const reglages = app.slice(app.indexOf('aria-labelledby="acct-settings-t"'));
@@ -184,11 +184,13 @@ test('index.html : langues.js juste après maj.js, le prénom confié au moteur,
   assert.equal(ctx.html(), '', 'une seule langue : le réglage n’existe pas');
   ctx.window.REQUETE_LANGUE = {code: 'en', disponibles: () => ['fr', 'en'], nom: c => ({fr: 'Français', en: 'English'})[c]};
   const h = ctx.html();
-  assert.ok(h.includes('<details class="plus-details" id="plus-langue">') && h.includes('<summary><span>Langue</span><small data-notrad>English</small>'));
-  assert.ok(h.includes("REQUETE_LANGUE.changer('fr')") && h.includes("REQUETE_LANGUE.changer('en')"));
-  assert.ok(/aria-pressed="true"[^>]*>English<span aria-hidden="true">✓/.test(h) && /aria-pressed="false"[^>]*>Français<span aria-hidden="true"><\/span>/.test(h), 'chaque langue écrite dans sa langue, la langue en cours cochée');
+  /* 15 novembre, 20 h 49 (« après afficher le drapeau ») : le drapeau de chaque langue, la langue en cours cochée */
+  assert.ok(h.includes('<details class="plus-details" id="plus-langue">') && h.includes('<summary><span>Langue</span><small data-notrad>🇺🇸 English</small>'));
+  assert.ok(h.includes(`onclick="langueChanger('fr',this)"`) && h.includes(`onclick="langueChanger('en',this)"`));
+  assert.ok(/class="lg-c on" role="radio" aria-checked="true" lang="en"[^>]*><span class="lg-drapeau" aria-hidden="true">🇺🇸<\/span><span class="lg-nom">English<\/span>/.test(h), 'la langue en cours cochée, écrite dans sa langue');
+  assert.ok(/class="lg-c" role="radio" aria-checked="false" lang="fr"[^>]*><span class="lg-drapeau" aria-hidden="true">🇫🇷<\/span><span class="lg-nom">Français<\/span>/.test(h));
   const ligne = ctx.ligne('>');
-  assert.ok(ligne.includes(`onclick="openPlusDetails('plus-langue')"`) && ligne.includes('<b>Langue</b><small data-notrad>English</small>'), 'la ligne dit la langue en cours');
+  assert.ok(ligne.includes(`onclick="openPlusDetails('plus-langue')"`) && ligne.includes('<span class="plus-row-icon is-drapeau" aria-hidden="true">🇺🇸</span><span><b>Langue</b><small data-notrad>English</small>'), 'la ligne dit la langue en cours, avec son drapeau');
   ctx.window.REQUETE_LANGUE = {code: 'fr', disponibles: () => ['fr'], nom: c => c};
   assert.equal(ctx.ligne('>'), '', 'une seule langue : pas de ligne non plus');
   /* 14 novembre, 11 h 32 : plus de sept touchers (règle 2.5.19 d’Apple) ; un iPhone est en essai quand l’annonce cite son pseudo (maj.js) */

@@ -204,6 +204,19 @@ page (jsdom). Environ 650 clés ajoutées : le merci du formulaire de contact se
 planning, l’abonnement. Les notifications (rappels, flamme) passaient déjà toutes (`tools/langue/natif.mjs`). Un mot qui est aussi
 une donnée de la base (« Petit », nom de famille) ne doit pas avoir de clé.
 
+## Choisir la langue (15 novembre, 20 h 49)
+
+Elisa : « pouvoir changer la langue dans compte (après afficher le drapeau) et dans l'onboarding mettre en dessous de pays
+(présélectionner la langue et pouvoir changer par anglais et français si on a envie (de manière UI UX) ». Mon compte : la ligne
+Langue, sous « Afficher mon drapeau », montre le drapeau de la langue (🇫🇷, 🇺🇸 : l’anglais de Requête suit les usages américains) ;
+sa feuille propose chaque langue écrite dans sa langue, avec son drapeau (`langueChoixHTML`, `langueChanger`). L’onboarding : sous
+le pays, « Langue de l’appli », deux choix côte à côte, celle en cours déjà prise ; l’autre d’un appui recharge l’appli dans cette
+langue et l’onboarding reprend sur la page du pays, réponses gardées (`obLangue`, `obRepriseGarder`). Les deux n’apparaissent que
+si plus d’une langue est proposée : tant que l’anglais est en essai, seuls les iPhone en essai les voient. Le prénom tapé pendant
+l’onboarding sert aussi aux clés `{prenom}`. Les pages qui arrivent (stickers, niveau, fin de module, flamme, semaine en feu, points)
+ont été ouvertes une à une en anglais : les initiales des jours de la flamme (`joursInitiales`) et la liste de plusieurs stickers
+gagnés (`stkNomsListe`) restaient en français.
+
 ## Les stickers en anglais (15 novembre, 20 h)
 
 Elisa : « oui vas'y pour le test », puis « oui ». Les 16 stickers 3D qui portent un mot (« 1re requête », « NIV. 1 », « 3 jours »,

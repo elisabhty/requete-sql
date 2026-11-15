@@ -276,7 +276,8 @@ test('19 h 25 : le bonjour, le niveau et la séance fusionnés en haut de la car
 test('19 h 32 : une sous-page (Console, Selon le SGBD…) ouverte depuis une carte s’ouvre en haut', () => {
   assert.ok(app.includes('  if(primaryTabFor(name)!==name&&!tabBackNav)tabScrollPositions[name]=0;\n'));
   /* 13 novembre, 14 h 24 : les pages principales aussi, quand un bouton les ouvre (retours-1424-clavier-genre) */
-  assert.ok(app.includes("tabDepuisBarre()))tabScrollPositions[name]=0;\n  activeTab=name;"));
+  /* 15 novembre, 20 h 49 : la barre du bas aussi (« pousser vers le haut à chaque fois ») */
+  assert.ok(app.includes("if(!tabBackNav&&!restoringNav)tabScrollPositions[name]=0;\n  activeTab=name;"));
 });
 
 test('19 h 36 – 19 h 39 : le haut de la carte sur une ligne (bonjour + séance du jour), le niveau collé sur le chat', () => {

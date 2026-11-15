@@ -7510,6 +7510,12 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "{1} à {2} sur {3} parties": "{1} to {2} of {3} games",
     "{1} sur {2} parties": "{1} of {2} games",
     "{1} à {2} sur {3} confrontations": "{1} to {2} of {3} head-to-heads",
-    "{1} sur {2} confrontations": "{1} of {2} head-to-heads"
+    "{1} sur {2} confrontations": "{1} of {2} head-to-heads",
+    /* 15 novembre, 20 h 49 : la langue dans l’onboarding */
+    "Langue de l’appli": "App language",
+    /* 15 novembre, 20 h 55 : la fin d’une partie */
+    "Le bilan s’affiche dans <1>{1}</1> s": "The summary appears in <1>{1}</1> s",
+    /* 15 novembre, 21 h : la page du pays avec le prénom */
+    "Tu vis <1>où</1>, {x1} ?": "<1>Where</1> do you live, {x1}?"
   }
 });

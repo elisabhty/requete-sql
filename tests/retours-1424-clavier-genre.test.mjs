@@ -55,10 +55,13 @@ test('le genre : débutante, débitée, invitée ; et leur traduction', () => {
     assert.ok(en.includes(k), k);
 });
 
-test('une page ouverte par un bouton s’ouvre en haut ; la barre du bas et le retour gardent la position', () => {
+test('une page ouverte par un bouton ou par la barre du bas s’ouvre en haut ; seul le retour garde la position', () => {
   const sw = cut(app, 'function switchTab(name){', '\n}\n');
-  assert.ok(sw.includes("if(name!==activeTab&&!tabBackNav&&!restoringNav&&!(typeof tabDepuisBarre==='function'&&tabDepuisBarre()))tabScrollPositions[name]=0;"));
+  /* 15 novembre, 20 h 49 (Elisa : « quand on clique sur un onglet pousser vers le haut à chaque fois ») : la barre du bas aussi, et
+     l’onglet déjà ouvert remonte en douceur */
+  assert.ok(sw.includes("const memeOnglet=name===activeTab&&!tabBackNav&&!restoringNav;\n  if(!tabBackNav&&!restoringNav)tabScrollPositions[name]=0;"));
   assert.ok(sw.indexOf('tabScrollPositions[name]=0;\n  activeTab=name;') > 0, 'avant de changer d’onglet');
+  assert.ok(sw.includes("if(deja>0){try{scr.scrollTo({top:deja});scr.scrollTo({top:0,behavior:'smooth'});}catch(e){scr.scrollTo(0,0);}}"), 'l’onglet déjà ouvert remonte en douceur');
   /* La barre du bas : l’évènement en cours vient de #tabbar */
   const f = cut(app, 'function tabDepuisBarre(){', '\n}\n') + '\n}';
   const essai = cible => { const ctx = vm.createContext({window: {event: cible === undefined ? null : {target: {closest: s => s === '#tabbar' && cible ? {} : null}}}}); vm.runInContext(f + ';this.r=tabDepuisBarre();', ctx); return ctx.r; };
