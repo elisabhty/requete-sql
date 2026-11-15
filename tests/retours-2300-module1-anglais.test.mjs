@@ -1006,7 +1006,7 @@ test('le module 12 en entier : les transactions, le savepoint before_gift, la co
   assert.equal(textesDe('projet-concurrence')['Nathan Petit attend'], 'Nathan Petit waits');
   assert.equal(textesDe('projet-savepoint')['Quelle commande choisir ?'], 'Which command?');
   assert.equal(textesDe('projet-transaction')['Retirer un shaker du stock'], 'Remove a shaker from stock');
-  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10, 'projet-ondelete', ...M12].map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10, 'projet-ondelete', ...M12].map(c => `'${c}'`).join(',') + ','));
   /* la fiche du cours SAVEPOINT : « nom » y est un nom de savepoint, pas celui d’un client */
   assert.ok(app.includes('<code data-en=\\"SAVEPOINT name\\">SAVEPOINT nom</code>') && app.includes('<code data-en=\\"ROLLBACK TO SAVEPOINT name\\">ROLLBACK TO SAVEPOINT nom</code>'));
 });
@@ -1031,4 +1031,57 @@ test('la voix anglaise du module 12 : Brielle, les ids du français, sans code b
   }
   assert.ok(total > 9000 && total < 13500, `${total} caractères (autant de crédits)`);
   assert.ok(JSON.parse(lire('tools/voix/en/projet-concurrence.json')).elements.some(e => e.texte.includes('Select for update reads the spots')));
+});
+
+/* Module 13 (« Procédures et triggers », 15 novembre) : CALL expedier_commande, calculer_points, le trigger garder_prix et la table historique_prix */
+const M13 = ['projet-procedures', 'projet-trigger'];
+test('le module 13 en entier : les routines de la base (ship_order, calculate_points) et le trigger track_price ; requêtes écrites pour la base avant la frappe', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  for (const c of M13) {
+    const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(Object.keys(textes).length > 200, `${c} : ${Object.keys(textes).length} textes`);
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
+    assert.ok(pg.includes(`<body data-table="${c === 'projet-procedures' ? 'commandes' : 'produits'}">`), c);
+    assert.ok(pg.indexOf("$$('.sq .ln').forEach(el => LG.ecrireCode(el));") > 0 && pg.indexOf("$$('.sq .ln').forEach(el => LG.ecrireCode(el));") < pg.indexOf("  $$('.sq .ln').forEach(splitChars);"), c);
+  }
+  const {L, ctx} = anglais();
+  vm.runInNewContext(lire('assets/anim/en/projet-trigger.js'), ctx);   // historique_prix : une table de cette page seulement
+  /* les noms des routines (suivis d’une parenthèse, comme une fonction SQL) sont dans les défauts de la base : traduits */
+  for (const [q, en] of [['CALL expedier_commande(13);', 'CALL ship_order(13);'], ['SELECT calculer_points(80);', 'SELECT calculate_points(80);'],
+    ['CREATE PROCEDURE expedier_commande(id_commande INT)', 'CREATE PROCEDURE ship_order(order_id INT)'], ['CREATE FUNCTION calculer_points(montant NUMERIC)', 'CREATE FUNCTION calculate_points(amount NUMERIC)'],
+    ['SELECT COUNT(*), ROUND(AVG(prix), 2) FROM produits', 'SELECT COUNT(*), ROUND(AVG(price), 2) FROM products'],
+    ['CREATE TRIGGER garder_prix AFTER UPDATE ON produits WHEN OLD.prix <> NEW.prix', 'CREATE TRIGGER track_price AFTER UPDATE ON products WHEN OLD.price <> NEW.price'],
+    ['INSERT INTO historique_prix (produit_id, ancien_prix, nouveau_prix, date_changement) VALUES (OLD.id, OLD.prix, NEW.prix, CURRENT_TIMESTAMP);',
+      'INSERT INTO price_history (product_id, old_price, new_price, change_date) VALUES (OLD.id, OLD.price, NEW.price, CURRENT_TIMESTAMP);']])
+    assert.equal(L.sql(q, 'produits'), en, q);
+  assert.ok(lire('assets/anim/projet-procedures.html').includes('<span data-en="E">É</span>'), 'PROCEDURES');
+  assert.equal(textesDe('projet-procedures')['procédure'], 'procedure');
+  assert.equal(textesDe('projet-trigger')['La date vient de <1/> :<2/>le {1}/{2}/{3} à {4}:{5}.'], 'The date comes from <1/>:<2/>{2}/{1}/{3} at {4}:{5}.');
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6, ...M7, ...M8, ...M9, ...M10, 'projet-ondelete', ...M12, ...M13].map(c => `'${c}'`).join(',') + ']};'));
+});
+
+test('la voix anglaise du module 13 : Brielle, les ids du français, sans code brut ; la date du trigger en toutes lettres', () => {
+  const br = JSON.parse(lire('tools/voix/en/bases-relationnelles.json'));
+  let total = 0;
+  for (const c of M13) {
+    const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.equal(en.langue, 'en'); assert.equal(en.cours, c); assert.deepEqual(en.voix, br.voix, c); assert.equal(en.modele, fr.modele);
+    const ids = fr.elements.map(e => e.id), chs = ids.filter(i => /^ch/.test(i));
+    assert.deepEqual(en.elements.map(e => e.id), ids.filter(i => en.elements.some(e => e.id === i)), `${c} : l’ordre du français`);
+    assert.ok(!en.elements.some(e => e.id === chs[chs.length - 1]), `${c} : le « Pour finir » n’est pas joué dans l’appli`);
+    assert.ok(fr.elements.every(e => en.elements.some(x => x.id === e.id) || /^indice/.test(e.id) || e.id === chs[chs.length - 1]), c);
+    for (const e of en.elements) {
+      const t = e.texte.replace(/^\[\w+\]\s*/, '');
+      assert.ok(t.length > 3, `${c} ${e.id} : vide`);
+      assert.ok(!/[«»<>=≠→↔⇔|+*%_×÷−'"@]| … |\.\.|\w\(|[A-Za-z_]\.[A-Za-z]|&[a-z]+;|Pour finir|idées à retenir|commande|historique|garder|calculer|\d\/\d/.test(t), `${c} ${e.id} : ${t}`);
+      if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
+    }
+    total += en.elements.reduce((a, e) => a + e.texte.length, 0);
+  }
+  assert.ok(total > 5500 && total < 8000, `${total} caractères (autant de crédits)`);
+  assert.ok(JSON.parse(lire('tools/voix/en/projet-trigger.json')).elements.some(e => e.texte.includes('October 25, 2026, at 14:32')));
 });

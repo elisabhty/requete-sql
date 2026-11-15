@@ -33,7 +33,9 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
       /* Les noms du module 7 (WITH rayons AS, AS nb_produits, AS rang, LAG(…) AS precedente, AS cumul, NTILE(3) … AS gamme) */
       nb_produits: 'product_count', rayons: 'shelves', rang: 'rank', precedente: 'previous', suivante: 'next', delai: 'gap', delais: 'gaps',
       delai_moyen: 'avg_gap', jours_depuis: 'days_since', cumul: 'running_total', montants: 'amounts', moyenne_3: 'average_3', gamme: 'tier',
-      produit_le_plus_cher: 'most_expensive'}
+      produit_le_plus_cher: 'most_expensive',
+      /* Les noms du module 13 (CALL expedier_commande(13), SELECT calculer_points(80), CREATE TRIGGER garder_prix) */
+      expedier_commande: 'ship_order', id_commande: 'order_id', calculer_points: 'calculate_points', nom_table: 'table_name', garder_prix: 'track_price'}
   },
   /* Les mois et les jours : dans une clé, {m1}, {m2}… (« le {1} {m1} » pour « le 15 mars »). */
   mots: {"janvier": "January", "février": "February", "mars": "March", "avril": "April", "mai": "May", "juin": "June", "juillet": "July", "août": "August", "septembre": "September", "octobre": "October", "novembre": "November", "décembre": "December", "janv.": "Jan", "févr.": "Feb", "avr.": "Apr", "juil.": "Jul", "sept.": "Sep", "oct.": "Oct", "nov.": "Nov", "déc.": "Dec", "lundi": "Monday", "mardi": "Tuesday", "mercredi": "Wednesday", "jeudi": "Thursday", "vendredi": "Friday", "samedi": "Saturday", "dimanche": "Sunday", "lun.": "Mon", "mar.": "Tue", "mer.": "Wed", "jeu.": "Thu", "ven.": "Fri", "sam.": "Sat", "dim.": "Sun"},
@@ -3037,6 +3039,19 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     /* 15 novembre, 2 h 57 : en anglais, une seule formatrice pour tous les cours */
     "Ta formatrice te fera progresser": "Your instructor will help you progress",
     "<1>Ta formatrice</1> te fera progresser": "<1>Your instructor</1> will help you progress",
+    /* Les fiches des cours du module 13 (Procédures et triggers, 15 novembre) */
+    "Une <1>procédure stockée</1> exécute un traitement réutilisable.": "A <1>stored procedure</1> runs a reusable routine.",
+    "Tu l’appelles avec <1/> :": "You call it with <1/>:",
+    "Une <1>fonction stockée</1> renvoie un résultat réutilisable.": "A <1>stored function</1> returns a reusable result.",
+    "Tu l’utilises dans une requête :": "You use it in a query:",
+    "Leur syntaxe <1>dépend du SGBD</1>.": "Their syntax <1>depends on the DBMS</1>.",
+    "Dans PostgreSQL, par exemple : <1/> et <2/>.": "In PostgreSQL, for example: <1/> and <2/>.",
+    "Un <1/> exécute une action <2>automatiquement</2> lorsqu’un <3>événement</3> se produit dans une table.": "A <1/> runs an action <2>automatically</2> when an <3>event</3> happens in a table.",
+    "Ici, il permet de conserver une trace de chaque changement de prix.": "Here, it keeps a trace of every price change.",
+    "et <1/> donnent accès aux valeurs <2>avant</2> et <3>après</3> la modification.": "and <1/> give access to the values <2>before</2> and <3>after</3> the change.",
+    "correspond à l’ancien prix et <1/> au nouveau.": "is the old price and <1/> the new one.",
+    "précise la <1>condition</1> à remplir pour exécuter l’action.": "sets the <1>condition</1> to meet to run the action.",
+    "Ici, une ligne est ajoutée à l’historique uniquement si l’ancien prix est différent du nouveau.": "Here, a row is added to the history only if the old price is different from the new one.",
     /* Les fiches des cours du module 12 (Transactions et concurrence, 15 novembre) */
     "démarre la <1>transaction</1>.": "starts the <1>transaction</1>.",
     "Selon le SGBD, tu peux aussi écrire <1/> ou <2/>.": "Depending on the DBMS, you can also write <1/> or <2/>.",

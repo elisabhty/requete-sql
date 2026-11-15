@@ -190,6 +190,13 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   `before_gift`, aussi dans la fiche du cours (`data-en` sur `SAVEPOINT nom` : sans contexte, `nom` serait un last_name). Valider :
   commit, annuler : roll back, un point de retour : a restore point. Deux colonnes trop étroites en anglais (customer_id et
   personalization, « Healthy cooking ») : une règle `html[lang="en"]` élargit la grille, le français ne bouge pas.
+- **Le module 13** (15 novembre, « continue ») : Procédures et triggers, les vidéos PROCEDURES et TRIGGER. Les routines de
+  la base (`expedier_commande` : ship_order, `calculer_points` : calculate_points, `id_commande` : order_id) et le trigger
+  `garder_prix` (track_price) sont dans les défauts de la base anglaise ; `historique_prix` (price_history : old_price, new_price,
+  change_date) est une table de la page du trigger seulement
+  (la base des cours n’a que les quatre tables de NutriBoost, voir retours-1230). `sql()` traduit désormais un nom suivi d’une parenthèse quand il est dans les défauts (une
+  routine de la base) ; les fonctions SQL (COUNT, ROUND…) restent telles quelles. La date du trigger s’écrit à l’américaine
+  (10/25/2026).
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
@@ -231,6 +238,8 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   Module 11 (15 novembre) : `projet-ondelete.json` est prêt (environ 3 600 caractères) ; « set null » se dit d’un seul tenant.
   Module 12 (15 novembre) : les trois fichiers sont prêts (`projet-transaction.json` à `projet-concurrence.json`, environ
   11 100 caractères) ; « SELECT … FOR UPDATE » se dit « select for update », sans la pause des points de suspension.
+  Module 13 (15 novembre) : `projet-procedures.json` et `projet-trigger.json` sont prêts (environ 6 500 caractères) ; la date du
+  trigger se dit en toutes lettres (October 25, 2026), OLD.prix « old dot price », `calculer_points(80)` « calculate underscore points of 80 ».
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

@@ -204,7 +204,12 @@
       if (e.guillemets && TRAD.textes && Object.prototype.hasOwnProperty.call(TRAD.textes, e.v)) { e.v = String(TRAD.textes[e.v]).replace(/"/g, '""'); continue; }
       if (e.table) { e.v = casse(e.v, T[e.table][0]); continue; }
       var nom = e.v.toLowerCase(), p = precedent(i), n = suivant(i), table = '';
-      if (n >= 0 && L[n].v === '(') continue;   // COUNT(, une fonction
+      if (n >= 0 && L[n].v === '(') {   // COUNT(, une fonction
+        /* … sauf une routine de la base (15 novembre, module 13 : CALL expedier_commande(13), SELECT calculer_points(80)) : son nom est dans les défauts */
+        var D = (TRAD.base && TRAD.base.defauts) || {};
+        if (Object.prototype.hasOwnProperty.call(D, nom)) e.v = casse(e.v, D[nom]);
+        continue;
+      }
       if (p >= 0 && L[p].v === '.') {
         var q = precedent(p), prefixe = q >= 0 && L[q].g === 'nom' ? L[q].v.toLowerCase() : '';
         table = L[q] && L[q].table ? L[q].table : alias[prefixe] || '';

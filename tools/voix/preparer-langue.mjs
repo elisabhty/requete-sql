@@ -48,6 +48,11 @@ const FNRE = Object.keys(FN).join('|');
 const PARLE = s => s
   .replace(/MARTIN Sophie, (\d+), RUE DES LILAS, PARIS/g, 'MARTIN Sophie, $1, rue des Lilas, Paris')
   .replace(/\bWHEN gives the condition, THEN the value\b/g, 'The when part gives the condition, and the then part, the value')
+  /* Module 13 (15 novembre) : la date américaine du trigger en toutes lettres (10/25/2026 at 14:32 : October 25, 2026, at 14:32) ;
+     CURRENT_TIMESTAMP, OLD.prix et NEW.prix comme la voix française ; l’appel d’une routine (calculer_points(80) : « of 80 ») */
+  .replace(/\b(1[0-2]|0?[1-9])\/(\d{1,2})\/(\d{4}) at\b/g, (t, m, d, y) => `${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m - 1]} ${+d}, ${y}, at`)
+  .replace(/\bCURRENT_TIMESTAMP\b/g, 'current timestamp').replace(/\b(OLD|NEW)\.([a-z_]+)\b/g, (t, a, b) => a.toLowerCase() + ' dot ' + b)
+  .replace(/\b([a-z]+(?:_[a-z]+)+)\((\d+)\)/g, '$1 of $2')
   .replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, '$1, dash, $2, dash, $3').replace(/\b(\d{2})\/(\d{2})\/(\d{4})\b/g, '$1, slash, $2, slash, $3')
   .replace(/'%d\/%m\/%Y'/g, 'percent d, slash, percent m, slash, percent capital Y').replace(/'%([a-zA-Z])'/g, 'percent $1')
   .replace(/'\+(\d+) (days?|months?|years?)'/g, 'plus $1 $2')
