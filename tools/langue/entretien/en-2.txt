@@ -1,0 +1,350 @@
+### ent-v2-25
+Q: In what logical order is a SELECT query executed?
+A:
+The database doesn’t read the query in the order I write it. It starts with <code>FROM</code> (the tables), then <code>WHERE</code> (the rows), <code>GROUP BY</code> (the groups), <code>HAVING</code> (the groups kept), and only then <code>SELECT</code> (the columns), and finally <code>ORDER BY</code> (the sort) and the limit.
+
+That’s why most databases reject, in the <code>WHERE</code>, an alias created in the <code>SELECT</code>: that alias doesn’t exist yet. SQLite is the exception and accepts it. The alias can, however, be used in <code>ORDER BY</code>.
+SQL:
+-- writing order
+SELECT … FROM … WHERE …
+GROUP BY … HAVING …
+ORDER BY … LIMIT …
+-- logical order:
+-- FROM, WHERE, GROUP BY,
+-- HAVING, SELECT,
+-- ORDER BY, LIMIT
+### ent-v2-26
+Q: What are the main types of joins?
+A:
+A join brings two tables together through a shared column. The main types are <code>INNER JOIN</code>, <code>LEFT JOIN</code>, <code>RIGHT JOIN</code>, <code>FULL OUTER JOIN</code> and <code>CROSS JOIN</code>.
+
+<code>INNER JOIN</code> keeps only the rows that have a match in both tables. <code>LEFT JOIN</code> keeps every row of the left table (the one written before <code>JOIN</code>), <code>RIGHT JOIN</code> every row of the right one, and <code>FULL OUTER JOIN</code> every row of both: when nothing matches, the other table’s columns are empty (<code>NULL</code>).
+
+<code>CROSS JOIN</code> pairs each row of one table with each row of the other, with no condition. Joining a table to itself (a self join) isn’t a separate type: it’s one of these joins, with two aliases.
+SQL:
+FROM t1 INNER JOIN t2 ON …
+FROM t1 LEFT JOIN t2 ON …
+FROM t1 RIGHT JOIN t2 ON …
+FROM t1 FULL JOIN t2 ON …
+FROM t1 CROSS JOIN t2
+### ent-v2-27
+Q: How do you find rows with no match in another table?
+A:
+I look for the rows of one table that have nothing matching in the other. Two classic ways: a <code>LEFT JOIN</code> followed by <code>WHERE … IS NULL</code>, or <code>NOT EXISTS</code>.
+
+The <code>LEFT JOIN</code> keeps every row of the first table; when nothing matches, the second table’s columns are empty. I then keep only those rows, with <code>IS NULL</code>. <code>NOT EXISTS</code> says it directly: “there is no linked row”.
+
+I avoid <code>NOT IN</code>: if the other table contains a <code>NULL</code> value, the query no longer returns anything.
+SQL:
+SELECT t1.*
+FROM t1
+LEFT JOIN t2
+  ON t2.t1_id = t1.id
+WHERE t2.id IS NULL;
+### ent-v2-28
+Q: What’s the difference between a correlated and a non-correlated subquery?
+A:
+A non-correlated subquery is independent: I could run it on its own, and its result is the same for every row. A correlated subquery uses a column from the main query: its result changes with each row.
+
+Comparing each value with the overall average takes a non-correlated subquery, calculated only once. Comparing each value with the average of its own group takes a correlated subquery, which picks up the group of the current row.
+
+A correlated subquery can be slower, because in principle it’s recalculated for each row. A window function or a join often does the same job faster.
+SQL:
+-- non-correlated
+WHERE a > (SELECT AVG(a)
+           FROM t)
+
+-- correlated
+WHERE a > (SELECT AVG(a)
+  FROM t AS u
+  WHERE u.g = t.g)
+### ent-v2-29
+Q: What’s the difference between IN and EXISTS?
+A:
+<code>IN</code> checks whether a value is in a list. <code>EXISTS</code> only checks whether a subquery finds at least one row, without looking at what it contains.
+
+With <code>EXISTS</code>, the subquery is usually tied to the current row, and it stops as soon as it finds a row.
+
+The real difference shows up with negation: if the list contains a <code>NULL</code>, <code>NOT IN</code> no longer returns anything, while <code>NOT EXISTS</code> works normally. Speed-wise, modern databases often handle them the same way: I pick the more readable one.
+SQL:
+WHERE id IN (
+  SELECT t1_id FROM t2)
+
+WHERE EXISTS (
+  SELECT 1 FROM t2
+  WHERE t2.t1_id = t1.id)
+### ent-v2-30
+Q: What are ANY and ALL for?
+A:
+<code>ANY</code> and <code>ALL</code> compare a value with all the values of a subquery. With <code>ANY</code>, the comparison only has to be true for one value; with <code>ALL</code>, it must be true for all of them.
+
+So <code>&gt; ANY</code> means “greater than at least one value”, in other words greater than the smallest. <code>&gt; ALL</code> means “greater than all of them”, in other words greater than the largest. <code>= ANY</code> is the same as <code>IN</code>.
+
+I rarely see them in practice: <code>MIN()</code>, <code>MAX()</code>, <code>IN</code> or <code>EXISTS</code> often say the same thing more clearly. SQLite doesn’t support them.
+SQL:
+WHERE a > ANY (
+  SELECT b FROM t2)
+-- greater than at least one
+
+WHERE a > ALL (
+  SELECT b FROM t2)
+-- greater than all
+### ent-v2-31
+Q: What is a CTE?
+A:
+A CTE (for “Common Table Expression”) is an intermediate query I give a name with <code>WITH</code>, at the very beginning. The rest of the query then uses it like a table.
+
+A CTE helps break a complicated query into readable steps: a first step calculates totals, the main query filters them or links them to other tables. I can chain several CTEs, separated by commas.
+
+The CTE exists only during the query: nothing is saved in the database.
+SQL:
+WITH summary AS (
+  SELECT g, SUM(v) AS total
+  FROM t
+  GROUP BY g
+)
+SELECT *
+FROM summary
+WHERE total > 100;
+### ent-v2-32
+Q: How do you calculate a percentage per group?
+A:
+I divide each group’s value by the total of all groups, then multiply by 100.
+
+To get that total on every row without writing a second query, I use a window function, meaning a calculation over several rows that doesn’t group them. In <code>SUM(COUNT(*)) OVER ()</code>, <code>COUNT(*)</code> counts each group, then <code>SUM(…) OVER ()</code> adds up all those counts and copies the total onto every row.
+
+I multiply by <code>100.0</code> rather than <code>100</code>: between two whole numbers, some databases do integer division, with no decimals, and the result can drop to 0. For a share within a larger group, I add <code>PARTITION BY</code> in the <code>OVER</code>: the total is then calculated separately for each larger group.
+SQL:
+SELECT g,
+  100.0 * COUNT(*)
+  / SUM(COUNT(*)) OVER ()
+  AS pct
+FROM t
+GROUP BY g;
+### ent-v2-33
+Q: Can you select a non-aggregated column with GROUP BY?
+A:
+Generally, no. The result has only one row per group: so every column in the <code>SELECT</code> must be in the <code>GROUP BY</code>, or in a calculation like <code>COUNT()</code>, <code>MIN()</code> or <code>MAX()</code>.
+
+A column that has several values within the same group can’t be shown as is: the database doesn’t know which one to pick. I put it in a calculation, or I add it to the <code>GROUP BY</code>.
+
+Careful: SQLite, and MySQL with some settings, still accept the query and pick an arbitrary value. The result then can’t be trusted.
+
+Common follow-up: what if I group by the primary key? The table’s other columns then have only one value per group. PostgreSQL and MySQL let you show them; SQL Server and Oracle require adding them to the <code>GROUP BY</code>.
+SQL:
+SELECT g, MAX(b) AS b
+FROM t
+GROUP BY g;
+-- b neither grouped
+-- nor aggregated: rejected
+### ent-v2-34
+Q: What is COALESCE for?
+A:
+<code>COALESCE</code> returns the first value in its list that isn’t empty (<code>NULL</code>), read from left to right.
+
+<code>COALESCE</code> replaces a missing value: with another column, or with a default value, like 0 or “Unknown”. In a calculation, <code>COALESCE</code> stops a single empty cell from making the whole result empty.
+
+<code>COALESCE</code> is part of the SQL standard: the function works in every database. Some databases also have their own version, limited to two values, like <code>IFNULL</code>, <code>ISNULL</code> or <code>NVL</code>.
+SQL:
+SELECT COALESCE(a, b, 0)
+FROM t;
+### ent-v2-35
+Q: What is NULLIF for?
+A:
+<code>NULLIF(a, b)</code> returns <code>NULL</code> if the two values are equal, and the first value otherwise.
+
+Its most common use: avoiding division by zero. With <code>x / NULLIF(y, 0)</code>, a zero becomes <code>NULL</code>, and the division gives <code>NULL</code> instead of an error.
+
+<code>NULLIF</code> also turns an empty text into <code>NULL</code>, so empty cells and empty texts are handled the same way. If I’d rather show 0, I wrap the calculation in a <code>COALESCE</code>.
+SQL:
+SELECT total
+  / NULLIF(n, 0)
+FROM t;
+### ent-v2-36
+Q: How do you find duplicates?
+A:
+I group the rows by the columns that should be unique, then keep the groups that have more than one row, with <code>HAVING COUNT(*) &gt; 1</code>.
+
+That gives me the duplicated values and how many there are. To see the rows themselves, I reuse this result in a subquery, or add the count on every row with a window function.
+
+First of all, I define what a duplicate is: on which columns, and whether to take capital letters and extra spaces into account (with <code>LOWER(TRIM(col))</code>).
+SQL:
+SELECT a, b, COUNT(*)
+FROM t
+GROUP BY a, b
+HAVING COUNT(*) > 1;
+### ent-v2-37
+Q: How do you delete duplicates while keeping one row?
+A:
+I number the rows of each group of duplicates with <code>ROW_NUMBER()</code>, then delete every row whose number is above 1.
+
+In the <code>OVER</code> of <code>ROW_NUMBER()</code>, <code>PARTITION BY</code> creates a group per duplicated value. <code>ORDER BY</code> chooses the row that gets number 1, so the one I keep: the oldest, the newest or the most complete.
+
+To be safe, I first run the selection on its own to check the targeted rows. Then I delete inside a transaction, which I can undo if something goes wrong. Finally, a <code>UNIQUE</code> constraint stops the duplicates from coming back.
+SQL:
+WITH n AS (
+  SELECT id,
+    ROW_NUMBER() OVER (
+      PARTITION BY a, b
+      ORDER BY id) AS rn
+  FROM t
+)
+DELETE FROM t
+WHERE id IN (
+  SELECT id FROM n
+  WHERE rn > 1);
+### ent-v2-38
+Q: What are window functions for?
+A:
+A window function calculates over a group of rows while keeping every row in the result. That’s the difference with <code>GROUP BY</code>, which reduces each group to a single row.
+
+I write it with <code>OVER</code>: <code>PARTITION BY</code> defines the group, and <code>ORDER BY</code> the order of the rows within that group. A window function is used to rank rows, read the previous row, compute a running total, or compare a row with its group’s total.
+
+The window function is calculated after the <code>WHERE</code>: to filter on its result, I go through a CTE or a subquery.
+SQL:
+SELECT a,
+  func() OVER (
+    PARTITION BY g
+    ORDER BY d
+  )
+FROM t;
+### ent-v2-39
+Q: What’s the difference between GROUP BY and PARTITION BY?
+A:
+<code>GROUP BY</code> groups the rows: the result contains only one row per group. <code>PARTITION BY</code>, written inside <code>OVER</code>, also forms groups, but for a window function: every row stays.
+
+<code>GROUP BY</code> answers “what is each group’s average?”. <code>PARTITION BY</code> answers “how does each row compare with its group’s average?”, because the average is shown next to each row.
+
+The two can be combined in the same query: the window function is calculated after the <code>GROUP BY</code>.
+SQL:
+-- one row per group
+SELECT g, SUM(v)
+FROM t GROUP BY g;
+
+-- every row
+SELECT g, v,
+  SUM(v) OVER (
+    PARTITION BY g)
+FROM t;
+### ent-v2-40
+Q: What’s the difference between ROW_NUMBER(), RANK() and DENSE_RANK()?
+A:
+All three number the rows in the chosen order. These three functions differ only for ties.
+
+<code>ROW_NUMBER()</code> always gives a different number: 1, 2, 3, 4. <code>RANK()</code> gives tied rows the same rank, then skips numbers: 1, 2, 2, 4. <code>DENSE_RANK()</code> also gives the same rank, but without skipping: 1, 2, 2, 3.
+
+I choose based on the need: <code>ROW_NUMBER()</code> to keep exactly one row per group, <code>RANK()</code> for a competition ranking, <code>DENSE_RANK()</code> for the top n distinct values.
+SQL:
+SELECT v,
+  ROW_NUMBER() OVER w,
+  RANK() OVER w,
+  DENSE_RANK() OVER w
+FROM t
+WINDOW w AS
+  (ORDER BY v DESC);
+### ent-v2-41
+Q: What are LAG() and LEAD() for?
+A:
+<code>LAG()</code> reads a value from the previous row, and <code>LEAD()</code> from the next row, in the order I choose. That way I compare a row with its neighbor, without a join.
+
+<code>ORDER BY</code> inside <code>OVER</code> defines what the “previous” row is, and <code>PARTITION BY</code> limits the search to the same group. When there’s no row before or after, the result is <code>NULL</code>.
+
+I use them to calculate a change from one month to the next, or the time elapsed between two events.
+SQL:
+SELECT d, v,
+  LAG(v) OVER (
+    ORDER BY d) AS prev,
+  LEAD(v) OVER (
+    ORDER BY d) AS next
+FROM t;
+### ent-v2-42
+Q: How do you calculate a running total?
+A:
+I use <code>SUM()</code> as a window function, with an <code>ORDER BY</code> inside <code>OVER</code>: each row gets the sum of all the rows before it, itself included.
+
+<code>PARTITION BY</code> restarts the running total from zero for each group, for example for each customer.
+
+Watch out for ties: by default, two rows with the same sort value get the same running total. To really add up row by row, I add <code>ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code> inside the <code>OVER</code>, which means “from the first row to the current row”.
+SQL:
+SELECT d, v,
+  SUM(v) OVER (
+    ORDER BY d
+    ROWS UNBOUNDED
+      PRECEDING
+  ) AS running_total
+FROM t;
+### ent-v2-43
+Q: What is an index?
+A:
+An index is like the index at the back of a book: it tells where the rows containing a value are, without having to read the whole table.
+
+The values are stored in order in it. So an index speeds up searches, but also sorts and joins on that column.
+
+In return, it takes up space, and every insert, update or delete has to update it, which slows down writes. So I only index the columns often used in filters, joins and sorts.
+SQL:
+CREATE INDEX idx_t_a
+  ON t (a);
+### ent-v2-44
+Q: What is a composite index?
+A:
+A composite index covers several columns, in a specific order: an index on (a, b) is sorted by a, then by b.
+
+It’s like a phone book sorted by last name, then by first name: it quickly finds everyone with the same last name, or one specific person, but not everyone with the same first name. So the index helps searches on a, alone or with b, but usually not on b alone.
+
+The order of the columns matters: I put first the ones I test with <code>=</code>, then the one I test on a range (with <code>&gt;</code>, <code>&lt;</code> or <code>BETWEEN</code>) or the one used for sorting.
+SQL:
+CREATE INDEX idx_t_a_b
+  ON t (a, b);
+-- helps: WHERE a = …
+-- and WHERE a = … AND b = …
+### ent-v2-45
+Q: What does ACID mean?
+A:
+ACID stands for the four guarantees of a transaction, meaning a group of changes handled as a single block: atomicity, consistency, isolation and durability.
+
+Atomicity: everything is done, or nothing. Consistency: at the end, the database respects all its rules. Isolation: two transactions running at the same time don’t get in each other’s way. Durability: once committed, the changes survive even a crash.
+
+Classic example: a bank transfer takes money out of one account and adds it to another. Thanks to atomicity, both operations succeed together, or neither is done.
+### ent-v2-46
+Q: What’s the difference between COMMIT and ROLLBACK?
+A:
+<code>COMMIT</code> confirms a transaction: its changes become permanent and visible to other users. <code>ROLLBACK</code> cancels it: everything it changed is undone.
+
+Before the <code>COMMIT</code>, everything is provisional. After it, there’s no going back.
+
+By default, most databases commit each statement on its own. To group several statements, I start a transaction with <code>BEGIN</code>, then end it with <code>COMMIT</code> or <code>ROLLBACK</code>.
+SQL:
+BEGIN;
+UPDATE t SET a = 1
+  WHERE id = 1;
+COMMIT;   -- or ROLLBACK;
+### ent-v2-47
+Q: What is a SAVEPOINT for?
+A:
+A <code>SAVEPOINT</code> sets a return point inside a transaction. <code>ROLLBACK TO</code> undoes only what was done since that point: the rest is kept, and the transaction goes on.
+
+I use it in a multi-step process: if a step fails, I go back to the point set just before it, without losing the steps that already worked. The final <code>COMMIT</code> confirms everything.
+
+SQL Server writes it <code>SAVE TRANSACTION</code>.
+SQL:
+BEGIN;
+INSERT INTO t …;
+SAVEPOINT step1;
+UPDATE t …;
+ROLLBACK TO step1;
+COMMIT;
+### ent-v2-48
+Q: What is a SQL view?
+A:
+A view is a query saved under a name, which I can query like a table. A view stores no data: every time it’s read, the database reruns its query on the original tables.
+
+A view simplifies complicated queries, avoids repeating the same joins and gives a clear name to a business rule.
+
+A view also helps with security: I can grant access to the view without granting access to the table, and so show only some rows or columns. On the other hand, a view doesn’t speed up queries: to keep an already calculated result, you need a materialized view.
+SQL:
+CREATE VIEW v AS
+SELECT a, b
+FROM t
+WHERE c = 1;
+
+SELECT * FROM v;

@@ -1,0 +1,354 @@
+### ent-v2-73
+Q: How do you protect against SQL injection?
+A:
+I use parameterized queries: the query contains placeholders (like <code>?</code>), and the user’s input is sent separately. The database always treats it as a plain value, never as SQL code.
+
+The danger is pasting the input directly into the query text: a well-chosen input can then change the query, and for example show every row or delete some.
+
+On top of that, I give the application’s account as few permissions as possible. Careful: a stored procedure that builds SQL from the input (<code>EXECUTE</code>) is still vulnerable.
+SQL:
+-- avoid
+"… WHERE name = '" + input
+  + "'"
+
+-- parameterized query
+SELECT *
+FROM t
+WHERE name = ?;
+### ent-v2-74
+Q: How does pagination work with LIMIT/OFFSET or OFFSET/FETCH?
+A:
+Pagination shows results page by page, instead of returning everything at once.
+
+<code>LIMIT</code> sets the number of rows per page, and <code>OFFSET</code> the number of rows to skip: <code>LIMIT 10 OFFSET 20</code> gives the third page of 10. SQL Server and Oracle write the same thing with <code>OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY</code>. I always add an <code>ORDER BY</code>, otherwise pages can get mixed up.
+
+On large volumes, a big <code>OFFSET</code> gets slow, because the database still reads the skipped rows. So I start again from the last value shown, sorting on <code>id</code> with <code>WHERE id &gt; last_id</code>: that’s keyset pagination, much faster.
+SQL:
+SELECT * FROM t
+ORDER BY id
+LIMIT 10 OFFSET 20;
+
+-- keyset
+SELECT * FROM t
+WHERE id > :last_id
+ORDER BY id
+LIMIT 10;
+### ent-v2-75
+Q: How do you find the second-highest salary in a table?
+A:
+I use <code>DENSE_RANK()</code> to rank the salaries from highest to lowest, then keep rank 2.
+
+<code>DENSE_RANK()</code> gives equal salaries the same rank, without skipping numbers: so rank 2 really is the second distinct salary, even if several people share the highest.
+
+Without a window function, another approach also works: the largest salary among those below the maximum.
+SQL:
+WITH r AS (
+  SELECT salary,
+    DENSE_RANK() OVER (
+      ORDER BY salary DESC
+    ) AS n
+  FROM t
+)
+SELECT DISTINCT salary
+FROM r
+WHERE n = 2;
+### ent-v2-76
+Q: What is SQL?
+A:
+SQL is the language used to talk to databases: read, add, change or delete data, and create tables.
+
+It’s a language where I describe the result I want, not how to get it. The database finds the best path on its own.
+
+Common follow-up: are SQL and MySQL the same thing? No: SQL is the language. MySQL, like PostgreSQL or SQL Server, is software that stores the data and understands SQL.
+### ent-v2-77
+Q: What is a relational database?
+A:
+A relational database stores data in tables, made of rows and columns, a bit like spreadsheets.
+
+The tables are linked to each other by keys: a shared column, like a customer’s ID, also found in the orders table. Each piece of information is written only once. A join brings the tables together when I need it, thanks to that shared column.
+
+I query it in SQL, with software like PostgreSQL, MySQL or SQLite.
+### ent-v2-78
+Q: What’s the difference between a row and a column?
+A:
+A row describes one item: a customer, an order. A column describes the same piece of information for every item: the name, the date, the price.
+
+Each column has a type, like text, number or date. A cell holds a single value, or <code>NULL</code> if it’s empty.
+
+In SQL, I choose the columns in the <code>SELECT</code> and the rows in the <code>WHERE</code>.
+### ent-v2-79
+Q: What’s the difference between DDL and DML?
+A:
+DDL, the data definition language, is used to create and change the structure: the tables and their columns, with <code>CREATE</code>, <code>ALTER</code> and <code>DROP</code>.
+
+DML, the data manipulation language, is used to work on the data itself: <code>INSERT</code> to add, <code>UPDATE</code> to change, <code>DELETE</code> to remove, and <code>SELECT</code> to read.
+
+To remember it: DDL builds the tables, DML fills and changes them.
+SQL:
+-- DDL
+CREATE TABLE t (a INT);
+ALTER TABLE t ADD b INT;
+DROP TABLE t;
+-- DML
+INSERT INTO t VALUES (1);
+UPDATE t SET a = 2;
+DELETE FROM t;
+### ent-v2-80
+Q: What’s the difference between ALTER and UPDATE?
+A:
+<code>ALTER TABLE</code> changes a table’s structure, for example to add or drop a column. <code>UPDATE</code> changes the values in the rows, without touching the structure.
+
+The two often go together: I add a column with <code>ALTER TABLE</code>, then fill it with <code>UPDATE</code>.
+
+Careful: an <code>UPDATE</code> without <code>WHERE</code> changes every row of the table. I always check my <code>WHERE</code> first.
+SQL:
+ALTER TABLE t
+  ADD COLUMN c TEXT;
+
+UPDATE t
+SET c = 'x'
+WHERE id = 1;
+### ent-v2-81
+Q: What’s the difference between DISTINCT and UNIQUE?
+A:
+<code>DISTINCT</code> removes duplicates from a query’s result. <code>UNIQUE</code> is a rule set on the table, which prevents saving the same value twice.
+
+<code>DISTINCT</code> acts when I read the data, without changing anything in the table. <code>UNIQUE</code> acts when I write: a duplicate is rejected.
+SQL:
+-- when reading
+SELECT DISTINCT a FROM t;
+
+-- when writing
+ALTER TABLE t
+  ADD UNIQUE (a);
+### ent-v2-82
+Q: What is a SELF JOIN?
+A:
+A SELF JOIN means joining a table with itself. It isn’t a separate type of join: it’s a regular <code>JOIN</code> or <code>LEFT JOIN</code>, with two aliases to tell the table’s two roles apart.
+
+A SELF JOIN is useful when a row refers to another row of the same table: an employee and their manager, a category and its parent category.
+
+I use a <code>LEFT JOIN</code> to also keep the rows with no parent, at the top of the hierarchy. To go up several levels, I use a recursive CTE.
+SQL:
+SELECT e.name,
+  m.name AS parent
+FROM t AS e
+LEFT JOIN t AS m
+  ON m.id = e.parent_id;
+### ent-v2-83
+Q: When should you use a join rather than a subquery?
+A:
+I use a join when I need to show columns from both tables. I use a subquery to filter, or to calculate an intermediate value, like a total.
+
+Careful: a join returns one row per match. So a row linked several times appears several times. A subquery with <code>IN</code> or <code>EXISTS</code> keeps each row only once.
+
+When both give the same result, I pick the more readable one: the database often runs them the same way.
+SQL:
+-- join: to show
+SELECT t1.a, t2.b
+FROM t1
+JOIN t2 ON t2.t1_id = t1.id;
+
+-- subquery: to filter
+SELECT * FROM t1
+WHERE id IN (
+  SELECT t1_id FROM t2);
+### ent-v2-84
+Q: What’s the difference between a clustered and a non-clustered index?
+A:
+A clustered index decides the order in which the rows are stored in the table. So a table can have only one clustered index, often on the primary key.
+
+A non-clustered index is a separate list that points to the rows without changing how they’re stored. A table can have several.
+
+A simple picture: the clustered index is a binder whose sheets are filed by date; the non-clustered index is the index at the back of a book, which gives the pages without moving them.
+SQL:
+-- SQL Server
+CREATE CLUSTERED INDEX
+  ix_c ON t (id);
+CREATE NONCLUSTERED INDEX
+  ix_n ON t (a);
+### ent-v2-85
+Q: How do you analyze a slow query?
+A:
+I start by measuring its run time, then I look at its execution plan with <code>EXPLAIN</code>: it shows how the database reads the tables.
+
+I mostly look for full scans of large tables, costly joins and big sorts. Then I check whether an index is missing, whether the filters are written well, and whether I’m selecting useless columns.
+
+After each change, I measure again, to check that the query really is faster.
+SQL:
+-- PostgreSQL, MySQL
+EXPLAIN ANALYZE
+SELECT …;
+-- SQLite
+EXPLAIN QUERY PLAN
+SELECT …;
+### ent-v2-86
+Q: What is LIKE for, and what do % and _ mean?
+A:
+<code>LIKE</code> looks for text that matches a pattern.
+
+In that pattern, <code>%</code> stands for any sequence of characters, even none, and <code>_</code> stands for exactly one character.
+
+<code>LIKE 'abc%'</code> finds the texts that start with “abc”, <code>LIKE '%abc'</code> the ones that end with “abc”, and <code>LIKE '%abc%'</code> the ones that contain “abc”.
+SQL:
+WHERE name LIKE 'ab%'
+WHERE name LIKE '%ab'
+WHERE name LIKE 'a_c'
+WHERE name NOT LIKE '%ab%'
+WHERE c LIKE '%!%%'
+  ESCAPE '!'
+### ent-v2-87
+Q: What’s the difference between RIGHT JOIN and FULL OUTER JOIN?
+A:
+<code>RIGHT JOIN</code> keeps every row of the right table, with empty cells when nothing matches on the left. It’s the mirror of <code>LEFT JOIN</code>.
+
+<code>FULL OUTER JOIN</code> keeps every row of both tables: the ones that match, and also the ones that exist on only one side. A <code>FULL OUTER JOIN</code> is used to compare two data sources.
+
+In practice, I often rewrite a <code>RIGHT JOIN</code> as a <code>LEFT JOIN</code>, swapping the tables: it’s easier to read. MySQL has no <code>FULL OUTER JOIN</code>: there I combine the results of a <code>LEFT JOIN</code> and a <code>RIGHT JOIN</code> with <code>UNION</code>.
+SQL:
+SELECT *
+FROM t1
+FULL OUTER JOIN t2
+  ON t2.t1_id = t1.id;
+### ent-v2-88
+Q: What is a CROSS JOIN for?
+A:
+<code>CROSS JOIN</code> pairs each row of one table with each row of the other, with no condition: every possible combination.
+
+I use it to generate every combination, for example each product for each month. A <code>LEFT JOIN</code> on the real data then fills in this grid. A combination with no data still shows up, with an empty cell (<code>NULL</code>) I can replace with 0, instead of disappearing.
+
+Watch the size: two tables of 1,000 rows give a million rows.
+SQL:
+SELECT a.x, b.y
+FROM a
+CROSS JOIN b;
+### ent-v2-89
+Q: How do you gather a group’s values into a single cell?
+A:
+I use a function that joins each group’s values into a single text, with a separator: <code>GROUP_CONCAT</code> in SQLite and MySQL, <code>STRING_AGG</code> in PostgreSQL and SQL Server, <code>LISTAGG</code> in Oracle.
+
+With a <code>GROUP BY</code>, I get one row per group, with all its values gathered in a single cell, separated by a comma or the separator of my choice.
+
+Without a specified sort, the order of the values isn’t guaranteed: I add an <code>ORDER BY</code> inside the function. Empty cells (<code>NULL</code>) are ignored.
+SQL:
+-- SQLite, MySQL
+GROUP_CONCAT(v, ', ')
+-- PostgreSQL, SQL Server
+STRING_AGG(v, ', ')
+-- Oracle
+LISTAGG(v, ', ')
+  WITHIN GROUP
+  (ORDER BY v)
+### ent-v2-90
+Q: What are INTERSECT and EXCEPT for?
+A:
+<code>INTERSECT</code> keeps the rows found in both results. <code>EXCEPT</code> keeps the rows of the first result that aren’t in the second (Oracle calls it <code>MINUS</code>).
+
+As with <code>UNION</code>, both queries must have the same number of columns, and duplicates are removed.
+
+With <code>EXCEPT</code>, the order of the queries matters: A except B isn’t B except A. An advantage over <code>NOT IN</code>: <code>NULL</code> values cause no trouble.
+SQL:
+SELECT a FROM t1
+INTERSECT
+SELECT a FROM t2;
+
+SELECT a FROM t1
+EXCEPT
+SELECT a FROM t2;
+### ent-v2-91
+Q: How do you convert a type with CAST?
+A:
+<code>CAST(value AS type)</code> converts a value to another type: a text to a number or a date, a number to a text.
+
+Typical case: numbers stored as text sort character by character, and <code>'100'</code> comes before <code>'9'</code>. By sorting on <code>CAST(col AS INTEGER)</code>, I get the numeric order back.
+
+The real fix is often to give the column the right type: <code>CAST</code> corrects on every read, and on a filtered column, it usually prevents its index from being used.
+SQL:
+SELECT CAST(a AS INTEGER)
+FROM t
+ORDER BY CAST(a AS INTEGER);
+### ent-v2-92
+Q: Which text functions do you use the most?
+A:
+I mostly use <code>UPPER</code> and <code>LOWER</code> to convert to uppercase or lowercase, and <code>TRIM</code> to remove extra spaces. I also use <code>SUBSTR</code> to extract a piece of text, <code>REPLACE</code> to replace a word, and <code>LENGTH</code> to count characters.
+
+These functions are mostly used to clean data: to the database, “Paris” and “paris” aren’t the same value.
+
+The syntax changes a little from one database system, called a DBMS, to another. These variants are gathered in “See by DBMS”.
+SQL:
+SELECT
+  UPPER(a), LOWER(a),
+  TRIM(a),
+  SUBSTR(a, 1, 3),
+  REPLACE(a, 'x', 'y'),
+  LENGTH(a)
+FROM t;
+### ent-v2-93
+Q: How do you calculate the number of days between two dates?
+A:
+I use a date function, which changes with the DBMS: <code>DATEDIFF</code> in MySQL and SQL Server, a simple subtraction in PostgreSQL, <code>JULIANDAY()</code> in SQLite.
+
+The order of the dates in the function isn’t the same everywhere: I always check the sign of the result.
+
+Watch out for dates that include a time: the result can count fractions of a day. Each DBMS’s syntax is gathered in “See by DBMS”.
+SQL:
+-- MySQL
+DATEDIFF(end_date, start_date)
+-- SQL Server
+DATEDIFF(day, start_date, end_date)
+-- PostgreSQL
+end_date - start_date
+-- SQLite
+JULIANDAY(end_date)
+  - JULIANDAY(start_date)
+### ent-v2-94
+Q: What does ON DELETE CASCADE do?
+A:
+<code>ON DELETE CASCADE</code> is set on a foreign key: when I delete a parent row, the rows that refer to it are deleted along with it.
+
+Without this option, the database refuses to delete a row still used elsewhere. Another possible choice: <code>SET NULL</code>, which keeps the linked rows but empties their reference.
+
+I keep the cascade for data that makes no sense without its parent. I avoid it for what must be kept, like a history or invoices.
+SQL:
+CREATE TABLE child (
+  id INTEGER PRIMARY KEY,
+  parent_id INTEGER
+    REFERENCES parent (id)
+    ON DELETE CASCADE
+);
+### ent-v2-95
+Q: What are CHECK and DEFAULT for?
+A:
+<code>CHECK</code> checks that a value follows a rule, for example that a quantity is positive. If the rule isn’t met, the row is rejected.
+
+<code>DEFAULT</code> gives an automatic value when I don’t provide one, for example zero or today’s date.
+
+I add them when creating the table, on the relevant columns.
+SQL:
+CREATE TABLE t (
+  qty INTEGER
+    CHECK (qty > 0),
+  created_on DATE
+    DEFAULT CURRENT_DATE
+);
+### ent-v2-96
+Q: How do you insert a row, or update it if it already exists?
+A:
+That’s an “upsert”: add the row, or update it if it already exists. I write <code>ON CONFLICT … DO UPDATE</code> in PostgreSQL and SQLite, <code>ON DUPLICATE KEY UPDATE</code> in MySQL, and <code>MERGE</code> in SQL Server.
+
+With <code>ON CONFLICT</code> and <code>ON DUPLICATE KEY UPDATE</code>, the database spots an existing row through a <code>UNIQUE</code> column or the primary key. With <code>ON CONFLICT</code>, the word <code>excluded</code> refers to the row I wanted to add: I reuse its values for the update.
+
+It’s safer than checking first with a <code>SELECT</code>, then inserting: in between, someone else may add the same row. To simply ignore duplicates, I write <code>ON CONFLICT DO NOTHING</code>, or <code>INSERT IGNORE</code> in MySQL.
+SQL:
+-- PostgreSQL, SQLite
+INSERT INTO t (id, v)
+VALUES (1, 'x')
+ON CONFLICT (id)
+DO UPDATE
+  SET v = excluded.v;
+
+-- MySQL
+INSERT INTO t (id, v)
+VALUES (1, 'x')
+ON DUPLICATE KEY UPDATE
+  v = VALUES(v);

@@ -1,0 +1,379 @@
+### ent-v2-121
+Q: Natural key or surrogate key: which one should you choose?
+A:
+A natural key comes from the data itself: an email, a license plate number. A surrogate key is a plain number with no meaning, assigned by the database.
+
+Most of the time I choose a surrogate key as the primary key: it never changes and stays short. If an email changes, no other table needs updating.
+
+I still keep the natural key as <code>UNIQUE NOT NULL</code>, to avoid duplicates. The automatic number is written differently depending on the DBMS, for example <code>AUTO_INCREMENT</code> in MySQL or <code>GENERATED ALWAYS AS IDENTITY</code> in PostgreSQL.
+SQL:
+CREATE TABLE t (
+  id INTEGER PRIMARY KEY,
+  email TEXT
+    UNIQUE NOT NULL
+);
+### ent-v2-122
+Q: What is NTILE() and what is it for?
+A:
+<code>NTILE(n)</code> splits the sorted rows into n roughly equal groups, and gives each row the number of its group.
+
+<code>NTILE(4)</code> splits into quarters (quartiles): with a descending sort, group 1 holds the quarter of the highest values. <code>NTILE(10)</code> splits into tenths. I use it to segment a population, for example the best customers.
+
+Careful: the split is based on position, not value. So two equal rows can land in two different groups.
+SQL:
+SELECT a, v,
+  NTILE(4) OVER (
+    ORDER BY v DESC
+  ) AS quartile
+FROM t;
+### ent-v2-123
+Q: How do you find employees paid more than their department’s average?
+A:
+I compare each employee’s salary with the average of their own department.
+
+The simplest way: a window function, <code>AVG(salary) OVER (PARTITION BY department)</code>, which adds the department’s average next to each row. I calculate it in a CTE, then keep the rows where the salary is higher than that average.
+
+Another way: a correlated subquery, which recalculates the department’s average for each employee. The result is the same, but it’s often slower.
+SQL:
+WITH m AS (
+  SELECT *,
+    AVG(salary) OVER (
+      PARTITION BY department
+    ) AS avg_salary
+  FROM t
+)
+SELECT *
+FROM m
+WHERE salary > avg_salary;
+### ent-v2-124
+Q: How do you find the customers who ordered in both January and February?
+A:
+I group the orders by customer, keeping only the ones from January and February, then keep the customers who do have both months.
+
+Concretely: <code>GROUP BY</code> on the customer, then <code>HAVING COUNT(DISTINCT month) = 2</code>. The <code>DISTINCT</code> matters: without it, two orders in February would count as 2.
+
+Another method: the intersection (<code>INTERSECT</code>) of January’s customers and February’s. Either way, I filter on precise date ranges, so as not to mix up the years.
+SQL:
+SELECT customer_id
+FROM orders
+WHERE d >= '2026-01-01'
+  AND d < '2026-03-01'
+GROUP BY customer_id
+HAVING COUNT(DISTINCT
+  STRFTIME('%m', d)) = 2;
+### ent-v2-125
+Q: How do you keep only the most recent row for each customer?
+A:
+I number each customer’s rows, from newest to oldest, with <code>ROW_NUMBER()</code>, then keep only row number 1.
+
+<code>PARTITION BY</code> restarts the numbering for each customer, and sorting by descending date gives number 1 to the newest. If two rows have the same date, I add the ID to the sort to break the tie: otherwise, the row kept can change from one run to the next.
+
+The <code>WHERE</code> is read before the numbers are calculated: so I can’t filter on the number in the same query. I calculate the number in a CTE or a subquery, then filter in the query that uses it.
+SQL:
+WITH r AS (
+  SELECT *,
+    ROW_NUMBER() OVER (
+      PARTITION BY customer_id
+      ORDER BY d DESC, id DESC
+    ) AS n
+  FROM t
+)
+SELECT *
+FROM r
+WHERE n = 1;
+### ent-v2-126
+Q: How do you update a table from another one?
+A:
+I link the table to update to the one holding the new values, then copy those values over. The syntax depends on the DBMS: <code>UPDATE … FROM</code> in PostgreSQL, SQLite and SQL Server, <code>UPDATE … JOIN</code> in MySQL.
+
+Only the rows that find a match are updated: the others keep their value.
+
+To also add the missing rows in the same statement, I use <code>MERGE</code> or an upsert. An upsert, a blend of “update” and “insert”, adds the row if it doesn’t exist yet, and updates it otherwise. <code>MERGE</code> does the same by comparing a whole source table with the table to update.
+SQL:
+-- PostgreSQL, SQLite,
+-- SQL Server
+UPDATE t
+SET v = s.v
+FROM s
+WHERE s.id = t.id;
+
+-- MySQL
+UPDATE t
+JOIN s ON s.id = t.id
+SET t.v = s.v;
+### ent-v2-127
+Q: Can you create a view from another view, and what happens to it if the table is dropped?
+A:
+Yes: a view can be built on another view, just as on a table.
+
+But a view only holds its query, not data. If the original table is dropped, the views that depend on it stop working. Depending on the DBMS, the drop is refused (PostgreSQL), or accepted, and the views then fail when read.
+
+Stacking views is allowed, but over time it becomes hard to know what a query really does.
+SQL:
+CREATE VIEW v1 AS
+  SELECT … FROM t;
+CREATE VIEW v2 AS
+  SELECT … FROM v1;
+### ent-v2-128
+Q: How do you keep rows from multiplying when joining three tables?
+A:
+The problem: I join customers to their orders and to their payments. Each of a customer’s orders is then repeated for each payment of that same customer. Totals and counts become wrong.
+
+With 2 orders and 3 payments for one customer, the join produces 2 × 3 = 6 rows, and a sum counts each amount several times.
+
+The fix: first calculate each total separately, in CTEs, so there’s only one row per customer, then join those results. To spot the problem, I compare the number of rows before and after the join.
+SQL:
+WITH a AS (
+  SELECT t_id, SUM(x) AS sx
+  FROM t1 GROUP BY t_id),
+b AS (
+  SELECT t_id, COUNT(*) AS n
+  FROM t2 GROUP BY t_id)
+SELECT t.id, a.sx, b.n
+FROM t
+LEFT JOIN a ON a.t_id = t.id
+LEFT JOIN b ON b.t_id = t.id;
+### ent-v2-129
+Q: What are ROLLUP, CUBE and GROUPING SETS for?
+A:
+They’re <code>GROUP BY</code> options that calculate several levels of totals in a single query: the detail, the subtotals and the grand total.
+
+<code>ROLLUP</code> follows a hierarchy: by year and month, then by year, then the total. <code>CUBE</code> calculates every possible combination. <code>GROUPING SETS</code> lists exactly the groupings you want.
+
+On a subtotal row, the summarized column is empty (<code>NULL</code>). The <code>GROUPING()</code> function lets you recognize it, for example to show “Total” instead. MySQL only has <code>ROLLUP</code>, and SQLite has none of the three.
+SQL:
+SELECT a, b, SUM(v)
+FROM t
+GROUP BY ROLLUP (a, b);
+
+GROUP BY CUBE (a, b)
+GROUP BY GROUPING SETS
+  ((a, b), (a), ())
+### ent-v2-130
+Q: What is LATERAL (or CROSS APPLY)?
+A:
+<code>LATERAL</code> lets a subquery placed in the <code>FROM</code> use the columns of the tables written before it. The subquery is then recalculated for each row, a bit like a loop. SQL Server writes <code>CROSS APPLY</code>.
+
+It’s handy for getting “the last 3 orders of each customer”: for each customer, the subquery keeps their orders, sorts them from newest to oldest, then stops at 3.
+
+Without <code>LATERAL</code>, I get the same result with <code>ROW_NUMBER()</code> and <code>PARTITION BY</code>: I number each customer’s orders, then keep numbers 1 to 3. SQLite doesn’t support <code>LATERAL</code>.
+SQL:
+-- PostgreSQL, MySQL
+SELECT t1.id, d.*
+FROM t1
+CROSS JOIN LATERAL (
+  SELECT *
+  FROM t2
+  WHERE t2.t1_id = t1.id
+  ORDER BY t2.d DESC
+  LIMIT 3
+) AS d;
+### ent-v2-131
+Q: How do you calculate a retention rate by cohort?
+A:
+A cohort is a group of users who started in the same period, for example the same month. Retention is the share of that group still active in the following months.
+
+I put the users into cohorts based on their first activity, then follow each cohort over the periods: for each month, I count the active users, and divide by the cohort’s starting size.
+
+To compare cohorts with each other, I line them up by age (month 0, month 1, month 2…) rather than by calendar.
+SQL:
+SELECT u, month,
+  MIN(month) OVER (
+    PARTITION BY u
+  ) AS cohort
+FROM activity;
+### ent-v2-132
+Q: How do you solve a “gaps and islands” problem?
+A:
+A “gaps and islands” problem is about spotting continuous runs, the islands, and the gaps between them: for example consecutive login days.
+
+The trick: I number each user’s days with <code>ROW_NUMBER()</code>, then subtract that number from the date. As long as the days follow each other, the date and the number move forward together, and the result stays the same. Example: the 3rd, 4th and 5th of the month get numbers 1, 2 and 3, and all give the 2nd of the month. That result acts as the run’s label.
+
+A <code>GROUP BY</code> on this label gives the start, the end and the length of each run. I first remove duplicate days, otherwise the numbering gets shifted.
+SQL:
+SELECT u,
+  MIN(day) AS start_day,
+  MAX(day) AS end_day
+FROM (
+  SELECT u, day,
+    day - ROW_NUMBER() OVER (
+      PARTITION BY u
+      ORDER BY day) AS grp
+  FROM t
+) AS x
+GROUP BY u, grp;
+### ent-v2-133
+Q: Optimistic or pessimistic locking?
+A:
+A lock prevents other users from changing a row while I’m working on it. A pessimistic lock blocks the row as soon as I read it, with <code>SELECT … FOR UPDATE</code> in a transaction: the others wait for my transaction to end. It’s safe, but it creates waiting.
+
+An optimistic lock blocks nothing. Each row carries a version number. When saving, I update the row only if that number hasn’t changed since I read it, with <code>WHERE version = …</code> in the <code>UPDATE</code>, and I increase the number. If no row is updated, someone got there before me, and the application handles the conflict.
+
+I choose pessimistic when conflicts are frequent, optimistic when they’re rare.
+SQL:
+-- pessimistic
+SELECT * FROM t
+WHERE id = 1
+FOR UPDATE;
+
+-- optimistic
+UPDATE t
+SET v = 'x',
+  version = version + 1
+WHERE id = 1
+  AND version = 12;
+### ent-v2-134
+Q: What is table partitioning?
+A:
+Partitioning a table means splitting it into pieces based on a column, often a date: one piece per month, for example. For my queries, it’s still a single table.
+
+The advantage: a query filtered on one month reads only that month’s piece. And deleting an old month is very fast: I remove its whole piece instead of deleting the rows one by one.
+
+Without a filter on the partitioning column, every piece is read. So partitioning doesn’t replace indexes, which quickly find a few specific rows, like the index at the back of a book. Partitioning is only useful on very large tables.
+SQL:
+-- PostgreSQL
+CREATE TABLE t (
+  d DATE, v INT
+) PARTITION BY RANGE (d);
+
+CREATE TABLE t_2026_01
+  PARTITION OF t
+  FOR VALUES
+  FROM ('2026-01-01')
+  TO ('2026-02-01');
+### ent-v2-135
+Q: What is a slowly changing dimension (SCD type 2)?
+A:
+A type 2 slowly changing dimension keeps the history of changes. A dimension is a table that describes the context, for example customers. When a piece of information changes, I don’t replace the row: I close it with an end date, and add a new row with the new value.
+
+Each version has its own surrogate key, a plain number assigned by the database. The facts, meaning measures like sales, point to that key: each sale stays linked to the version valid when it happened. The current version has no end date.
+
+For comparison: type 1 simply overwrites the old value, with no history; type 3 keeps only the previous value in another column.
+SQL:
+SELECT *
+FROM dim
+WHERE business_id = 42
+  AND start_date <= :d
+  AND (end_date IS NULL
+    OR end_date >= :d);
+### ent-v2-136
+Q: How do you calculate a 7-day moving average?
+A:
+I use <code>AVG()</code> as a window function: for each day, the average covers that day’s row and the 6 previous rows. I write <code>AVG(amount) OVER (ORDER BY day ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)</code>. That last part is called the frame: the list of rows taken into the calculation.
+
+Careful: <code>ROWS</code> counts rows, not days. If days are missing from the table, the 7 rows cover more than a week. So I first fill in the calendar, with a date table and zeros for empty days.
+
+Some DBMSs, like PostgreSQL, also accept a <code>RANGE</code> frame over a duration, which directly takes “the previous 6 days”.
+SQL:
+SELECT d, v,
+  AVG(v) OVER (
+    ORDER BY d
+    ROWS BETWEEN 6 PRECEDING
+    AND CURRENT ROW
+  ) AS avg_7d
+FROM t;
+### ent-v2-137
+Q: How do you calculate a cumulative percentage of revenue?
+A:
+I sort the items from highest to lowest revenue, then calculate a running total with <code>SUM(revenue) OVER (ORDER BY revenue DESC)</code>: each row gets the sum of its value and all the ones before it. I divide this running total by the grand total, which <code>SUM(revenue) OVER ()</code> puts on every row.
+
+Each row then shows the share of revenue made by that item and the ones before it. It’s the basis of the 80/20 rule (Pareto analysis): what small share of the items makes most of the total?
+
+In PostgreSQL, SQLite or SQL Server, a division between two whole numbers keeps only the whole part: <code>1 / 4</code> gives <code>0</code>. So I start by multiplying by <code>100.0</code>, not <code>100</code>, to get a decimal result.
+SQL:
+SELECT a, revenue,
+  100.0 * SUM(revenue) OVER (
+    ORDER BY revenue DESC)
+  / SUM(revenue) OVER ()
+  AS cumulative_pct
+FROM t;
+### ent-v2-138
+Q: How do you use SQL to measure the conversion rate between two steps of a user journey?
+A:
+I count the distinct users who reached each step, then divide the number for the second step by the number for the first.
+
+<code>COUNT(DISTINCT CASE WHEN step = '…' THEN user_id END)</code> does this count. The <code>CASE WHEN</code> returns the ID for the rows of the targeted step, and <code>NULL</code> for the others, which <code>COUNT</code> ignores. The <code>DISTINCT</code> counts each user only once, even if they did the step several times. I multiply by <code>100.0</code> to avoid integer division, which would often give 0.
+
+For a rigorous calculation, at the second step I count only the users who went through the first, over the same period.
+SQL:
+SELECT
+  100.0 * COUNT(DISTINCT
+    CASE WHEN step = 'b'
+    THEN user_id END)
+  / COUNT(DISTINCT
+    CASE WHEN step = 'a'
+    THEN user_id END)
+  AS rate
+FROM events;
+### ent-v2-139
+Q: How do you identify a user’s activity sessions in SQL, knowing that a new session starts after more than 30 minutes of inactivity?
+A:
+I use <code>LAG()</code> to get the time of each user’s previous event, in chronological order: <code>LAG(ts) OVER (PARTITION BY user_id ORDER BY ts)</code>.
+
+If more than 30 minutes separate two events, a new session starts: I mark 1, otherwise 0, with <code>CASE WHEN</code>. A user’s first event has no previous one, so <code>LAG()</code> returns <code>NULL</code>: I mark 1 as well.
+
+Then I add up these marks with <code>SUM(mark) OVER (PARTITION BY user_id ORDER BY ts)</code>: each 1 moves the counter forward, which gives each session a number. A <code>GROUP BY</code> on the user and this number gives the start, the end and the length of each session.
+SQL:
+WITH e AS (
+  SELECT u, ts,
+    CASE WHEN ts - LAG(ts)
+      OVER (PARTITION BY u
+        ORDER BY ts)
+      <= 30 THEN 0
+      ELSE 1 END AS is_start
+  FROM t
+)
+SELECT u, ts,
+  SUM(is_start) OVER (
+    PARTITION BY u
+    ORDER BY ts) AS session
+FROM e;
+### ent-v2-140
+Q: How do you find products that are often bought together?
+A:
+I join the purchase lines table with itself, on the purchase number: each result is a pair of products bought together. Then I count the pairs with <code>GROUP BY</code>, and sort by frequency.
+
+The condition “first product < second product” avoids pairing a product with itself, and counting each pair twice.
+
+The number of pairs grows fast: a purchase of 10 products gives 45. On a large table, I limit myself to one period.
+SQL:
+SELECT a.product_id,
+  b.product_id,
+  COUNT(*) AS n
+FROM lines AS a
+JOIN lines AS b
+  ON b.purchase_id = a.purchase_id
+  AND a.product_id
+    < b.product_id
+GROUP BY 1, 2
+ORDER BY n DESC;
+### ent-v2-141
+Q: How do you use SQL to compare the conversion rate of two versions of an app in an A/B test?
+A:
+In an A/B test, users are split into two groups, A and B, each seeing a different version of the app.
+
+For each group, I calculate the share of users who did the targeted action, like signing up or buying. If each user has a column equal to 1 (yes) or 0 (no), the average per group directly gives that rate: <code>AVG()</code> with a <code>GROUP BY</code> on the group.
+
+Before drawing conclusions, I check that each user is in only one group, and that the gap is big enough not to be due to chance.
+SQL:
+SELECT test_group,
+  COUNT(*) AS n,
+  AVG(converted) AS rate
+FROM ab_test
+GROUP BY test_group;
+### ent-v2-142
+Q: Calculate the revenue generated by each customer, using only paid orders.
+A:
+<code>JOIN</code> links the customers table to the orders table, <code>WHERE</code> keeps only the paid orders, and <code>SUM</code> adds up the amounts with a <code>GROUP BY</code> per customer.
+
+I group by the ID and by the name: two customers can have the same name, the ID tells them apart.
+
+If customers with no paid order must appear with 0, I switch to a <code>LEFT JOIN</code>, move the condition on the status into the <code>ON</code>, and use <code>COALESCE(SUM(amount), 0)</code>.
+SQL:
+SELECT c.id, c.last_name,
+  SUM(o.amount) AS revenue
+FROM customers AS c
+JOIN orders AS o
+  ON o.customer_id = c.id
+WHERE o.status = 'paid'
+GROUP BY c.id, c.last_name;

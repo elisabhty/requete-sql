@@ -1,0 +1,322 @@
+### ent-v2-97
+Q: How do you grant and revoke permissions?
+A:
+<code>GRANT</code> gives a permission (read, insert, update or delete) on a table to a user or a role. <code>REVOKE</code> takes it away.
+
+Each permission is separate: I can allow reading without allowing changes.
+
+I give as few permissions as possible, and I give them to roles rather than to people: it’s easier to manage when someone changes jobs.
+SQL:
+GRANT SELECT, INSERT
+  ON t TO role_x;
+
+REVOKE INSERT
+  ON t FROM role_x;
+### ent-v2-98
+Q: What are schemas in a database for?
+A:
+A schema is a folder inside a database: it groups tables, views and functions.
+
+A schema is used to organize objects by topic, avoid name conflicts (two tables can have the same name in two different schemas) and manage permissions by topic. I then refer to a table as <code>schema.table</code>.
+
+Not to be confused with the star schema, which is a way of organizing tables for analysis.
+SQL:
+CREATE SCHEMA sales;
+
+CREATE TABLE sales.t (
+  id INTEGER
+);
+
+SELECT * FROM sales.t;
+### ent-v2-99
+Q: How do you calculate month-over-month revenue growth in SQL?
+A:
+First I calculate each month’s revenue with a <code>GROUP BY</code>. Then <code>LAG()</code> puts the previous month’s figure next to each month. <code>LAG()</code> is a window function, which reads another row without grouping the rows: I write <code>LAG(revenue) OVER (ORDER BY month)</code> to follow the order of the months.
+
+The growth as a percentage is the difference between the two months, divided by the previous month, times 100.
+
+To avoid dividing by zero, I write <code>NULLIF(prev_month, 0)</code>: if the previous month is 0, <code>NULLIF</code> replaces it with <code>NULL</code>, and the calculation gives <code>NULL</code> instead of an error. The first month has no previous month: its growth is <code>NULL</code>. I also check that no month is missing, otherwise the comparison is made with an older month.
+SQL:
+WITH m AS (
+  SELECT month,
+    SUM(v) AS revenue
+  FROM t
+  GROUP BY month
+)
+SELECT month, revenue,
+  100.0 * (revenue - LAG(revenue)
+    OVER (ORDER BY month))
+  / NULLIF(LAG(revenue) OVER
+    (ORDER BY month), 0)
+  AS growth_pct
+FROM m;
+### ent-v2-100
+Q: How do you calculate a median in SQL?
+A:
+The median is the middle value once the values are sorted. Unlike the average, it’s barely affected by extreme values.
+
+When the DBMS allows it (PostgreSQL, Oracle, SQL Server), I use <code>PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY col)</code>. The <code>0.5</code> means 50%: half the values are below, the other half above. SQL Server also requires an <code>OVER ()</code>.
+
+Otherwise, I number the sorted values with <code>ROW_NUMBER()</code>, count them, and keep the middle one. If there’s an even number of values, I average the two in the middle.
+SQL:
+-- PostgreSQL, Oracle
+SELECT PERCENTILE_CONT(0.5)
+  WITHIN GROUP
+  (ORDER BY v)
+FROM t;
+### ent-v2-101
+Q: What’s the difference between OLTP and OLAP?
+A:
+OLTP, for “online transaction processing”, runs day-to-day operations: recording a sale, changing a booking. These are many small, fast operations, on a few rows at a time.
+
+OLAP, for “online analytical processing”, is for analysis: calculating totals, comparing periods, feeding dashboards. These are fewer queries, but over many rows, often in a data warehouse: a database set aside for analysis, separate from the application’s.
+
+In short: OLTP records the operations, OLAP analyzes them.
+### ent-v2-102
+Q: What is a star schema?
+A:
+A star schema organizes data for analysis. In the center, a fact table holds what I measure: amounts, quantities. Around it, dimension tables describe the context: who, what, when, where.
+
+The dimension tables are linked to the fact table by keys, which draws a star.
+
+I filter and group by the dimensions, then calculate on the facts. Queries stay simple, and dashboard tools understand it well.
+### ent-v2-103
+Q: How do you sort NULLs first or last?
+A:
+I add <code>NULLS FIRST</code> or <code>NULLS LAST</code> after the sort column, to put the empty cells at the start or the end.
+
+If you don’t specify, it depends on the DBMS: some put <code>NULL</code> values first, others last. And this syntax doesn’t exist everywhere: in MySQL and SQL Server, I first sort on “is the value empty?”, then on the column.
+SQL:
+SELECT *
+FROM t
+ORDER BY a NULLS LAST;
+### ent-v2-104
+Q: Can you sort by an alias or by a column number?
+A:
+Yes to both. I can sort by an alias, because the sort comes after the <code>SELECT</code>. And <code>ORDER BY 2</code> sorts by the second column of the <code>SELECT</code>.
+
+I prefer the alias: I can see right away what the sort is based on. With a number, if I change the order of the columns, the sort changes too, without warning.
+SQL:
+SELECT a,
+  SUM(b) AS total
+FROM t
+GROUP BY a
+ORDER BY total DESC;
+-- or ORDER BY 2 DESC
+### ent-v2-105
+Q: What’s the difference between COUNT(*) and COUNT(1)?
+A:
+No difference: both count every row, and they’re just as fast as each other.
+
+I prefer <code>COUNT(*)</code>, the syntax designed for counting rows.
+
+The real difference is with <code>COUNT(col)</code>, which counts only the rows where the column is filled in.
+SQL:
+SELECT COUNT(*),
+  COUNT(1),
+  COUNT(col)
+FROM t;
+### ent-v2-106
+Q: What is a 1:1 relationship, and when do you use it?
+A:
+In a 1:1 (one-to-one) relationship, a row of one table matches a single row of the other table, and vice versa.
+
+I create it with a foreign key that can’t repeat (<code>UNIQUE</code>): each row of the first table can have only one linked row.
+
+I use it to set aside optional or sensitive information, in a separate table.
+SQL:
+CREATE TABLE detail (
+  t_id INTEGER UNIQUE
+    REFERENCES t (id),
+  info TEXT
+);
+### ent-v2-107
+Q: What’s the difference between a temporary table and a CTE?
+A:
+A CTE, written with <code>WITH</code>, is an intermediate result that exists only during a single query. A temporary table is a real table, which stays available until the end of the session.
+
+I use a CTE to make a query more readable, by breaking it into steps. I use a temporary table when several queries need the same result: I calculate it only once.
+SQL:
+WITH x AS (SELECT …)
+SELECT * FROM x;
+
+CREATE TEMPORARY TABLE x AS
+  SELECT …;
+SELECT * FROM x;
+### ent-v2-108
+Q: How do you group dates by month or by week?
+A:
+I use a function that brings each date back to the start of its month or week, then a <code>GROUP BY</code> on that result.
+
+I can then count, add up or average for each month or each week.
+
+Only the function changes with the DBMS, for example <code>DATE_TRUNC</code> in PostgreSQL: the syntaxes are in “See by DBMS”.
+SQL:
+-- PostgreSQL
+SELECT DATE_TRUNC('month',
+  d) AS month,
+  COUNT(*)
+FROM t
+GROUP BY 1;
+### ent-v2-109
+Q: What’s the difference between SQL and NoSQL?
+A:
+A SQL database stores data in well-defined tables, linked to each other, and it guarantees that the data stays consistent.
+
+“NoSQL” covers other ways of storing data: documents (like MongoDB), key-value pairs (like Redis) or graphs. Their structure is often more flexible.
+
+I choose based on the need: SQL when the data is well structured and interlinked, NoSQL when it often changes shape or must be very fast to read.
+### ent-v2-110
+Q: What’s the difference between NULL, zero and an empty string?
+A:
+Zero and the empty text <code>''</code> are real values: a number equal to 0, a text with no characters. <code>NULL</code> means there’s no value at all: it’s missing or unknown.
+
+The difference shows in calculations: a number plus zero stays the same number, but a number plus <code>NULL</code> gives <code>NULL</code>. And an average counts zeros, but ignores <code>NULL</code> values.
+SQL:
+SELECT COUNT(a), AVG(a)
+FROM t;
+-- ignore NULLs,
+-- count 0 and ''
+### ent-v2-111
+Q: Why do <> and != exclude rows containing NULL?
+A:
+<code>NULL</code> isn’t a value, it’s an unknown value. Comparing an unknown value with “x” gives neither true nor false, but “unknown”.
+
+But <code>WHERE</code> keeps only the rows where the condition is true: so the rows with <code>NULL</code> disappear, with <code>=</code> as well as with <code>&lt;&gt;</code>.
+
+To keep them, I write it out clearly: “different from x, or empty”, with <code>OR col IS NULL</code>.
+SQL:
+WHERE a <> 'x'
+  OR a IS NULL
+### ent-v2-112
+Q: What is a SQL dialect?
+A:
+A SQL dialect is the version of the language specific to one piece of software: PostgreSQL, MySQL, SQL Server and SQLite all speak SQL, but each with its own quirks.
+
+The basics are the same everywhere: <code>SELECT</code>, <code>WHERE</code>, <code>JOIN</code>, <code>GROUP BY</code>. The differences are mostly in some functions, like dates or limiting the number of rows.
+
+In an interview, I say which dialect I use.
+
+Two names come up often: T-SQL and PL/SQL. T-SQL is SQL Server’s dialect; PL/SQL is Oracle’s language for writing programs around SQL. PostgreSQL has the equivalent with PL/pgSQL.
+### ent-v2-113
+Q: Are LEFT JOIN and LEFT OUTER JOIN the same thing?
+A:
+Yes: the word <code>OUTER</code> is optional. <code>LEFT JOIN</code> and <code>LEFT OUTER JOIN</code> give exactly the same result.
+
+In the same way, <code>JOIN</code> on its own means <code>INNER JOIN</code>.
+SQL:
+FROM t1
+LEFT JOIN t2 ON …
+-- same as
+FROM t1
+LEFT OUTER JOIN t2 ON …
+### ent-v2-114
+Q: How do you pick random rows?
+A:
+I sort the rows randomly, then keep the first ones: <code>ORDER BY RANDOM()</code> followed by a limit. The function’s name changes with the DBMS, like <code>RAND()</code> in MySQL.
+
+Each run gives a different draw.
+
+On a very large table, it’s slow, because the database has to shuffle everything before choosing.
+SQL:
+-- PostgreSQL, SQLite
+SELECT * FROM t
+ORDER BY RANDOM()
+LIMIT 3;
+-- MySQL: RAND()
+-- SQL Server:
+SELECT TOP 3 * FROM t
+ORDER BY NEWID();
+### ent-v2-115
+Q: How do you insert several rows in a single query?
+A:
+I write a single <code>INSERT INTO</code>, then several groups of values after <code>VALUES</code>, separated by commas. Each group in parentheses becomes a row.
+
+It’s faster than sending one query per row. And if one row causes a problem, usually none of them is added.
+SQL:
+INSERT INTO t (a, b)
+VALUES
+  (1, 'x'),
+  (2, 'y'),
+  (3, 'z');
+### ent-v2-116
+Q: In a LEFT JOIN, what’s the difference between filtering in ON and in WHERE?
+A:
+In a <code>LEFT JOIN</code>, a condition placed in <code>ON</code> only chooses which right rows to pair: every left row stays. Placed in <code>WHERE</code>, it filters after the join, and can make left rows disappear.
+
+Why? Left rows with no match have empty cells on the right. A condition on the right table in the <code>WHERE</code> isn’t true on those empty cells: those rows are removed, and the <code>LEFT JOIN</code> behaves like an <code>INNER JOIN</code>.
+
+A simple rule: a filter on the right table goes in <code>ON</code>, a filter on the left table goes in <code>WHERE</code>.
+SQL:
+SELECT *
+FROM t1
+LEFT JOIN t2
+  ON t2.t1_id = t1.id
+  AND t2.v > 10 -- right
+WHERE t1.ok = 1; -- left
+### ent-v2-117
+Q: What is a non-equi join?
+A:
+It’s a join whose condition isn’t an equality, but a comparison: greater than, less than, or between two values.
+
+This join is mostly used to place a value in a bracket: an amount in a price grid, a date in a period.
+
+For brackets that follow each other without overlapping, I write “greater than or equal to the start” and “strictly less than the end”. With <code>BETWEEN</code>, both bounds are included, and a boundary value would fall into two brackets.
+SQL:
+SELECT t.v, g.bracket
+FROM t
+JOIN grid AS g
+  ON t.v >= g.min
+  AND t.v < g.max;
+### ent-v2-118
+Q: What happens when a subquery after = returns several rows?
+A:
+After an <code>=</code>, the subquery must return a single value. If it returns several, most databases stop the query with an error; SQLite, for its part, takes the first one without warning.
+
+The trap: the query can work for a long time, then fail the day a second row shows up in the data.
+
+If several values are possible, I use <code>IN</code>. If I want a single value, I guarantee it with <code>MAX()</code> or a limit. And I ask myself why there are several rows: a duplicate, a forgotten condition?
+SQL:
+-- a single value
+WHERE a = (
+  SELECT MAX(b) FROM t2)
+
+-- several values
+WHERE a IN (
+  SELECT b FROM t2)
+### ent-v2-119
+Q: How do you calculate an average order value?
+A:
+The average order value is the total revenue divided by the number of purchases.
+
+If each row already holds the amount of one purchase, a simple average is enough. If the amounts are spread over detail lines, I first calculate the total of each purchase, then the average of those totals: otherwise I’d get the average amount of a line, not of a purchase.
+
+I also specify what I count: only paid purchases, with or without taxes, with or without discounts.
+SQL:
+WITH purchases AS (
+  SELECT purchase_id,
+    SUM(price * qty) AS total
+  FROM lines
+  GROUP BY purchase_id
+)
+SELECT AVG(total)
+FROM purchases;
+### ent-v2-120
+Q: How do you find each customer’s first purchase?
+A:
+I number each customer’s purchases, from oldest to newest, with <code>ROW_NUMBER()</code>, then keep purchase number 1 for each one.
+
+<code>ROW_NUMBER()</code> is a window function: each row gets a number, and no row is grouped. I write <code>ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY purchase_date)</code>: <code>PARTITION BY</code> restarts the numbering at 1 for each customer, and <code>ORDER BY</code> follows the order of the dates.
+
+The <code>WHERE</code> is read before the numbers are calculated: so the filter can’t go there directly. I calculate the number in a CTE, then filter on it. That way I get the whole purchase row, not just its date. If only the date matters, a <code>MIN()</code> with <code>GROUP BY</code> on the customer is enough.
+SQL:
+WITH r AS (
+  SELECT *,
+    ROW_NUMBER() OVER (
+      PARTITION BY customer_id
+      ORDER BY d, id) AS n
+  FROM purchases
+)
+SELECT *
+FROM r
+WHERE n = 1;

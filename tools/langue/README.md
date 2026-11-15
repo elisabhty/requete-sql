@@ -141,3 +141,15 @@ recolter, traduire ce qui est nouveau, construire. La voix de la vidéo et des a
 prononciation du code (`PARLE`, `DIRE` : `customer_id` « customer underscore ID ») sont celles de l'anglais : pour une autre langue,
 copier le script et écrire les siennes. Elisa génère les voix sur son Mac (`node tools/voix/generer.mjs <cours> --langue en`), puis
 `tools/voix/integrer.mjs` les intègre. Le détail : `LANGUES.md`.
+
+## Le français qui reste à l’écran, et les questions d’entretien (15 novembre)
+
+- `ecran.mjs --langue <code> [--profond]` : comme `appli.mjs`, mais il lit l’écran lui-même (textes visibles, aria-label,
+  placeholder, alertes, messages éphémères) dans quatre états (l’accueil tout neuf en plus) et ouvre quelques leçons ; `--profond` :
+  chaque leçon (son écran de fin), chaque carte mémo et chaque fiche SGBD. `travail/<code>/ecran-francais.json` : ce qui a l’air
+  français, avec l’écran ; `travail/<code>/ecran-manque.json` : les clés que le moteur a vues sans traduction.
+- `entretien.mjs --langue <code>` : les 142 questions d’entretien traduites dans `tools/langue/entretien/<code>-*.txt` (un bloc par
+  question : `### id`, `Q:`, `A:` puis la réponse, `SQL:` puis la syntaxe) et leurs notions (`notions-<code>.json`) ; vérifie qu’il
+  n’en manque aucune, que chaque réponse a autant de `<code>` et de paragraphes que le français, puis écrit
+  `langue-<code>-entretien.js` (chargé par l’appli seulement, `entretien:` dans LANGUES, langues.js).
+

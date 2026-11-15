@@ -27201,7 +27201,7 @@ function moduleProgressData(modules,lessons){
 /* Temps d’étude (state.study, voir studyTick) : en minutes, puis en heures et minutes (« 25 min », « 2 h 05 »). */
 const CLOCK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
 /* Pastille « ⏱ 25 min » (temps passé sur un module), lue « temps d’étude : 25 min ». */
-function studyPill(secs,cls){return `<span class="${cls}"><span class="pgr-sr">Temps d’étude : </span>${CLOCK_SVG}${fmtDuree(secs)}</span>`;}
+function studyPill(secs,cls){return `<span class="${cls}"${typeof lgNt==='function'?lgNt():''}><span class="pgr-sr">${(typeof jeuTrEn==='function'&&jeuTrEn())?jeuTr('Temps d’étude')+': ':'Temps d’étude : '}</span>${CLOCK_SVG}${fmtDuree(secs)}</span>`;}
 function fmtDuree(secs){
   const m=Math.floor((+secs||0)/60);
   if(m<1)return secs>0?'<\u00a01\u00a0min':'0\u00a0min';
@@ -28029,7 +28029,7 @@ function renderHomeHero(){
   const n=mod?mod.lessons.length:0;
   const points=n>1?`<p class="lq-a-meta lq-a-pos"><span class="lq-a-dots" aria-hidden="true">${mod.lessons.map(l=>{const d=itemDone(l.id),c=l.id===nxt;return `<i class="${d?'is-done':c?'is-cur':''}"${c?` style="--pv:${Math.round(part*100)}%"`:''}></i>`;}).join('')}</span><span>Leçon ${index} sur ${n}</span></p>`:'';
   const ctaLu=`${ctaLabel} : ${meta.titre}, ${(sub.charAt(0).toLowerCase()+sub.slice(1)).replace(/~/g,'environ ').replace(/\u00a0/g,' ')}`;
-  const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}<div class="lq-a-kick">${chip}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div><button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr(ctaLu)}" onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${stats}${streak}`;
+  const html=`<section class="lq-hero journey-session has-hi is-lecon" data-mc="${mc}" aria-label="${defi?'Prochain défi':'Ta prochaine leçon'}">${heading}<div class="lq-a-kick">${chip}</div><div class="lq-hero-main lq-a-main"><div class="lq-hero-body lq-a-body"><h3 class="lq-a-titre">${esc(meta.titre)}</h3><div class="lq-a-prog">${prog}${points}</div></div>${mascot}</div><button type="button" class="journey-primary lq-hero-cta lq-hero-cta-lecon" aria-label="${escAttr((typeof jeuTrEn==='function'&&jeuTrEn())?`${jeuTr(ctaLabel)}: ${jeuTr(meta.titre)}, ${jeuTr(sub).replace(/~/g,'about ').replace(/\u00a0/g,' ')}`:ctaLu)}" onclick="openItem(${arg},0)"><span class="lq-play" aria-hidden="true">${HOME_PLAY_SVG}</span><span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>${stats}${streak}`;
   if(!lqSameHtml(host,html)){const keep=lqKeepMascot(host);host.innerHTML=html;lqKeepMascot(host,keep);}
   {const img=host.querySelector&&host.querySelector('.mstk-cat[data-une-fois]');if(img&&!img._coucouVu&&img.getAttribute('src')===mascotAnimDe(img).src){img._coucouVu=true;mascotCoucouPose(img);}}   // l’arrivée : le coucou, puis le repos
   lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)
@@ -34946,7 +34946,7 @@ function bravoHeroHtml(l){
         <p class="lst-kicker">${m?`Module ${mi+1} · ${esc(m.titre)}`:'Cours'}</p>
         ${pos?`<p class="lst-pos">Leçon ${pos} sur ${m.lessons.length}</p>`:''}
         <h1>Bravo !</h1>
-        <p class="bravo-lesson">${esc(l.titre)}<small>${l.leconSeule?'Leçon au complet':'Exercice et quiz au complet'}</small></p>
+        <p class="bravo-lesson">${esc(l.titre)}<small${typeof lgNt==='function'?lgNt():''}>${(typeof jeuTr==='function'?jeuTr:String)(l.leconSeule?'Leçon au complet':'Exercice et quiz au complet')}</small></p>
         ${bravoStepsHtml(l)}
         ${typeof mascotBravoImg==='function'?mascotBravoImg('lst-stk bv-stk'):`<img class="lst-stk bv-stk" src="${typeof MASCOT_IMG!=='undefined'?MASCOT_IMG:''}" width="450" height="674" alt="" draggable="false">`}
       </div>`;
@@ -38809,6 +38809,10 @@ function jeuDirectTete(xs,avant){
 /* Un texte de la salle dans la langue de l’appli, quand il est assemblé morceau par morceau (le français, tel quel). */
 function jeuTrEn(){try{const L=typeof window!=='undefined'&&window.REQUETE_LANGUE;return !!(L&&L.code!=='fr');}catch(e){return false;}}
 function jeuTr(s){try{const L=typeof window!=='undefined'&&window.REQUETE_LANGUE;return L&&L.code!=='fr'&&typeof L.t==='function'?L.t(s):s;}catch(e){return s;}}
+/* 15 novembre (Elisa : « Il y a encore beaucoup de français sur l’application ») : une phrase faite de morceaux (le titre d’une
+   leçon, le nom d’une carte) ne se traduit pas d’un bloc. Dans une autre langue que le français, ses morceaux se traduisent un à un
+   (jeuTr) et l’élément qui les porte est en data-notrad (lgNt) ; en français, rien ne change. */
+function lgNt(){return jeuTrEn()?' data-notrad':'';}
 /* 20 h 39 (« quand quelqu’un tape une requête, on a un … juste au-dessus de lui, et un validé aussi quand la personne a eu juste à la
    manche ») : une bulle sur la tête de chaque avatar dit ce qu’il fait : les trois petits points tant qu’il écrit (pour soi aussi), la
    coche quand il a trouvé ; 21 h 13, la couronne pour le premier qui a trouvé. Elle se pose quand ça vient de changer ; le premier
@@ -41414,7 +41418,7 @@ function memoVerso(id,o={}){
     <h3 class="mc-h"${o.head?' tabindex="-1" data-focus':''}><span class="mc-h-stk" aria-hidden="true">${lqStkSvg('bulb')}</span><span class="mc-h-tag">À retenir</span></h3>
     <ol class="mc-pts">${pts.map((p,i)=>`<li style="--i:${i}">${p}</li>`).join('')}</ol>
     ${memoTab(c.tab)}
-    ${c.s?`<div class="mc-syn"><p class="mc-lab">Syntaxe${c.dialecte?` <span class="mc-dial">${esc(c.dialecte)}</span>`:''}</p><div class="ex-code mc-code">${highlight(c.s)}</div></div>`:''}
+    ${c.s?`<div class="mc-syn"><p class="mc-lab">Syntaxe${c.dialecte?` <span class="mc-dial">${esc(c.dialecte)}</span>`:''}</p><div class="ex-code mc-code"${typeof lgNt==='function'?lgNt():''}>${highlight(typeof langueSql==='function'?langueSql(c.s):c.s)}</div></div>`:''}
     ${c.sgbd?`<p class="mc-sgbd">Pour les autres SGBD, voir la page <button type='button' class='sgbd-link' data-sgbd='${c.sgbd}'>Selon le SGBD</button> de la Bibliothèque.</p>`:''}
     ${c.piege?`<aside class="mc-piege" aria-label="Le piège"><p class="mc-piege-tag" aria-hidden="true"><i>${MEMO_TRAP_STK}</i>Le piège</p><p>${memoCodes(c.piege)}</p></aside>`:''}`;
 }
@@ -41437,7 +41441,7 @@ function memoEtat(l){
 /* Une carte de l'album : débloquée (elle ouvre sa fiche) ou à débloquer (elle ouvre la leçon qui la donne). */
 function memoAlbumCard(l,cid=l.id){
   const c=memoCarte(cid).c,n=memoSerial(cid);
-  if(!isUnlocked(l.id))return `<button type="button" class="mc mc--album is-lock" onclick="openLesson(${l.id})" aria-label="${escAttr(`Carte ${n} à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}"><span class="mc-back"><span class="mc-top"><b class="mc-num">${n}</b></span><span class="mc-lock">${MEMO_LOCK_STK}</span><span class="mc-lesson" style="--kn:${memoKn(l.titre)}">${esc(l.titre)}</span></span></button>`;
+  if(!isUnlocked(l.id))return `<button type="button" class="mc mc--album is-lock" onclick="openLesson(${l.id})" aria-label="${escAttr((typeof jeuTrEn==='function'&&jeuTrEn())?`Card ${n}, to unlock with the lesson ${jeuTr(l.titre).replace(/[.]$/,'')}${/[?!]$/.test(jeuTr(l.titre))?'':'.'} Open the lesson`:`Carte ${n} à débloquer avec la leçon ${l.titre}. Ouvrir la leçon`)}"><span class="mc-back"><span class="mc-top"><b class="mc-num">${n}</b></span><span class="mc-lock">${MEMO_LOCK_STK}</span><span class="mc-lesson" style="--kn:${memoKn(l.titre)}">${esc(l.titre)}</span></span></button>`;
   const e=memoEtat(l),lab={due:'. À revoir',ok:'. Acquise',new:'. Nouvelle'}[e]||'';
   return `<button type="button" class="mc mc--album${e?' is-'+e:''}" onclick="openCard(${memoArg(cid)})" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}${lab}`)}">${e==='due'?`<span class="mc-flag" aria-hidden="true">${MEMO_TURN_SVG}À revoir</span>`:e==='new'?'<span class="mc-flag is-new" aria-hidden="true">Nouvelle</span>':''}${memoFace(cid,{shine:e==='new'})}${e==='ok'?`<span class="mc-ok" aria-hidden="true">${MEMO_CHECK_SVG}</span>`:''}</button>`;
 }
@@ -41454,7 +41458,7 @@ function openCard(id){
   const had=!!cardNoteExisting(id);
   document.getElementById('card-body').innerHTML=`
     <div class="mc-fiche">
-      <div class="mc mc--big" role="img" aria-label="${escAttr(`Carte ${memoSerial(id)}, ${c.k}\u00a0: ${c.t}. Module ${mi+1}, ${MODULES[mi].titre}`)}">${memoFace(id,{mod:true,shine:true})}</div>
+      <div class="mc mc--big" role="img" aria-label="${escAttr((typeof jeuTrEn==='function'&&jeuTrEn())?`Card ${memoSerial(id)}, ${jeuTr(c.k)}: ${jeuTr(c.t)}. Module ${mi+1}, ${jeuTr(MODULES[mi].titre)}`:`Carte ${memoSerial(id)}, ${c.k}\u00a0: ${c.t}. Module ${mi+1}, ${MODULES[mi].titre}`)}">${memoFace(id,{mod:true,shine:true})}</div>
       <div class="mc-verso">${memoVerso(id)}</div>
     </div>
     <div class="cd-actions">
@@ -41497,7 +41501,7 @@ function bravoUnlockCarte(l,e,k,nb){
      collection : « 1 sur 72 » puis « 2 sur 72 » (la dernière porte le total). */
   const rang=Math.max(1,owned-(nb-1-k));
   return `<div class="mc-flip" data-k="${k}">
-      <button type="button" class="mc mc--big mc-side is-recto" onclick="memoFlip(this,true)" aria-label="${escAttr(`Carte ${n}, ${c.k}\u00a0: ${c.t}. Retourner la carte`)}">${memoFace(e.cid,{shine:true})}</button>
+      <button type="button" class="mc mc--big mc-side is-recto" onclick="memoFlip(this,true)" aria-label="${escAttr((typeof jeuTrEn==='function'&&jeuTrEn())?`Card ${n}, ${jeuTr(c.k)}: ${jeuTr(c.t)}. Flip the card`:`Carte ${n}, ${c.k}\u00a0: ${c.t}. Retourner la carte`)}">${memoFace(e.cid,{shine:true})}</button>
       <div class="mc-side is-verso" aria-hidden="true" inert><div class="mc-verso is-card">${memoVerso(e.cid,{head:true})}<button type="button" class="mc-recto-btn" onclick="memoFlip(this,false)">${MEMO_TURN_SVG}Recto</button></div></div>
       <span class="mc-seal" aria-hidden="true"><b>${rang}</b><small>sur ${TOTAL_CARTES}</small></span>
     </div>`;
@@ -45522,7 +45526,12 @@ function entNum(q){
    après un « - ») et passe entière à la ligne. Plus long, il peut se couper, chaque morceau gardant sa pastille (box-decoration-break). */
 function entCodeInsec(t){return String(t).replace(/<code>([^<]*)<\/code>/g,(m,c)=>c.replace(/&[a-z]+;/g,'x').length<=28?`<code class="ins">${c}</code>`:m);}
 function entNbsp(t){return String(t).replace(/ ([?!:;»])/g,'\u00a0$1').replace(/« /g,'«\u00a0');}
-function entAllItems(){ return ENTRETIEN.map((q,i)=>({q,id:entId(q,i),n:entNum(q),i})); }
+/* 15 novembre (Elisa : « Il y a encore beaucoup de français sur l’application ») : dans une autre langue, la question, sa réponse,
+   sa syntaxe et ses notions viennent de langue-<langue>-entretien.js (tools/langue/entretien.mjs) ; la famille et le niveau restent
+   les clés françaises des filtres, traduits à l’affichage. La recherche porte sur le texte affiché. */
+function entLangue(q){try{const L=window.REQUETE_LANGUE,E=L&&L.code!=='fr'&&window.REQUETE_ENTRETIEN&&window.REQUETE_ENTRETIEN[L.code],t=E&&E.questions&&E.questions[q.id];if(!t)return q;return {...q,q:t.q,a:t.a,syntaxe:t.syntaxe||q.syntaxe,notions:(q.notions||[]).map(n=>(E.notions&&E.notions[n])||n),traduite:true};}catch(e){return q;}}
+function entNt(q){return q&&q.traduite?' data-notrad':'';}
+function entAllItems(){ return ENTRETIEN.map((q,i)=>({q:typeof entLangue==='function'?entLangue(q):q,id:entId(q,i),n:entNum(q),i})); }
 function entVisibleItems(){
   return entAllItems().filter(x=>{
     if(!entInFilter(x.q))return false;
@@ -45613,14 +45622,14 @@ function renderEntretienFocus(x){
     <span class="ent-focus-stk" aria-hidden="true">${lqStkSvg('bulb')}</span>
     <div class="ent-focus-meta">${entPagerHtml(x)}</div>
     <p class="ent-focus-kick"><span class="ent-focus-cat">${esc(x.q.cat)}</span><span class="ent-niv" data-n="${ENT_NIV_N[String(x.q.niveau).toLowerCase()]||1}" aria-label="Niveau ${esc(x.q.niveau)}"><b></b><b></b><b></b>${esc(String(x.q.niveau).replace(/^\w/,c=>c.toUpperCase()))}</span></p>
-    <h1 id="ent-focus-title">${entNbsp(x.q.q)}</h1>
+    <h1 id="ent-focus-title"${typeof entNt==='function'?entNt(x.q):''}>${entNbsp(x.q.q)}</h1>
     <div class="ent-coach"><span class="ent-coach-ico ent-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span>Réponds à voix haute, puis compare.</span></div>
     </header>
     <section class="ent-answer-card" aria-live="polite">
       ${revealed?`<span class="ent-answer-label">Réponse attendue</span>
-        ${x.q.a.split('\n\n').map(p=>`<p class="eans">${entCodeInsec(p)}</p>`).join('')}
+        ${x.q.a.split('\n\n').map(p=>`<p class="eans"${typeof entNt==='function'?entNt(x.q):''}>${entCodeInsec(p)}</p>`).join('')}
         ${x.q.syntaxe?`<div class="esql sql-copy-wrap ent-syntaxe"><span class="esql-lab">Syntaxe</span>${sqlCopyBtn()}<pre>${highlight(x.q.syntaxe)}</pre></div>`:''}
-        ${x.q.notions?`<div class="ent-notions" aria-label="Notions évaluées">${x.q.notions.map(n=>`<code>${esc(n)}</code>`).join('')}</div>`:''}
+        ${x.q.notions?`<div class="ent-notions" aria-label="${typeof entNt==='function'&&entNt(x.q)?jeuTr('Notions évaluées'):'Notions évaluées'}"${typeof entNt==='function'?entNt(x.q):''}>${x.q.notions.map(n=>`<code>${esc(n)}</code>`).join('')}</div>`:''}
         ${entSgbdTheme(x.q)?`<button type="button" class="ent-sgbd" onclick="entVoirSgbd('${x.id}','${entSgbdTheme(x.q)}')"><span class="ent-sgbd-ico" aria-hidden="true">${typeof lqStkSvg==='function'?lqStkSvg('info'):''}</span><span><b>Voir selon le SGBD</b><small>${esc((SGBD_PAGE.find(s=>s.id===entSgbdTheme(x.q))||{}).t||'')} · SQLite, PostgreSQL, MySQL…</small></span>${ENT_CHEV_SVG}</button>`:''}`:
         `<div class="ent-answer-lock"><span class="ent-answer-lock-ico" aria-hidden="true">${lqStkSvg('bubble')}</span><b>À toi de répondre</b><p>Prends quelques secondes pour structurer ta réponse avant de regarder.</p><button type="button" class="ent-reveal-primary" onclick="revealEntretien('${x.id}')">${ENT_EYE_SVG}<span>Révéler la réponse</span></button></div>`}
     </section>
@@ -45711,7 +45720,7 @@ function renderEntretien(opts){
       return `<div class="ecard${ok?' ok':''}" data-id="${id}">
       <button type="button" class="eh" onclick="openEntretienQuestion('${id}')">
         <span class="eno" aria-hidden="true">${ok?ENT_OK_SVG:x.n}</span>
-        <span class="eq">${searching?entHighlight(q.q):entNbsp(q.q)}<small>${q.niveau}</small></span>
+        <span class="eq"${typeof entNt==='function'?entNt(q):''}>${searching?entHighlight(q.q):entNbsp(q.q)}<small>${typeof entNt==='function'&&entNt(q)?jeuTr(q.niveau):q.niveau}</small></span>
         ${ok?'<span class="ent-mastered-label">Maîtrisée</span>':`<span class="echev" aria-hidden="true">${ENT_CHEV_SVG}</span>`}
       </button>
     </div>`;
@@ -53684,7 +53693,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3074';
+  const SW_CACHE='requete-2026-11-15-module-v3075';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

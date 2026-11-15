@@ -175,6 +175,15 @@ seule voix). Les colonnes de la carte des salaires se placent d’après `data-v
 (Killian, Whez8hBysHW6IVGRgjGA, voix américaine ; environ 2 100 caractères), à générer sur le Mac (`node tools/voix/generer.mjs
 video-site --langue en`), puis `node tools/voix/integrer-site.mjs --langue en` (decouvrir/en/voix/, la musique française reprise).
 
+## Le français qui restait dans l’appli anglaise (15 novembre, 19 h)
+
+Elisa : « Il y a encore beaucoup de français sur l’application ». Relu écran par écran (`tools/langue/ecran.mjs --profond`) : le
+bilan d’une leçon (titre et « Leçon au complet » traduits chacun, récompense, avis, suite), les cartes mémo (verso, syntaxe écrite
+pour la base de la langue, lecteur d’écran), la fin du parcours, les 142 questions d’entretien (`langue-en-entretien.js`, fabriqué par
+`tools/langue/entretien.mjs`) et leurs écrans. Le moteur (langues.js) traduit aussi les attributs d’un morceau de phrase (le cadenas
+« Module verrouillé ») et d’une zone de saisie (« Éditeur SQL »), et une valeur nommée retenue (`valeur('etape')`) ne cache plus un
+autre texte qui la contient. Une phrase faite de morceaux (le titre d’une leçon dans une phrase) : `lgNt()` et `jeuTr()` (index.html).
+
 ## Où on en est
 
 - **Fait** : le système ; l’onboarding en anglais (le pilote) ; l’interface (14 novembre, 22 h 51 : « Tout traduire ») : l’accueil,

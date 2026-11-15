@@ -60,7 +60,7 @@ test('la langue de l’iPhone : jamais une langue inachevée toute seule, seulem
   assert.equal(p.local['requete-langue'], 'fr');
   assert.equal(p.win.recharge, true);
   assert.equal(p.L.changer('de'), false);
-  assert.ok(/en: \{ nom: 'English', locale: 'en-US', fichier: 'langue-en\.js\?v=7', defis: 'langue-en-defis\.js\?v=2', essai: true \}/.test(MOTEUR), 'l’anglais reste en essai tant que sa traduction n’est pas terminée');
+  assert.ok(/en: \{ nom: 'English', locale: 'en-US', fichier: 'langue-en\.js\?v=7', defis: 'langue-en-defis\.js\?v=2', entretien: 'langue-en-entretien\.js\?v=1', essai: true \}/.test(MOTEUR), 'l’anglais reste en essai tant que sa traduction n’est pas terminée');
 });
 
 test('traduire un texte : tel quel, avec ses nombres, le prénom, les mois et les jours ; sans traduction, il reste en français et il est noté', () => {

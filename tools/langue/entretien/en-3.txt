@@ -1,0 +1,367 @@
+### ent-v2-49
+Q: What is database normalization?
+A:
+Normalization organizes data into several linked tables, so that each piece of information is stored only once.
+
+If an address is copied onto a hundred rows, all hundred rows must be updated when it changes, and missing one leaves two different versions. Once normalized, the address lives in a single table, and the other tables refer to it with a key.
+
+In practice, I aim for the third normal form. Concretely: one value per cell, and each column depends on the whole key of its table, and on nothing else. For example, a product’s name goes in the products table, not in the orders table.
+
+For analysis, I sometimes denormalize on purpose: I copy some data to avoid joins.
+### ent-v2-50
+Q: What’s the difference between a 1:N and an N:N relationship?
+A:
+In a 1:N relationship, a row of one table can be linked to several rows of another, but each of those rows has only one link back: a customer has several orders, an order has a single customer. I create it with a foreign key, placed on the N side.
+
+In an N:N relationship, the links go both ways: a student takes several courses, and a course has several students. A foreign key is no longer enough: I add a junction table, which holds both keys.
+
+That table’s primary key is often the combination of the two keys, which prevents saving the same link twice.
+SQL:
+-- 1:N
+CREATE TABLE child (
+  id INTEGER PRIMARY KEY,
+  parent_id INTEGER
+    REFERENCES parent (id)
+);
+-- N:N: junction table
+CREATE TABLE a_b (
+  a_id INTEGER
+    REFERENCES a (id),
+  b_id INTEGER
+    REFERENCES b (id),
+  PRIMARY KEY (a_id, b_id)
+);
+### ent-v2-51
+Q: What’s the difference between ROWS and RANGE in a window function?
+A:
+<code>ROWS</code> and <code>RANGE</code> define which rows a window function takes into account around the current row. This set of rows is called the frame of the calculation.
+
+<code>ROWS</code> counts rows: “the 2 previous rows” means exactly two rows. <code>RANGE</code> works on the values of the sort column: rows that have the same value are always taken together.
+
+The difference shows with ties. In a running total, <code>ROWS</code> adds one row at a time, while <code>RANGE</code> gives the same running total to every row with the same value. Careful: with an <code>ORDER BY</code> inside <code>OVER</code> and no frame specified, <code>RANGE</code> applies, from the start of the group to the current row.
+SQL:
+SUM(v) OVER (ORDER BY d
+  ROWS BETWEEN 2 PRECEDING
+  AND CURRENT ROW)
+
+SUM(v) OVER (ORDER BY d
+  RANGE BETWEEN
+  UNBOUNDED PRECEDING
+  AND CURRENT ROW)
+### ent-v2-52
+Q: How do you get the top 3 results in each group?
+A:
+I rank the rows of each group with <code>ROW_NUMBER()</code>, then keep the ones whose rank is 3 or less.
+
+<code>PARTITION BY</code> makes a separate ranking for each group, and <code>ORDER BY</code> sets the order, from best to worst. A window function can’t be used directly in the <code>WHERE</code>. So I put this ranking in a CTE, meaning a named subquery written with <code>WITH</code>, then filter on the rank in the main query.
+
+To keep ties, I’d use <code>RANK()</code> or <code>DENSE_RANK()</code> instead.
+SQL:
+WITH r AS (
+  SELECT *,
+    ROW_NUMBER() OVER (
+      PARTITION BY g
+      ORDER BY v DESC) AS n
+  FROM t
+)
+SELECT *
+FROM r
+WHERE n <= 3;
+### ent-v2-53
+Q: What are FIRST_VALUE() and LAST_VALUE() for?
+A:
+<code>FIRST_VALUE()</code> returns the first value of a group of rows, and <code>LAST_VALUE()</code> the last one, in the chosen order. These two functions compare each row with a reference value, like the first or the last known value.
+
+The trap with <code>LAST_VALUE()</code>: by default, the calculation only looks at the rows from the start of the group to the current row. So the “last” value is usually the current row’s, not the one at the end of the group. To get the real last value, I extend the calculation to the whole group with <code>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code>.
+
+A simpler trick: <code>FIRST_VALUE()</code> with the order reversed.
+SQL:
+SELECT g, d, v,
+  FIRST_VALUE(v) OVER w,
+  LAST_VALUE(v) OVER w
+FROM t
+WINDOW w AS (
+  PARTITION BY g
+  ORDER BY d
+  ROWS BETWEEN UNBOUNDED
+  PRECEDING AND UNBOUNDED
+  FOLLOWING);
+### ent-v2-54
+Q: What is a recursive CTE?
+A:
+A CTE is a subquery I give a name with <code>WITH</code>. A recursive CTE is a CTE that calls itself. This kind of CTE is used to walk through data organized as a tree: an org chart, categories and subcategories.
+
+The query has two parts, joined by <code>UNION ALL</code>: a starting point (for example the top of the hierarchy), then a part that adds the next level on each round. The rounds stop when no new row is found.
+
+The trap: if the data forms a loop, the query never ends. So I limit the number of levels.
+SQL:
+WITH RECURSIVE h AS (
+  SELECT id, parent_id
+  FROM t
+  WHERE parent_id IS NULL
+  UNION ALL
+  SELECT t.id, t.parent_id
+  FROM t
+  JOIN h
+    ON t.parent_id = h.id
+)
+SELECT * FROM h;
+### ent-v2-55
+Q: Why can NOT IN be dangerous with NULL?
+A:
+If the subquery of a <code>NOT IN</code> contains a single <code>NULL</code>, the query no longer returns any row, with no error.
+
+The reason: “3 is not in (1, 2, NULL)” amounts to saying “3 is different from 1, from 2 and from NULL”. But comparing with <code>NULL</code> gives “unknown”, never true: so the whole condition is never true.
+
+I prefer <code>NOT EXISTS</code>, which doesn’t have this problem, or a <code>LEFT JOIN … IS NULL</code>. <code>NOT IN</code> stays safe if the column can’t contain <code>NULL</code>.
+SQL:
+-- dangerous if b has a NULL
+WHERE a NOT IN (
+  SELECT b FROM t2)
+
+-- safe
+WHERE NOT EXISTS (
+  SELECT 1 FROM t2
+  WHERE t2.b = t1.a)
+### ent-v2-56
+Q: How do you pivot without a PIVOT operator?
+A:
+A pivot turns rows into columns: for example one column per month instead of one row per month.
+
+Without a <code>PIVOT</code> operator, I use a conditional calculation: <code>SUM(CASE WHEN … THEN value END)</code> for each column I want, with a <code>GROUP BY</code>. Each <code>CASE WHEN</code> keeps only the values of one category.
+
+This method works in every DBMS, and I can mix calculations (sum, count, average) in the same query.
+SQL:
+SELECT g,
+  SUM(CASE WHEN m = 1
+      THEN v ELSE 0 END)
+    AS m1,
+  SUM(CASE WHEN m = 2
+      THEN v ELSE 0 END)
+    AS m2
+FROM t
+GROUP BY g;
+### ent-v2-57
+Q: How do you simplify a conditional aggregation in PostgreSQL?
+A:
+PostgreSQL offers <code>FILTER (WHERE …)</code>, written right after a calculation like <code>SUM()</code> or <code>COUNT()</code>. Only the rows that meet the condition go into the calculation.
+
+It’s a more readable way to write <code>SUM(CASE WHEN … THEN … END)</code>. That way I calculate several metrics in the same query, each with its own condition.
+
+<code>FILTER</code> is part of the SQL standard and also exists in SQLite. In MySQL and SQL Server, I stick with <code>CASE WHEN</code>.
+SQL:
+SELECT g,
+  COUNT(*) FILTER (
+    WHERE ok) AS n_ok,
+  SUM(v) FILTER (
+    WHERE m = 1) AS m1
+FROM t
+GROUP BY g;
+### ent-v2-58
+Q: How do you pivot with SQL Server?
+A:
+SQL Server offers the <code>PIVOT</code> operator, which turns the values of a column into several columns, with a calculation like <code>SUM()</code>.
+
+<code>FOR col</code> gives the column whose values become columns, and <code>IN (…)</code> the list of those columns. This list must be written in advance. If the values change often, I build the query text in code, with the up-to-date list, before running it.
+
+The other method, with <code>SUM(CASE WHEN …)</code>, works everywhere and is often simpler to read.
+SQL:
+SELECT g, [1], [2]
+FROM (
+  SELECT g, m, v FROM t
+) AS s
+PIVOT (
+  SUM(v) FOR m IN ([1], [2])
+) AS p;
+### ent-v2-59
+Q: How do you query JSONB data in PostgreSQL?
+A:
+JSON is a text format that stores information as “key: value” pairs, sometimes nested. In PostgreSQL, the <code>JSONB</code> type stores these documents in a form that’s fast to query.
+
+I use <code>-&gt;</code> to extract a JSON value, <code>-&gt;&gt;</code> to get it as text, and <code>@&gt;</code> to check that a document contains a specific structure or values. I chain the arrows to go down into a nested object.
+
+To speed up searches over many rows, I add a GIN index on the column: this kind of index can search inside documents. I prefer <code>JSONB</code> to <code>JSON</code>, which just keeps the original text and is slower to search.
+SQL:
+SELECT
+  data ->> 'name',
+  data -> 'address'
+       ->> 'city'
+FROM t
+WHERE data @> '{"ok":true}';
+### ent-v2-60
+Q: How do you query a JSON column in MySQL?
+A:
+In MySQL, <code>JSON_EXTRACT()</code> reads a value in a JSON column, from a path like <code>$.key</code>: <code>$</code> stands for the start of the document.
+
+There are two shortcuts: <code>-&gt;</code> returns the value in JSON format, with quotes for a text, and <code>-&gt;&gt;</code> returns the bare text, without quotes. To show or compare a value, I usually use <code>-&gt;&gt;</code>.
+
+To filter fast on a JSON key, I create a generated column from that key, then an index on that column.
+SQL:
+SELECT
+  data ->> '$.name',
+  JSON_EXTRACT(data,
+    '$.address.city')
+FROM t;
+### ent-v2-61
+Q: How do you query JSON in SQL Server?
+A:
+SQL Server offers several JSON functions. <code>JSON_VALUE()</code> reads a simple value, like a text or a number. <code>JSON_QUERY()</code> gets a whole object or list.
+
+<code>OPENJSON()</code> turns JSON into rows and columns, which is handy for analyzing a list of items.
+
+Values are referred to by a path, like <code>$.key</code>, and <code>ISJSON()</code> checks that a text is valid JSON.
+SQL:
+SELECT
+  JSON_VALUE(data,
+    '$.name'),
+  JSON_QUERY(data,
+    '$.address')
+FROM t
+WHERE ISJSON(data) = 1;
+### ent-v2-62
+Q: What is an execution plan for?
+A:
+An execution plan shows how the database will run a query: which tables it reads, which indexes it uses, in what order it does the joins and sorts.
+
+The execution plan helps understand why a query is slow. <code>EXPLAIN</code> shows the planned execution; <code>EXPLAIN ANALYZE</code> runs the query and adds the actual times and row counts.
+
+I mostly look for full scans of large tables and big gaps between the estimated and the actual rows.
+SQL:
+-- PostgreSQL, MySQL
+EXPLAIN ANALYZE
+SELECT * FROM t
+WHERE a = 1;
+
+-- SQLite
+EXPLAIN QUERY PLAN
+SELECT * FROM t
+WHERE a = 1;
+### ent-v2-63
+Q: Why might an index not be used?
+A:
+The database decides on its own how to run a query. It can ignore an index if it thinks another path costs less.
+
+Common cases: the query returns a large part of the table, a function is applied to the column (like converting to uppercase), or a <code>LIKE</code> starts with <code>%</code>. Other cases: an index on several columns doesn’t start with the filtered column, or the table is too small for the index to help.
+
+To check, I look at the execution plan with <code>EXPLAIN</code>: it shows the path the database chose.
+SQL:
+-- the index on a is ignored
+WHERE UPPER(a) = 'X'
+WHERE a LIKE '%x'
+WHERE a + 0 = 1
+
+-- it can be used
+WHERE a = 'X'
+WHERE a LIKE 'x%'
+### ent-v2-64
+Q: What is index selectivity?
+A:
+Selectivity says how much a condition reduces the number of rows. The higher it is, the fewer rows are left to read.
+
+Searching by a unique identifier is very selective: only one row matches. Searching on a column that has only two or three possible values isn’t very selective: a large part of the table matches.
+
+An index is mostly useful on a selective column. When a condition keeps a large part of the table, the database often prefers to read everything directly.
+### ent-v2-65
+Q: What are the four isolation levels defined by the SQL standard?
+A:
+The four levels are <code>READ UNCOMMITTED</code>, <code>READ COMMITTED</code>, <code>REPEATABLE READ</code> and <code>SERIALIZABLE</code>. These levels set what a transaction sees of the other transactions running at the same time.
+
+From the most flexible to the strictest: <code>READ UNCOMMITTED</code> can see changes not yet committed. <code>READ COMMITTED</code> sees only what’s committed. <code>REPEATABLE READ</code> guarantees that a row read again hasn’t changed. <code>SERIALIZABLE</code> acts as if the transactions ran one after another.
+
+The stricter the level, the safer the data, but the more likely transactions are to wait or fail. <code>READ COMMITTED</code> is the most common default setting.
+SQL:
+SET TRANSACTION
+  ISOLATION LEVEL
+  READ COMMITTED;
+-- READ UNCOMMITTED,
+-- READ COMMITTED,
+-- REPEATABLE READ,
+-- SERIALIZABLE
+### ent-v2-66
+Q: What is a deadlock?
+A:
+A deadlock happens when two transactions wait for each other: each one locks a row the other needs, and neither can move forward.
+
+Transaction A locks row 1, transaction B row 2; then A wants row 2, and B wants row 1. The database detects this dead end and cancels one of the two, so the other can finish.
+
+To limit them, I always access rows in the same order, keep transactions short, and plan to retry the canceled transaction.
+### ent-v2-67
+Q: What is a dirty read?
+A:
+A dirty read means reading a change that another transaction hasn’t committed yet.
+
+If that other transaction is then canceled, I’ve used data that never really existed.
+
+To avoid it, I use the <code>READ COMMITTED</code> isolation level or stricter: it only shows committed changes. It’s the default setting in most databases.
+### ent-v2-68
+Q: What is MERGE for?
+A:
+<code>MERGE</code> updates a table from another one, in a single statement: rows that already exist are updated, and new ones are added.
+
+The <code>ON</code> condition says how to recognize the same row in both tables. <code>WHEN MATCHED</code> describes what to do when it exists, <code>WHEN NOT MATCHED</code> when it doesn’t.
+
+I use it to sync data, for example during a regular load. MySQL and SQLite don’t have it: there I use an upsert, meaning an insert that turns into an update if the row already exists.
+SQL:
+MERGE INTO target c
+USING source s
+  ON c.id = s.id
+WHEN MATCHED THEN
+  UPDATE SET v = s.v
+WHEN NOT MATCHED THEN
+  INSERT (id, v)
+  VALUES (s.id, s.v);
+### ent-v2-69
+Q: What’s the difference between a stored procedure and a stored function?
+A:
+A stored procedure is a routine saved in the database, often in several steps. I call it with <code>CALL</code> or <code>EXEC</code>, and it can change data.
+
+A stored function returns a value or a table of results. I use it directly in a query, like a built-in function.
+
+In short: the procedure carries out a task, the function calculates a result. The exact rules vary by DBMS.
+SQL:
+-- procedure: CALL
+CALL my_procedure(1);
+
+-- function: inside a query
+SELECT my_function(a)
+FROM t;
+### ent-v2-70
+Q: What is a trigger?
+A:
+A trigger is a routine the database runs on its own when a row is added, changed or deleted in a table.
+
+The trigger can read the row before (<code>OLD</code>) and the row after (<code>NEW</code>). I use it to keep a history of changes, or to check a rule no constraint can express.
+
+The downside: its action is invisible in the query that set it off, which makes debugging harder, and it slows down writes. So I use it sparingly.
+SQL:
+CREATE TRIGGER trg_upd
+AFTER UPDATE ON t
+FOR EACH ROW
+BEGIN
+  INSERT INTO log
+  VALUES (NEW.id);
+END;
+### ent-v2-71
+Q: What’s the difference between a view and a materialized view?
+A:
+A regular view is a saved query: its result is recalculated on every read.
+
+A materialized view saves the result itself. So reading it is much faster, especially for heavy calculations. In return, it isn’t updated automatically: it has to be refreshed.
+
+I choose a regular view when the data must always be up to date, and a materialized view when read speed matters more.
+SQL:
+CREATE VIEW v AS
+  SELECT …;
+
+CREATE MATERIALIZED VIEW
+  mv AS SELECT …;
+REFRESH MATERIALIZED VIEW
+  mv;
+### ent-v2-72
+Q: What is denormalization and why use it?
+A:
+Denormalizing means deliberately accepting to copy data, or to store already calculated results, so that some reads are faster.
+
+For example, I store a total in the main table instead of recalculating it every time, or I copy a value to avoid a join.
+
+The downside: these copies have to be kept up to date, otherwise the data contradicts itself. So I only do it for a real, measured performance need.

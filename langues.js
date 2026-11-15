@@ -41,7 +41,7 @@
   /* essai : la langue n'est proposée qu'aux iPhone en essai, tant que sa traduction n'est pas terminée. */
   var LANGUES = {
     fr: { nom: 'Français', locale: 'fr-FR' },
-    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=7', defis: 'langue-en-defis.js?v=2', essai: true }
+    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=7', defis: 'langue-en-defis.js?v=2', entretien: 'langue-en-entretien.js?v=1', essai: true }
   };
   var CLE = 'requete-langue';
 
@@ -99,11 +99,19 @@
     if (!D || !cle) return null;
     if (Object.prototype.hasOwnProperty.call(D, cle)) return D[cle];
     /* Le prénom, puis les nombres, mis de côté */
-    var mis = {}, gabarit = cle, k;
-    for (k in valeurs) {
+    var r = gabaritCherche(cle, true);
+    /* 15 novembre : une valeur nommée retenue d'avant (le titre « Transactions » de la prochaine étape) ne doit pas cacher un autre
+       texte qui la contient (« Module 12 · Transactions et concurrence ») : sans traduction avec elle, on cherche sans elle. */
+    if (r === null && gabaritCherche.vu) r = gabaritCherche(cle, false);
+    return r;
+  }
+  function gabaritCherche(cle, avecValeurs) {
+    var D = TRAD.textes, mis = {}, gabarit = cle, k, vu = false;
+    if (avecValeurs) for (k in valeurs) {
       var v = ''; try { v = propre(valeurs[k]() || ''); } catch (e) {}
-      if (v.length >= 2 && gabarit.indexOf(v) >= 0) { gabarit = gabarit.split(v).join('{' + k + '}'); mis[k] = v; }
+      if (v.length >= 2 && gabarit.indexOf(v) >= 0) { gabarit = gabarit.split(v).join('{' + k + '}'); mis[k] = v; vu = true; }
     }
+    gabaritCherche.vu = vu;
     /* Le pseudo d’un autre joueur (« Profil de @nora ») : {p1}, {p2}… (14 novembre : l’interface en anglais) */
     var p = 0;
     gabarit = gabarit.replace(/(^|[^\wÀ-ÿ@])(@[A-Za-z0-9À-ÿ._-]{2,16})/g, function (tout, avant, ps) { p++; mis['p' + p] = ps; return avant + '{p' + p + '}'; });
@@ -486,12 +494,17 @@
     return true;
   }
   function passer(el) {
+    /* Une zone de saisie n'est jamais touchée, mais ce qu'elle dit d'elle-même (aria-label, placeholder) se traduit (15 novembre :
+       « Éditeur SQL » de la console, « Ce qui t’a plu… » sous l'avis d'une leçon) */
+    if (el && el.nodeType === 1 && (el.nodeName === 'TEXTAREA' || el.nodeName === 'INPUT') && !el.hasAttribute('data-notrad')) { attributs(el); return; }
     if (!el || el.nodeType !== 1 || saute(el)) return;
     attributs(el);
     if (surPlace(el)) return;
     if (el.nodeName === 'CODE') codeSql(el);
     if (TEL_QUEL[el.nodeName] || !el.firstChild) return;
     var etat = { morceaux: [], texte: false }, s = phrase(el, etat), n;
+    /* Les morceaux d'une phrase (une icône, un mot en gras) gardent leurs attributs à eux : un cadenas « Module verrouillé » */
+    for (n = 0; n < etat.morceaux.length; n++) if (etat.morceaux[n].nodeType === 1 && etat.morceaux[n].attributes && etat.morceaux[n].attributes.length) attributs(etat.morceaux[n]);
     if (s != null && etat.texte && s.length <= PHRASE_MAX) {
       var c = cleDe(s);
       if (!lettres(c.cle) || fait.get(el) === c.cle) return;
@@ -637,6 +650,8 @@
     var page = moi && moi.getAttribute('data-textes'), html = '<script src="' + dossier + LANGUES[CODE].fichier + '"><\/script>';
     /* data-defis (l'appli, pas les vidéos) : les bases des défis et leurs textes, dans leur propre fichier */
     if (moi && moi.hasAttribute && moi.hasAttribute('data-defis') && LANGUES[CODE].defis) html += '<script src="' + dossier + LANGUES[CODE].defis + '"><\/script>';
+    /* Les questions d'entretien (15 novembre : langue-en-entretien.js, fabriqué par tools/langue/entretien.mjs), l'appli seulement aussi */
+    if (moi && moi.hasAttribute && moi.hasAttribute('data-defis') && LANGUES[CODE].entretien) html += '<script src="' + dossier + LANGUES[CODE].entretien + '"><\/script>';
     if (page) html += '<script src="' + page.replace('{langue}', CODE) + '"><\/script>';
     try { document.write(html); } catch (e) {}
   }

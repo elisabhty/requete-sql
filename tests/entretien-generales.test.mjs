@@ -61,7 +61,8 @@ test('ce que disaient les exemples est repris dans la réponse', () => {
 
 test('l’écran n’affiche plus d’exemple concret, de schéma ni d’exemple SQL', () => {
   const f = html.slice(html.indexOf('function renderEntretienFocus(x){'), html.indexOf('\n}\n', html.indexOf('function renderEntretienFocus(x){')));
-  assert.ok(f.includes("${x.q.a.split('\\n\\n').map(p=>`<p class=\"eans\">${entCodeInsec(p)}</p>`).join('')}"), 'la réponse, paragraphe par paragraphe');
+  /* 15 novembre : dans une autre langue, la réponse vient de langue-<langue>-entretien.js, en data-notrad (entNt) */
+  assert.ok(f.includes("${x.q.a.split('\\n\\n').map(p=>`<p class=\"eans\"${typeof entNt==='function'?entNt(x.q):''}>${entCodeInsec(p)}</p>`).join('')}"), 'la réponse, paragraphe par paragraphe');
   assert.ok(f.includes('ent-notions') && f.includes('Voir selon le SGBD'), 'les notions et le lien « Voir selon le SGBD » restent');
   assert.doesNotMatch(f, /Exemple concret|Exemple SQL|entExemple|entEtoile|x\.q\.(ex|sql|apres|etoile)\b/);
   assert.ok(!html.includes('function entExemple(') && !html.includes('function entEtoile('));

@@ -1,0 +1,319 @@
+### ent-v2-01
+Q: What is a primary key?
+A:
+A primary key is the column that acts as an ID number for each row of a table, often an <code>id</code> column.
+
+A primary key follows two rules: its value is unique, so no two rows can share it, and it’s always filled in, never <code>NULL</code>. A table has only one primary key.
+
+I pick a value that never changes, usually a number the database assigns automatically. Other tables use it to point to one specific row.
+SQL:
+CREATE TABLE t (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL
+);
+### ent-v2-02
+Q: What is a foreign key?
+A:
+A foreign key is a column that refers to the primary key of another table. It’s what creates the link between the two tables.
+
+The database checks this link: it rejects a value that matches no row in the other table, and it prevents deleting a row that’s still used elsewhere.
+
+I use it to link data without copying it: each piece of information is written only once, and a join brings it together when reading.
+SQL:
+CREATE TABLE child (
+  id INTEGER PRIMARY KEY,
+  parent_id INTEGER
+    REFERENCES parent (id)
+);
+### ent-v2-03
+Q: What’s the difference between PRIMARY KEY and UNIQUE?
+A:
+Both forbid duplicates. The difference: a table has only one primary key, always filled in, while it can have several <code>UNIQUE</code> columns, which accept empty values (<code>NULL</code>).
+
+The primary key identifies each row. <code>UNIQUE</code> protects other columns that must not repeat, like an email address.
+SQL:
+CREATE TABLE t (
+  id INTEGER PRIMARY KEY,
+  email TEXT UNIQUE
+);
+### ent-v2-04
+Q: What is a composite key?
+A:
+A composite key is a key made of several columns. It’s their combination that must be unique, not each column on its own.
+
+So the same value can appear several times in one column. The database only rejects a new row that repeats exactly the same combination of values as an existing row.
+
+I mostly see it in tables that link two other tables: the key then reuses the primary key of each of the two tables.
+SQL:
+CREATE TABLE t (
+  a INTEGER,
+  b INTEGER,
+  PRIMARY KEY (a, b)
+);
+### ent-v2-05
+Q: What’s the difference between SELECT * and SELECT col1, col2?
+A:
+<code>SELECT *</code> returns every column of the table. <code>SELECT col1, col2</code> returns only the columns I name, in the order I write them.
+
+<code>SELECT *</code> is handy for exploring a table. In a real query, I name the columns: the result is clearer, lighter, and it doesn’t change if someone adds a column to the table.
+SQL:
+-- every column
+SELECT * FROM t;
+
+-- only the useful ones
+SELECT a, b FROM t;
+### ent-v2-06
+Q: What’s the difference between WHERE and HAVING?
+A:
+<code>WHERE</code> filters rows before grouping; <code>HAVING</code> filters groups, after the <code>GROUP BY</code>.
+
+So <code>WHERE</code> doesn’t know about totals or counts like <code>COUNT(*)</code> yet. A condition on a column goes in <code>WHERE</code>; a condition on a total or a count goes in <code>HAVING</code>.
+
+When a condition could go in either, I put it in <code>WHERE</code>: the database works on fewer rows, and the query runs faster.
+SQL:
+SELECT a, COUNT(*)
+FROM t
+WHERE b = 'x'  -- the rows
+GROUP BY a
+HAVING COUNT(*) > 1;
+-- HAVING: the groups
+### ent-v2-07
+Q: How do you check whether a value is NULL?
+A:
+I write <code>IS NULL</code> or <code>IS NOT NULL</code>. <code>NULL</code> means the value is missing or unknown.
+
+The trap: <code>= NULL</code> doesn’t work. The query gives no error, but it returns no rows, because an unknown value equals nothing, not even another unknown value.
+SQL:
+SELECT *
+FROM t
+WHERE col IS NULL;
+
+-- the opposite
+WHERE col IS NOT NULL
+### ent-v2-08
+Q: What is ORDER BY for?
+A:
+<code>ORDER BY</code> sorts the result rows: <code>ASC</code> from smallest to largest (the default), <code>DESC</code> from largest to smallest.
+
+I can sort on several columns: the second one only breaks ties in the first. I set <code>ASC</code> or <code>DESC</code> separately for each column.
+
+Without <code>ORDER BY</code>, the order of the rows is never guaranteed, even if it always looks the same.
+
+Common follow-up: what if the sort column isn’t in the <code>SELECT</code>? The sort usually still works.
+SQL:
+SELECT a, b
+FROM t
+ORDER BY a ASC, b DESC;
+### ent-v2-09
+Q: How do you limit the number of rows returned?
+A:
+I add a limit to the query: <code>LIMIT 10</code> keeps only the first 10 rows. SQL Server writes <code>TOP 10</code> right after <code>SELECT</code>.
+
+The limit applies after sorting. With a descending <code>ORDER BY</code> and <code>LIMIT 3</code>, I get the three largest values. Without <code>ORDER BY</code>, I get three arbitrary rows, which can change from one run to the next.
+SQL:
+-- PostgreSQL, MySQL, SQLite
+SELECT * FROM t
+ORDER BY a
+LIMIT 10;
+
+-- SQL Server
+SELECT TOP 10 * FROM t
+ORDER BY a;
+### ent-v2-10
+Q: What’s the difference between COUNT(*), COUNT(column) and COUNT(DISTINCT column)?
+A:
+<code>COUNT(*)</code> counts every row. <code>COUNT(col)</code> counts only the rows where that column is filled in. <code>COUNT(DISTINCT col)</code> counts the different values, each one only once.
+
+So on the same table, the three results can differ: empty cells and duplicates don’t count everywhere.
+SQL:
+SELECT
+  COUNT(*),
+  COUNT(col),
+  COUNT(DISTINCT col)
+FROM t;
+### ent-v2-11
+Q: What’s the difference between INNER JOIN and LEFT JOIN?
+A:
+<code>INNER JOIN</code> keeps only the rows that have a match in both tables. <code>LEFT JOIN</code> keeps every row of the first table, even the ones with no match.
+
+When a row of the first table has nothing to match, <code>INNER JOIN</code> drops it. <code>LEFT JOIN</code> keeps it, with empty cells (<code>NULL</code>) for the columns of the second table.
+SQL:
+SELECT t1.a, t2.b
+FROM t1
+LEFT JOIN t2
+  ON t2.t1_id = t1.id;
+-- INNER JOIN: only
+-- the linked rows
+### ent-v2-12
+Q: What is DISTINCT for?
+A:
+<code>DISTINCT</code> removes duplicate rows from the result: each row appears only once.
+
+The <code>DISTINCT</code> clause applies to all the requested columns, taken together. With one column, I get the list of its different values. With two columns, I get each different combination.
+
+<code>DISTINCT</code> doesn’t change the table: it only changes what the query shows.
+SQL:
+SELECT DISTINCT a, b
+FROM t;
+### ent-v2-13
+Q: How do you get today’s date?
+A:
+<code>CURRENT_DATE</code> gives today’s date, and <code>CURRENT_TIMESTAMP</code> the date with the time. That’s how the SQL standard writes them.
+
+Each database system also has its own function, like <code>NOW()</code> or <code>GETDATE()</code>.
+
+Watch out for columns that also store the time: a value from today at 2 p.m. isn’t equal to today’s date on its own.
+SQL:
+SELECT CURRENT_DATE;
+-- SQL Server:
+SELECT CAST(GETDATE()
+  AS DATE);
+### ent-v2-14
+Q: How do you concatenate several strings?
+A:
+Concatenating means joining several texts end to end. I use <code>CONCAT()</code>, which exists almost everywhere, or the SQL standard <code>||</code> operator.
+
+To separate the pieces, I add a space between them, for example between a first name and a last name.
+
+Watch out for empty values: with <code>||</code>, a single <code>NULL</code> piece makes the whole result <code>NULL</code>.
+SQL:
+-- standard (PostgreSQL,
+-- SQLite, Oracle)
+SELECT a || ' ' || b
+FROM t;
+
+-- MySQL, SQL Server
+SELECT CONCAT(a, ' ', b)
+FROM t;
+### ent-v2-15
+Q: What are SUM(), AVG(), MIN() and MAX() for?
+A:
+They’re calculation functions: they summarize several rows into a single value.
+
+<code>SUM()</code> adds up, <code>AVG()</code> averages, <code>MIN()</code> gives the smallest value and <code>MAX()</code> the largest.
+
+All four ignore empty cells (<code>NULL</code>). So the average is calculated only on the filled-in values.
+SQL:
+SELECT
+  SUM(amount),
+  AVG(amount),
+  MIN(amount),
+  MAX(amount)
+FROM t;
+### ent-v2-16
+Q: What is GROUP BY for?
+A:
+<code>GROUP BY</code> gathers the rows that have the same value in a column, to calculate something per group: a total per category, a number of rows per month.
+
+The query then returns one row per group. In the <code>SELECT</code>, I put the columns written in the <code>GROUP BY</code>, and calculations like <code>COUNT(*)</code> or <code>SUM()</code>.
+SQL:
+SELECT category,
+  COUNT(*) AS n,
+  SUM(amount) AS total
+FROM t
+GROUP BY category;
+### ent-v2-17
+Q: What’s the difference between = and LIKE?
+A:
+<code>=</code> looks for an exact value. <code>LIKE</code> looks for text that matches a pattern.
+
+In that pattern, <code>%</code> stands for any sequence of characters. So <code>LIKE 'abc%'</code> finds every text that starts with “abc”.
+
+When I know the exact value, I use <code>=</code>: it’s clearer and faster.
+SQL:
+WHERE name = 'abc'
+WHERE name LIKE 'ab%'
+### ent-v2-18
+Q: What is IN for?
+A:
+<code>IN</code> checks whether a value is in a list. It’s a short way to write several <code>=</code> joined by <code>OR</code>.
+
+The list can be written by hand, or come from another query. <code>NOT IN</code>, on the other hand, keeps the values that aren’t in the list.
+SQL:
+SELECT *
+FROM t
+WHERE a IN (1, 2, 3);
+### ent-v2-19
+Q: What is BETWEEN for?
+A:
+<code>BETWEEN</code> checks whether a value lies between two bounds. Both bounds are included: <code>BETWEEN 10 AND 20</code> keeps 10 and 20.
+
+<code>BETWEEN</code> works with numbers, dates and texts.
+
+Careful with dates that have a time: the end bound stops at exactly midnight, at the very start of the last day. So the rest of that day is left out. For a whole month, I’d rather write <code>&gt;=</code> the 1st of the month and <code>&lt;</code> the 1st of the next month.
+SQL:
+SELECT *
+FROM t
+WHERE a BETWEEN 10 AND 20;
+-- bounds included
+### ent-v2-20
+Q: What is CASE WHEN for?
+A:
+<code>CASE WHEN</code> lets you write an “if… then… else” in a query. For each row, it returns a value based on a condition.
+
+The conditions are read in order, and the first true one wins. <code>ELSE</code> gives the value when no condition is true; without <code>ELSE</code>, the result is empty (<code>NULL</code>).
+
+I often use it to sort values into categories, like “low”, “medium” or “high”.
+SQL:
+SELECT a,
+  CASE
+    WHEN a > 100 THEN 'high'
+    WHEN a > 10 THEN 'medium'
+    ELSE 'low'
+  END AS tier
+FROM t;
+### ent-v2-21
+Q: What’s the difference between DELETE, TRUNCATE and DROP?
+A:
+<code>DELETE</code> removes rows: all of them, or only the ones chosen with <code>WHERE</code>. <code>TRUNCATE</code> empties the whole table at once. <code>DROP TABLE</code> removes the entire table, along with its structure.
+
+After a <code>DELETE</code> or a <code>TRUNCATE</code>, the table still exists, empty or not. After a <code>DROP</code>, it no longer exists.
+
+<code>TRUNCATE</code> is faster than <code>DELETE</code> on a large table, but it doesn’t let you choose the rows.
+SQL:
+DELETE FROM t WHERE a = 1;
+TRUNCATE TABLE t;
+DROP TABLE t;
+### ent-v2-22
+Q: What are the main SQL constraints?
+A:
+A constraint is a rule the database checks on every insert or update. If the rule isn’t met, the row is rejected.
+
+The main ones: <code>PRIMARY KEY</code> identifies each row, <code>FOREIGN KEY</code> links to another table, <code>UNIQUE</code> forbids duplicates, <code>NOT NULL</code> requires a value, and <code>CHECK</code> enforces a condition, like a positive price.
+
+These constraints protect the data, whatever application writes it.
+SQL:
+CREATE TABLE t (
+  id INTEGER PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,
+  qty INTEGER DEFAULT 0
+    CHECK (qty >= 0),
+  p_id INTEGER
+    REFERENCES p (id)
+);
+### ent-v2-23
+Q: What’s the difference between UNION and UNION ALL?
+A:
+Both put the results of two queries end to end. <code>UNION</code> removes duplicates; <code>UNION ALL</code> keeps every row.
+
+<code>UNION ALL</code> is faster, because it doesn’t have to look for duplicates. I use it by default, and I only pick <code>UNION</code> when I really want to remove duplicates.
+
+Both queries must have the same number of columns, in the same order.
+SQL:
+SELECT a FROM t1
+UNION       -- no duplicates
+SELECT a FROM t2;
+
+SELECT a FROM t1
+UNION ALL   -- keep everything
+SELECT a FROM t2;
+### ent-v2-24
+Q: What is an alias with AS for?
+A:
+An alias gives a temporary name to a column or a table, just for the query. Nothing is renamed in the database.
+
+On a column, it gives a clear name to a calculation, like “total” or “average”. On a table, it shortens the writing: I can write <code>t.col</code> instead of the full name.
+SQL:
+SELECT a AS label,
+  SUM(b) AS total
+FROM t AS x;

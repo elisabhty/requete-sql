@@ -64,7 +64,8 @@ test('le verso : l’ampoule et « À retenir », les trois points numérotés, 
 
 test('la fiche : le recto qui s’incline, le verso dessous, « Noter » et « Essayer » (sauf syntaxe d’un autre SGBD)', () => {
   const open = fn('openCard');
-  assert.ok(open.includes('<div class="mc mc--big" role="img" aria-label="${escAttr(`Carte ${memoSerial(id)}, ${c.k}\\u00a0: ${c.t}. Module ${mi+1}, ${MODULES[mi].titre}`)}">${memoFace(id,{mod:true,shine:true})}</div>'));
+  /* 15 novembre : en anglais, le lecteur d’écran lit la carte dans la langue (le français ne change pas) */
+  assert.ok(open.includes('<div class="mc mc--big" role="img" aria-label="${escAttr((typeof jeuTrEn===\'function\'&&jeuTrEn())?`Card ${memoSerial(id)}, ${jeuTr(c.k)}: ${jeuTr(c.t)}. Module ${mi+1}, ${jeuTr(MODULES[mi].titre)}`:`Carte ${memoSerial(id)}, ${c.k}\\u00a0: ${c.t}. Module ${mi+1}, ${MODULES[mi].titre}`)}">${memoFace(id,{mod:true,shine:true})}</div>'));
   assert.ok(open.includes('<div class="mc-verso">${memoVerso(id)}</div>'));
   assert.ok(open.includes('<button type="button" class="cd-note-btn" onclick="noteFromCard(${memoArg(id)})"><span class="cd-note-stk" aria-hidden="true">${lqStkSvg(\'note\')}</span>Noter</button>'), 'le carnet de « Noter », à côté d’« Essayer »');
   assert.ok(open.includes('const had=!!cardNoteExisting(id);') && open.includes('<p class="cd-note-btn is-had" role="status"><span class="cd-note-ok" aria-hidden="true">${CHECK_SVG}</span>Dans mes notes</p>'), 'déjà notée : pas un bouton');
