@@ -94,7 +94,7 @@ les noms propres (une marque, un artiste, une commune) restent tels quels.
 - La source : `tools/langue/defis/en/<base>.json` (`tables`, `defauts` pour les alias des solutions, `gardees` pour les colonnes
   qui ne se traduisent pas, `valeurs`, `valeursColonnes` pour une valeur qui se traduit selon sa colonne, `solutions` pour une
   solution écrite à la main, `valeursRetour`, `textes`). `tools/langue/defis.mjs` les assemble dans `langue-en-defis.js`, chargé
-  par l’appli seulement (`<script src="langues.js?v=7" data-defis>`).
+  par l’appli seulement (`<script src="langues.js?v=…" data-defis>`, l’empreinte du fichier : `tools/langue/versions.mjs`).
 - Au chargement, `defisLangue` (index.html) passe chaque base dans la langue (son SQL, sa description, ses tables), et chaque
   défi (titre, situation, colonnes à afficher, tri, indices ; sa solution par `sql(sol, null, base)` ou `solution(base, défi)`).
 - Les salles (15 novembre, 16 h 43, Elisa : « vasy ») : le serveur (`jeu-verifier`) a un catalogue par langue,
@@ -189,6 +189,9 @@ Les messages construits (15 novembre, 22 h, Elisa : « oui stp ») : une clé pe
 langues.js). Le texte retenu est remis traduit s’il a sa traduction (un titre de leçon), tel quel sinon (le nom d’un projet). Les
 pluriels et les accords (Prête, Prêt, Prêt·e) ont chacun leur clé. À éviter : une clé à place libre presque sans texte fixe
 (« avec {x1} »), elle traduirait à moitié des phrases qui n’ont rien à voir.
+
+Les adresses (15 novembre, 19 h 26, Elisa voyait encore l’entretien en français) : chaque fichier de langue est demandé avec
+l’empreinte de son contenu, mise à jour par `tools/langue/versions.mjs` (appelé par les outils qui écrivent ces fichiers).
 
 ## Où on en est
 

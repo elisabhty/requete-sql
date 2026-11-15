@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { ROOT, lire } from './commun.mjs';
+import { versions } from './versions.mjs';
 
 const i = process.argv.indexOf('--langue'), LANGUE = i > 0 ? process.argv[i + 1] : 'en';
 const s = lire('index.html'), d = s.indexOf('const ENTRETIEN=['), f = s.indexOf('\n];', d);
@@ -45,3 +46,4 @@ window.REQUETE_ENTRETIEN[${JSON.stringify(LANGUE)}] = ${JSON.stringify({notions,
 `;
 fs.writeFileSync(path.join(ROOT, `langue-${LANGUE}-entretien.js`), sortie);
 console.log(`${Object.keys(T).length} questions, ${Object.keys(notions).length} notions → langue-${LANGUE}-entretien.js (${Math.round(sortie.length / 1024)} Ko)`);
+const nv = versions(); if (nv.length) console.log(`${nv.length} adresses de fichiers de langue mises à jour (versions.mjs)`);

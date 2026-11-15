@@ -14,9 +14,12 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { empreinte, versions } from '../tools/langue/versions.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
+/* 15 novembre (versions.mjs) : les adresses des fichiers de langue portent l’empreinte de leur contenu */
+const VER = f => empreinte(fs.readFileSync(path.join(ROOT, f), 'utf8'));
 
 function moteur() {
   const local = {'requete-maj-canal': '"essai"', 'requete-langue': 'en'}, win = {};
@@ -91,9 +94,9 @@ test('les textes des défis, du schéma, des indices et du pas à pas se lisent 
 
 test('l’appli charge les défis en anglais, aussi hors ligne', () => {
   const app = lire('index.html'), sw = lire('sw.js'), moteurTxt = lire('langues.js');
-  assert.ok(app.includes('<script src="langues.js?v=7" data-defis></script>'));
-  assert.ok(moteurTxt.includes("defis: 'langue-en-defis.js?v=2'"));
-  assert.ok(sw.includes("'./langue-en-defis.js?v=2',"));
+  assert.ok(app.includes(`<script src="langues.js?v=${VER('langues.js')}" data-defis></script>`));
+  assert.ok(moteurTxt.includes(`defis: 'langue-en-defis.js?v=${VER('langue-en-defis.js')}'`));
+  assert.ok(sw.includes(`'./langue-en-defis.js?v=${VER('langue-en-defis.js')}',`));
   assert.ok(app.includes('function defisLangue') || app.includes('defisLangue'), 'les défis passent dans la langue au chargement');
 });
 

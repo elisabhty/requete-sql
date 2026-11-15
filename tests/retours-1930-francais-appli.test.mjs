@@ -8,9 +8,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
+import { empreinte, versions } from '../tools/langue/versions.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
+/* 15 novembre (versions.mjs) : les adresses des fichiers de langue portent l’empreinte de leur contenu */
+const VER = f => empreinte(fs.readFileSync(path.join(ROOT, f), 'utf8'));
 const app = lire('index.html'), MOTEUR = lire('langues.js'), sw = lire('sw.js');
 
 function moteur() {
@@ -49,8 +52,8 @@ test('les morceaux d’une phrase gardent leurs titres pour le lecteur d’écra
 
 test('les questions d’entretien : un fichier par langue, chargé par l’appli, gardé hors ligne', () => {
   const {win, ecrits} = moteur();
-  assert.ok(ecrits.join('').includes('<script src="langue-en-entretien.js?v=1"><\/script>'), 'langues.js le charge (data-defis : l’appli seulement)');
-  assert.ok(sw.includes("'./langue-en-entretien.js?v=1',"));
+  assert.ok(ecrits.join('').includes(`<script src="langue-en-entretien.js?v=${VER('langue-en-entretien.js')}"><\/script>`), 'langues.js le charge (data-defis : l’appli seulement)');
+  assert.ok(sw.includes(`'./langue-en-entretien.js?v=${VER('langue-en-entretien.js')}',`));
   const E = win.REQUETE_ENTRETIEN.en, s = app.indexOf('const ENTRETIEN=['), f = app.indexOf('\n];', s);
   const FR = vm.runInNewContext('(' + app.slice(s + 'const ENTRETIEN='.length, f + 2) + ')');
   assert.equal(FR.length, 142);

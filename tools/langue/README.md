@@ -34,7 +34,8 @@ node tools/langue/fiches.mjs     --langue en projet-vue projet-index    # 8. le 
 
 Dans `assets/anim/<cours>.html` :
 1. avant `<link rel="stylesheet" href="core.css">` :
-   `<script src="../../langues.js?v=4" data-textes="{langue}/<cours>.js?v=1"></script>` ;
+   `<script src="../../langues.js?v=1" data-textes="{langue}/<cours>.js?v=1"></script>` (les numéros se mettent à jour tout seuls, voir
+   « Les adresses » plus bas) ;
 2. `<body data-table="…">` : la table dont parle la vidéo (le contexte des noms SQL cités seuls : `nom` est le nom d'un produit
    avec `produits`, celui d'un client avec `clients`) ;
 3. les requêtes tapées lettre à lettre : avant `$$('.sq .ln').forEach(splitChars);`,
@@ -152,4 +153,12 @@ copier le script et écrire les siennes. Elisa génère les voix sur son Mac (`n
   question : `### id`, `Q:`, `A:` puis la réponse, `SQL:` puis la syntaxe) et leurs notions (`notions-<code>.json`) ; vérifie qu’il
   n’en manque aucune, que chaque réponse a autant de `<code>` et de paragraphes que le français, puis écrit
   `langue-<code>-entretien.js` (chargé par l’appli seulement, `entretien:` dans LANGUES, langues.js).
+
+## Les adresses des fichiers de langue (15 novembre)
+
+Chaque fichier de langue est demandé avec l’empreinte de son contenu (`langue-en.js?v=029e4454`) : une traduction qui change, c’est
+une adresse neuve, et ni le navigateur ni le service worker ne peuvent resservir l’ancienne (Elisa voyait encore l’entretien en
+français). `node tools/langue/versions.mjs` met à jour les adresses (LANGUES dans langues.js, index.html, les 71 pages des vidéos,
+sw.js) ; `construire.mjs`, `defis.mjs construire`, `entretien.mjs` et `vignettes.mjs` l’appellent à la fin. Après avoir modifié un
+fichier de langue à la main : `node tools/langue/versions.mjs` (un test le vérifie : `--verifier` doit ne rien trouver).
 

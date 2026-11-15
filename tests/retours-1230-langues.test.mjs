@@ -13,9 +13,12 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { empreinte, versions } from '../tools/langue/versions.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
+/* 15 novembre (versions.mjs) : les adresses des fichiers de langue portent l’empreinte de leur contenu */
+const VER = f => empreinte(fs.readFileSync(path.join(ROOT, f), 'utf8'));
 const MOTEUR = lire('langues.js'), EN = lire('langue-en.js'), app = lire('index.html'), sw = lire('sw.js');
 
 /* langues.js dans une fausse page. stock : le stockage de l’iPhone ; langue : celle de l’iPhone. */
@@ -52,7 +55,7 @@ test('la langue de l’iPhone : jamais une langue inachevée toute seule, seulem
   const p = page({stock: {...ESSAI, 'requete-langue': 'en'}});
   assert.equal(p.L.code, 'en');
   assert.equal(p.L.locale, 'en-US');
-  assert.deepEqual(p.ecrits, ['<script src="langue-en.js?v=7"><\/script>'], 'le fichier de la langue est chargé tout de suite, avant le reste de la page');
+  assert.deepEqual(p.ecrits, [`<script src="langue-en.js?v=${VER('langue-en.js')}"><\/script>`], 'le fichier de la langue est chargé tout de suite, avant le reste de la page');
   assert.deepEqual([...p.L.disponibles()], ['fr', 'en']);
   assert.equal(p.L.nom('en'), 'English');
   /* changer de langue : enregistré, puis l’appli se recharge */
@@ -60,7 +63,7 @@ test('la langue de l’iPhone : jamais une langue inachevée toute seule, seulem
   assert.equal(p.local['requete-langue'], 'fr');
   assert.equal(p.win.recharge, true);
   assert.equal(p.L.changer('de'), false);
-  assert.ok(/en: \{ nom: 'English', locale: 'en-US', fichier: 'langue-en\.js\?v=7', defis: 'langue-en-defis\.js\?v=2', entretien: 'langue-en-entretien\.js\?v=1', essai: true \}/.test(MOTEUR), 'l’anglais reste en essai tant que sa traduction n’est pas terminée');
+  assert.ok(MOTEUR.includes(`en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=${VER('langue-en.js')}', defis: 'langue-en-defis.js?v=${VER('langue-en-defis.js')}', entretien: 'langue-en-entretien.js?v=${VER('langue-en-entretien.js')}', essai: true }`), 'l’anglais reste en essai tant que sa traduction n’est pas terminée');
 });
 
 test('traduire un texte : tel quel, avec ses nombres, le prénom, les mois et les jours ; sans traduction, il reste en français et il est noté', () => {
@@ -165,9 +168,9 @@ test('le SQL : sur la vraie base du cours, la requête récrite donne le même r
 });
 
 test('index.html : langues.js juste après maj.js, le prénom confié au moteur, le choix de la langue seulement en essai', () => {
-  const i = app.indexOf('<script src="maj.js?v=2"></script>'), j = app.indexOf('<script src="langues.js?v=7" data-defis></script>');
+  const i = app.indexOf('<script src="maj.js?v=2"></script>'), j = app.indexOf(`<script src="langues.js?v=${VER('langues.js')}" data-defis></script>`);
   assert.ok(i > 0 && j > i && j < app.indexOf('<script src="vendor/sqljs/sql-wasm.js"></script>'));
-  assert.ok(sw.includes("'./langues.js?v=7',") && sw.includes("'./langue-en.js?v=7',"));
+  assert.ok(sw.includes(`'./langues.js?v=${VER('langues.js')}',`) && sw.includes(`'./langue-en.js?v=${VER('langue-en.js')}',`));
   assert.ok(app.includes("window.REQUETE_LANGUE.valeur('prenom',()=>state.name)"));
   assert.ok(app.includes('    ${langueReglageHTML()}\n    <details class="plus-details" id="plus-contact">'), 'le réglage « Langue », dans Mon compte, avant « Contacte-nous »');
   /* 13 novembre, 15 h 17 : « mets la langue en bas du pays » */

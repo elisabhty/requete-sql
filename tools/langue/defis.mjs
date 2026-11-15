@@ -22,6 +22,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
 import { ROOT, lire, travail, moteur } from './commun.mjs';
+import { versions } from './versions.mjs';
 
 const argv = process.argv.slice(2);
 const li = argv.indexOf('--langue'), LANGUE = li >= 0 ? argv[li + 1] : 'en';
@@ -190,6 +191,7 @@ function construire() {
     + Object.entries(textes).map(([k, v]) => `    ${JSON.stringify(k)}: ${JSON.stringify(v)}`).join(',\n') + '\n  }\n});\n';
   fs.writeFileSync(path.join(ROOT, SORTIE), tete + corps);
   console.log(`${SORTIE} : ${Object.keys(bases).length} bases, ${Object.keys(textes).length} textes`);
+  const nv = versions(); if (nv.length) console.log(`${nv.length} adresses de fichiers de langue mises à jour (versions.mjs)`);
 }
 
 /* ---------- 3. Vérifier ---------- */

@@ -6,6 +6,7 @@
    node tools/langue/construire.mjs --langue en projet-vue projet-index
    Ensuite : recolter.mjs (il ne doit rester que des données), verifier.mjs. */
 import fs from 'node:fs';
+import { versions } from './versions.mjs';
 import { args, travail, memoire, cle, motsRe, moisTraduits, parite, donnee, IDENT, contenu, moteur, lirePage, ecrirePage, pageNeuve, tablePage, dejaTraduit } from './commun.mjs';
 
 const {langue, videos} = args();
@@ -38,4 +39,6 @@ for (const c of videos) {
   fs.writeFileSync(travail(langue, 'manque-' + c + '.json'), JSON.stringify(manque, null, 1));
   console.log(c, 'textes', Object.keys(page.textes).length, `(+${Object.keys(page.textes).length - avant})`, manque.length ? `· sans traduction ${manque.length} : ${manque.slice(0, 4).join(' | ')}` : '');
 }
+/* Les nouvelles adresses des fichiers de langue (versions.mjs : l'empreinte de leur contenu) */
+const nv = versions(); if (nv.length) console.log(`${nv.length} adresses de fichiers de langue mises à jour (versions.mjs)`);
 process.exitCode = erreurs ? 1 : 0;

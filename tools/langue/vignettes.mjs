@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { args, serveur, navigateur, contexte, video, ROOT, lire } from './commun.mjs';
+import { versions } from './versions.mjs';
 
 const {langue, videos} = args();
 const srv = await serveur(), b = await navigateur(), ctx = await contexte(b, langue);
@@ -38,7 +39,8 @@ else {
   console.log('LV_VIGNETTES :', neuves.length ? '+ ' + neuves.join(', ') : 'déjà à jour');
 }
 const ajouts = [];
-for (const c of videos) for (const g of [`./assets/anim/${langue}/${c}.js?v=1`, `./assets/anim/${langue}/${c}-thumb.webp`]) if (!sw.includes(`'${g}'`)) ajouts.push(g);
+/* Les textes d’une vidéo : quelle que soit leur version (versions.mjs met l’empreinte juste après) */
+for (const c of videos) for (const g of [`./assets/anim/${langue}/${c}.js?v=1`, `./assets/anim/${langue}/${c}-thumb.webp`]) if (!sw.includes(`'${g}'`) && !(g.endsWith('.js?v=1') && sw.includes(`'${g.slice(0, -2)}`))) ajouts.push(g);
 if (ajouts.length) {
   /* Après le dernier fichier de la langue déjà listé, sinon après la dernière vignette française */
   const tous = [...sw.matchAll(new RegExp(`\\n  '\\./assets/anim/${langue}/[^']+',`, 'g'))], dernier = tous.length ? tous[tous.length - 1] : null;
@@ -47,3 +49,4 @@ if (ajouts.length) {
   fs.writeFileSync(path.join(ROOT, 'sw.js'), sw);
 }
 console.log('sw.js :', ajouts.length ? '+ ' + ajouts.length + ' fichiers' : 'déjà à jour');
+const nv = versions(); if (nv.length) console.log(`${nv.length} adresses de fichiers de langue mises à jour (versions.mjs)`);

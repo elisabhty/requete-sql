@@ -11,9 +11,14 @@ import vm from 'node:vm';
 import crypto from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { empreinte, versions } from '../tools/langue/versions.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
+/* 15 novembre (versions.mjs) : les adresses des fichiers de langue portent l’empreinte de leur contenu */
+const VER = f => empreinte(fs.readFileSync(path.join(ROOT, f), 'utf8'));
+/* Les textes d’une vidéo : une empreinte pour toutes ses langues (versions.mjs) */
+const VT = c => empreinte(fs.readdirSync(path.join(ROOT, 'assets/anim')).filter(d => /^[a-z]{2}$/.test(d)).map(d => `assets/anim/${d}/${c}.js`).filter(f => fs.existsSync(path.join(ROOT, f))).map(f => fs.readFileSync(path.join(ROOT, f), 'utf8')).join('\n'));
 const MOTEUR = lire('langues.js'), EN = lire('langue-en.js'), app = lire('index.html'), sw = lire('sw.js');
 const core = lire('assets/anim/core.js'), where = lire('assets/anim/where.html'), page = lire('assets/anim/bases-relationnelles.html'), PAGE_EN = lire('assets/anim/en/bases-relationnelles.js');
 
@@ -29,8 +34,8 @@ function anglais() {
 test('une page d’un autre dossier (une vidéo) charge la langue à côté de langues.js, puis ses propres textes', () => {
   const {L, ecrits} = anglais();
   assert.equal(L.code, 'en');
-  assert.deepEqual(ecrits, ['<script src="../../langue-en.js?v=7"><\/script><script src="en/bases-relationnelles.js?v=1"><\/script>']);
-  assert.ok(page.includes('<script src="../../langues.js?v=7" data-textes="{langue}/bases-relationnelles.js?v=1"></script>'), 'la vidéo charge la langue avant tout');
+  assert.deepEqual(ecrits, [`<script src="../../langue-en.js?v=${VER('langue-en.js')}"><\/script><script src="en/bases-relationnelles.js?v=1"><\/script>`]);
+  assert.ok(page.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/bases-relationnelles.js?v=${VT('bases-relationnelles')}"></script>`), 'la vidéo charge la langue avant tout');
   assert.ok(page.indexOf('../../langues.js') < page.indexOf('src="core.js"'));
 });
 
@@ -116,7 +121,7 @@ test('la vidéo du module 1 : ses largeurs en anglais, son badge et sa vignette 
   for (const k of ['html[lang="en"] .xrw{grid-template-columns:52px 148px 143px 214px 218px 80px 67px}', 'html[lang="en"] #c3{--g:var(--w0) 160px 152px 1fr !important}',
     'html[lang="en"] #pan6{--k1:204px;--k2:190px}', "'--w1': EN ? '200px' : '156px', '--w2': EN ? '186px' : '172px'", 'data-en-src="badge-nutriboost-en.webp"'])
     assert.ok(page.includes(k), k);
-  for (const f of ['assets/anim/badge-nutriboost-en.webp', 'assets/anim/en/bases-relationnelles-thumb.webp', 'assets/anim/en/bases-relationnelles.js?v=1']) {
+  for (const f of ['assets/anim/badge-nutriboost-en.webp', 'assets/anim/en/bases-relationnelles-thumb.webp', `assets/anim/en/bases-relationnelles.js?v=${VT('bases-relationnelles')}`]) {
     assert.ok(fs.statSync(path.join(ROOT, f.split('?')[0])).size > 1000, f);
     assert.ok(sw.includes(`'./${f}'`), `préchargé : ${f}`);
   }
@@ -156,12 +161,12 @@ test('la voix anglaise du module 1 : prête pour generer.mjs --langue en, fichie
 test('le module 2 commence : AS et DISTINCT en anglais (textes, vignettes) ; le code d’une ligne prend la table de son éditeur', () => {
   for (const c of ['as', 'distinct']) {
     const pg = lire(`assets/anim/${c}.html`), src = lire(`assets/anim/en/${c}.js`), textes = {};
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     vm.runInNewContext(src, {window: {REQUETE_LANGUE: {ajouter: (l, x) => Object.assign(textes, x.textes)}}});
     assert.ok(Object.keys(textes).length > 100, `${c} : ${Object.keys(textes).length} textes`);
     const f = x => [String(x.match(/\{\w+\}/g) || []), String((x.match(/<\d+\/?>/g) || []).sort())];
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000);
   }
   assert.ok(app.includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct',"));
@@ -184,11 +189,11 @@ test('le module 2 en entier : chaque vidéo charge ses textes anglais, gardés n
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M2) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
   }
   assert.ok(app.includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + M2.map(c => `'${c}'`).join(',') + ','));
@@ -409,12 +414,12 @@ test('le module 3 en entier : chaque vidéo charge ses textes anglais, gardés n
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M3) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 150, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     /* « + ? points » : les points encore inconnus du ticket, pas une ponctuation française */
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X').replace('+ ? points', '')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.equal(textes['0 ligne'], '0 rows', c);
   }
@@ -485,11 +490,11 @@ test('le module 4 en entier : chaque vidéo charge ses textes anglais, gardés n
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M4) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(/Course\(\{(codeSel: '[^']+', )?duration: DURATION,/.test(pg), c);
   }
@@ -556,11 +561,11 @@ test('le module 5 en entier : chaque vidéo charge ses textes anglais, gardés n
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M5) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X').replace('? points', '').replace('? rows', '').replace('? customer', '')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(/<body data-table="(clients|produits|commandes)">/.test(pg), c);
   }
@@ -623,11 +628,11 @@ test('le module 6 en entier : chaque vidéo charge ses textes anglais, gardés n
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M6) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X').replace('? points', '').replace('? rows', '')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(/<body data-table="(clients|produits|commandes)">/.test(pg), c);
   }
@@ -697,11 +702,11 @@ test('le module 7 en entier : chaque vidéo charge ses textes anglais, gardés n
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M7) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X').replace('? days', '')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(/<body data-table="(produits|commandes)">/.test(pg), c);
   }
@@ -766,11 +771,11 @@ test('le module 8 en entier : les ateliers deviennent workshops, les inscription
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M8) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X').replace('? workshop', '')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     /* la table des inscriptions d'abord : date_inscription y est enrollment_date (signup_date chez un client) */
     assert.ok(pg.includes('<body data-table="inscriptions">'), c);
@@ -831,11 +836,11 @@ test('le module 9 en entier : CREATE, ALTER, DROP, les schémas ; requêtes, com
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M9) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 100, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(pg.includes('<body data-table="inscriptions">'), c);
     /* les lignes des requêtes, écrites pour la base avant d'être découpées en caractères pour la frappe */
@@ -892,11 +897,11 @@ test('le module 10 en entier : INSERT, UPDATE, MERGE, DELETE ; requêtes et comm
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M10) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 100, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(pg.includes(`<body data-table="${c === 'projet-merge' ? 'produits' : 'inscriptions'}">`), c);
     assert.ok(pg.includes("  if (typeof LG !== 'undefined' && LG && LG.ecrireCode) $$('.sq .ln').forEach(el => LG.ecrireCode(el));"), c);
@@ -946,11 +951,11 @@ test('la voix anglaise du module 10 : Brielle, les ids du français, sans code b
 test('le module 11 : ON DELETE en anglais, la table avis devient reviews, le nom d’un produit name, celui d’un client last_name', () => {
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   const c = 'projet-ondelete', pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-  assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`));
+  assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`));
   assert.ok(Object.keys(textes).length > 100, `${Object.keys(textes).length} textes`);
   for (const k in textes) assert.deepEqual(f(textes[k]), f(k), k);
   for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `la typographie anglaise : ${v}`);
-  for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+  for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
   assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000);
   assert.ok(pg.includes('<body data-table="avis">'));
   assert.ok(pg.includes("  if (typeof LG !== 'undefined' && LG && LG.ecrireCode) $$('.sq .ln').forEach(el => LG.ecrireCode(el));"));
@@ -980,11 +985,11 @@ test('le module 12 en entier : les transactions, le savepoint before_gift, la co
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M12) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 200, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(pg.includes(`<body data-table="${c === 'projet-concurrence' ? 'inscriptions' : 'produits'}">`), c);
     assert.ok(pg.indexOf("  if (typeof LG !== 'undefined' && LG && LG.ecrireCode) $$('.sq .ln').forEach(el => LG.ecrireCode(el));") > 0
@@ -1039,11 +1044,11 @@ test('le module 13 en entier : les routines de la base (ship_order, calculate_po
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M13) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 200, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(pg.includes(`<body data-table="${c === 'projet-procedures' ? 'commandes' : 'produits'}">`), c);
     assert.ok(pg.indexOf("$$('.sq .ln').forEach(el => LG.ecrireCode(el));") > 0 && pg.indexOf("$$('.sq .ln').forEach(el => LG.ecrireCode(el));") < pg.indexOf("  $$('.sq .ln').forEach(splitChars);"), c);
@@ -1092,11 +1097,11 @@ test('le module 14 en entier : la vue box_catalog, l’index idx_orders_number ;
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   for (const c of M14) {
     const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-    assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`), c);
     assert.ok(Object.keys(textes).length > 200, `${c} : ${Object.keys(textes).length} textes`);
     for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
     for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `${c} : la typographie anglaise : ${v}`);
-    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(pg.includes(`<body data-table="${c === 'projet-vue' ? 'produits' : 'commandes'}">`), c);
     assert.ok(pg.indexOf("$$('.sq .ln').forEach(el => LG.ecrireCode(el));") > 0 && pg.indexOf("$$('.sq .ln').forEach(el => LG.ecrireCode(el));") < pg.indexOf("  $$('.sq .ln').forEach(splitChars);"), c);
@@ -1138,11 +1143,11 @@ test('la voix anglaise du module 14 : Brielle, les ids du français, sans code b
 test('le module 15 : GRANT et REVOKE en anglais, la vue shipping_orders ; les droits de la fiche de Lina sont du code ; tous les modules ont leur vignette', () => {
   const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
   const c = 'projet-droits', pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
-  assert.ok(pg.includes(`<script src="../../langues.js?v=7" data-textes="{langue}/${c}.js?v=1"></script>`));
+  assert.ok(pg.includes(`<script src="../../langues.js?v=${VER('langues.js')}" data-textes="{langue}/${c}.js?v=${VT(c)}"></script>`));
   assert.ok(Object.keys(textes).length > 200, `${Object.keys(textes).length} textes`);
   for (const k in textes) assert.deepEqual(f(textes[k]), f(k), k);
   for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X')), `la typographie anglaise : ${v}`);
-  for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+  for (const g of [`'./assets/anim/en/${c}.js?v=${VT(c)}'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
   assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000);
   assert.ok(pg.includes('<body data-table="commandes">'));
   assert.ok(pg.includes("Course({codeSel: '.fcd', duration: DURATION,"), 'les droits de la fiche du compte (SELECT · commandes_expedition) sont du code');
