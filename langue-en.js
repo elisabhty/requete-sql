@@ -6812,6 +6812,40 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Face à face : {x1} {1}, toi {2}, en {3} confrontation": "Head to head: {x1} {1}, you {2}, in {3} matchup",
     "Face à face : {x1} {1}, toi {2}, en {3} confrontations": "Head to head: {x1} {1}, you {2}, in {3} matchups",
     "🎯 Tu as réussi <1>{1} exercice sur {2}</1> !": "🎯 You passed <1>{1} of {2} exercises</1>!",
-    "🎯 Tu as réussi <1>{1} exercices sur {2}</1> !": "🎯 You passed <1>{1} of {2} exercises</1>!"
+    "🎯 Tu as réussi <1>{1} exercices sur {2}</1> !": "🎯 You passed <1>{1} of {2} exercises</1>!",
+    /* 15 novembre, 19 h 40 (les captures d’Elisa) : le bonjour avec un prénom d’une lettre, la salle de défi (manches, joueurs, publique, privée), Accomplissement */
+    "<1>Bonsoir</1>, <2>{x1}</2> !": "<1>Good evening</1>, <2>{x1}</2>!",
+    "<1>Bonjour</1>, <2>{x1}</2> !": "<1>Hello</1>, <2>{x1}</2>!",
+    "<1>Bon après-midi</1>, <2>{x1}</2> !": "<1>Good afternoon</1>, <2>{x1}</2>!",
+    "<1>Bonsoir</1> !": "<1>Good evening</1>!",
+    "<1>Bonjour</1> !": "<1>Hello</1>!",
+    "<1>Bon après-midi</1> !": "<1>Good afternoon</1>!",
+    "Bonsoir, {x1}": "Good evening, {x1}",
+    "Bonjour, {x1}": "Hello, {x1}",
+    "Bon après-midi, {x1}": "Good afternoon, {x1}",
+    "Accomplissement": "Achievement",
+    "Nouveau niveau": "New level",
+    "Mode solo": "Solo mode",
+    "Entre ton code !": "Enter your code!",
+    "Un joueur t’a envoyé un code ? Saisis-le pour rejoindre sa partie.": "Did a player send you a code? Enter it to join their game.",
+    "<1>{1}</1> joueurs max": "<1>{1}</1> players max",
+    "{1} joueurs max": "{1} players max",
+    "Combien de manches ?": "How many rounds?",
+    "<1>{1}</1> <2>manche</2> <3>{2} min max</3>": "<1>{1}</1> <2>round</2> <3>{2} min max</3>",
+    "<1>{1}</1> <2>manches</2> <3>{2} min max</3>": "<1>{1}</1> <2>rounds</2> <3>{2} min max</3>",
+    "manche": "round",
+    "manches": "rounds",
+    "{1} min max": "{1} min max",
+    "Qui peut rejoindre ?": "Who can join?",
+    "Publique": "Public",
+    "Privée": "Private",
+    "<1>🌍</1> Publique": "<1>🌍</1> Public",
+    "<1>🔒</1> Privée": "<1>🔒</1> Private",
+    "Le défi démarre quand tu le décides.": "The challenge starts when you decide.",
+    "Plan d’exécution": "Execution plan",
+    /* la pastille des joueurs de la salle (son nombre en gras, dans son morceau) */
+    "<1><2>{1}</2> joueurs max</1>": "<1><2>{1}</2> players max</1>",
+    /* « joueurs max », seul à côté de son nombre */
+    "joueurs max": "players max"
   }
 });

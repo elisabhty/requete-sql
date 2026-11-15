@@ -105,3 +105,15 @@ test('les messages construits : un nombre ({1}), un nom ou un titre ({x1}) garde
   };
   for (const [fr, en] of Object.entries(attendus)) assert.equal(L.t(fr), en, fr);
 });
+
+test('les captures d’Elisa (19 h 38) : le bonjour avec un prénom d’une lettre, la salle de défi, Accomplissement', () => {
+  const {L} = moteur();
+  L.valeur('prenom', () => 'j');
+  const attendus = {
+    '<1>Bonsoir</1>, <2>j</2> !': '<1>Good evening</1>, <2>j</2>!', 'Bonsoir, j': 'Good evening, j',
+    'Entre ton code !': 'Enter your code!', 'Combien de manches ?': 'How many rounds?', 'Qui peut rejoindre ?': 'Who can join?',
+    '<1>2</1> <2>manches</2> <3>12 min max</3>': '<1>2</1> <2>rounds</2> <3>12 min max</3>', 'joueurs max': 'players max',
+    'Le défi démarre quand tu le décides.': 'The challenge starts when you decide.', 'Accomplissement': 'Achievement'
+  };
+  for (const [fr, en] of Object.entries(attendus)) assert.equal(L.t(fr), en, fr);
+});
