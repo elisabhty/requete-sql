@@ -11,3 +11,17 @@ fs.writeFileSync('supabase/functions/jeu-verifier/sql-compat.mjs',compat+'\nexpo
 const matcher=html.slice(html.indexOf('function normCell('),html.indexOf('function fmtLignes('));
 fs.writeFileSync('supabase/functions/jeu-verifier/matcher.mjs',matcher+'\nexport {exerciseResultsMatch,execChallengeResult,resultatsDefiEgaux};\n');
 console.log('Catalog:',catalog.challenges.length,'challenges');
+/* 15 novembre (Elisa : « vasy », le serveur des salles vérifie en anglais) : un catalogue par langue dont les bases des défis sont
+   traduites (langue-<code>-defis.js), récrit comme l’appli récrit les siennes (defisLangue, dans index.html) : la base de chaque
+   défi et sa solution. Le serveur vérifie la requête d’un joueur sur le catalogue de sa langue (le champ « langue » de la demande,
+   multiplayer-security.js) ; sans ce champ, le français, comme avant. */
+const LANGUES_DEFIS=['en'];
+module.exports=import('../tools/langue/commun.mjs').then(({moteur})=>{
+  for(const code of LANGUES_DEFIS){
+    const L=moteur(code,[`langue-${code}-defis.js`]),bases={};
+    for(const id in catalog.bases)if(L.baseTraduite(id))bases[id]=L.sql(catalog.bases[id],null,id);
+    const challenges=catalog.challenges.filter(c=>bases[c.base]).map(c=>({...c,sol:(L.solution&&L.solution(c.base,c.id))||L.sql(c.sol,null,c.base)}));
+    fs.writeFileSync(`supabase/functions/jeu-verifier/catalog-${code}.json`,JSON.stringify({challenges,bases,schema}));
+    console.log(`Catalog ${code}:`,challenges.length,'challenges');
+  }
+});
