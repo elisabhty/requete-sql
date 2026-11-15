@@ -142,6 +142,17 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
     inconnu prend la table du contexte qui a la colonne ;
   - en anglais, un en-tête de tableau trop long (`first_name`) et une carte de code `.mini` trop large prennent une police plus
     petite (`thFit`, `codeFit` dans core.js) ; le français ne change pas.
+- **Le module 6** (15 novembre, « prochain ») : Sous-requêtes et ensembles, les dix vidéos (IN, sous-requête dans SELECT et dans
+  FROM, INSERT … SELECT et CREATE TABLE AS, EXISTS, ANY et ALL, WITH, UNION, INTERSECT et EXCEPT, WITH RECURSIVE), leurs
+  vignettes et les bilans des leçons. Ce qu’elles ont appris au moteur :
+  - une colonne calculée par une CTE (`totaux.nb_commandes`) : son préfixe n’est pas une table de la base, le nom seul se traduit
+    (`totals.order_count`) ;
+  - les tables d’une seule page : `invites` (guests, « INSERT … SELECT »), `jours` (days, « WITH RECURSIVE ») ; les libellés des
+    indicateurs de « UNION » (« Nombre de clients » : « Number of customers », `base.valeurs`) ;
+  - les milliers à l’anglaise dans « UNION » (1,250), les initiales des jours du calendrier (M T W T F S S, `data-en`) ;
+  - un `<code>` dans une phrase peut porter sa traduction (`data-en`) : la légende de « AS » cite les mots d’un alias sans
+    guillemets (« Nom », « du produit »), pas des colonnes ; en anglais « Product » et « name », comme dans le code affiché
+    (avant : `last_name` et « du produit », dits aussi par la voix ; sa phrase est à refaire, `as.json`, ch03).
 - **La voix anglaise** (14 novembre, 23 h 47 : « je vais faire les voix en même temps ») : Claude prépare
   `tools/voix/en/<cours>.json` (`node tools/voix/preparer-langue.mjs <cours> <id> <nom>`), Elisa la génère sur son Mac :
   `node tools/voix/generer.mjs <cours> --langue en` (fichiers dans `tools/voix/sortie/en/<cours>/`), puis Claude l’intègre dans
@@ -166,6 +177,10 @@ nom dans `LV_VIGNETTES`. Les noms, les e-mails, les villes et les adresses des c
   Module 5 (15 novembre) : les dix fichiers sont prêts (`tools/voix/en/inner-join.json` à `quel-join-choisir.json`, environ
   27 900 caractères) ; les jointures se disent en minuscules (« inner join »), un nom qualifié avec « dot » (« products dot
   name »), `<>` « not-equal ».
+  Module 6 (15 novembre) : les dix fichiers sont prêts (`tools/voix/en/sous-requete-in.json` à `with-recursive.json`, environ
+  30 600 caractères). Les mots-clés gardent leurs capitales (EXISTS, ALL, ANY, WITH, UNION, INTERSECT, EXCEPT) : des mots anglais
+  que la voix lit tels quels ; en minuscules, « all is true » ou « with with » se liraient mal. « (…) » ne se dit pas, une date
+  entre apostrophes se dit sans elles, « with WITH » devient « with the WITH clause ».
   **Intégrée le 15 novembre** (« fini », 1 h 06) : les treize vidéos des modules 1 et 2 parlent anglais. Pour une vidéo :
   `node tools/voix/integrer.mjs <cours> [dossier des fichiers] --langue en` découpe chaque fichier phrase par phrase, donne
   chaque phrase à la légende française que dit `cles`, range les fichiers dans `assets/voix/en/<cours>/` (mono 64 kb/s, environ

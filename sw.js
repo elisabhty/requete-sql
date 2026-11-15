@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-15-module-v3055';
+const CACHE = 'requete-2026-11-15-module-v3056';
 
 const PRECACHE = [
   './safari-surface.css?v=14',
@@ -289,6 +289,26 @@ const PRECACHE = [
   './assets/anim/en/plusieurs-conditions-on-thumb.webp',
   './assets/anim/en/quel-join-choisir.js?v=1',
   './assets/anim/en/quel-join-choisir-thumb.webp',
+  './assets/anim/en/sous-requete-in.js?v=1',
+  './assets/anim/en/sous-requete-in-thumb.webp',
+  './assets/anim/en/sous-requete-select.js?v=1',
+  './assets/anim/en/sous-requete-select-thumb.webp',
+  './assets/anim/en/sous-requete-from.js?v=1',
+  './assets/anim/en/sous-requete-from-thumb.webp',
+  './assets/anim/en/insert-select.js?v=1',
+  './assets/anim/en/insert-select-thumb.webp',
+  './assets/anim/en/exists.js?v=1',
+  './assets/anim/en/exists-thumb.webp',
+  './assets/anim/en/any-all.js?v=1',
+  './assets/anim/en/any-all-thumb.webp',
+  './assets/anim/en/with-cte.js?v=1',
+  './assets/anim/en/with-cte-thumb.webp',
+  './assets/anim/en/union.js?v=1',
+  './assets/anim/en/union-thumb.webp',
+  './assets/anim/en/intersect-except.js?v=1',
+  './assets/anim/en/intersect-except-thumb.webp',
+  './assets/anim/en/with-recursive.js?v=1',
+  './assets/anim/en/with-recursive-thumb.webp',
   './assets/anim/conference-nutrition.webp',
   './assets/anim/evenement-ephemere.webp',
   './assets/anim/colis-dechire.webp',

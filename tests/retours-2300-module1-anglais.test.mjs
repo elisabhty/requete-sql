@@ -80,7 +80,7 @@ test('l’appli : la base, son schéma, les solutions et les vérifications dans
 });
 
 test('le code affiché : <code> et les lignes d’éditeur des vidéos, écrits pour la base de la langue ; data-en et data-en-src', () => {
-  for (const k of ["if (el.nodeName === 'CODE') codeSql(el);", "if (n.nodeName === 'CODE') codeSql(n);", 'try { if (API.autreBase && API.autreBase()) return; } catch (e) {}',
+  for (const k of ["if (el.nodeName === 'CODE') codeSql(el);", "if (n.nodeName === 'CODE' && !surPlace(n)) codeSql(n);", 'try { if (API.autreBase && API.autreBase()) return; } catch (e) {}',
     "var src = el.getAttribute && el.getAttribute('data-' + CODE + '-src');", "var v = el.getAttribute && el.getAttribute('data-' + CODE);",
     "ecrireCode: function (el) { try { codeSql(el); } catch (e) {} },", 'html: function (h) {', 'ajouter: function (code, contenu) {'])
     assert.ok(MOTEUR.includes(k), k);
@@ -564,7 +564,7 @@ test('le module 5 en entier : chaque vidéo charge ses textes anglais, gardés n
     assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
     assert.ok(/<body data-table="(clients|produits|commandes)">/.test(pg), c);
   }
-  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5].map(c => `'${c}'`).join(',') + ']};'));
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5].map(c => `'${c}'`).join(',') + ','));
   const q = lire('assets/anim/quel-join-choisir.html');
   assert.ok(q.includes("Course({codeSel: '.qy, .tb2 .h, .gr.hd span', duration: DURATION,") && q.includes('html[lang="en"] #s0 .title span.sp{margin-right:0}'));
   assert.ok(lire('assets/anim/full-outer-join.html').includes('<span class="k" data-id="${id}" data-en="#${id}">n°${id}</span>'));
@@ -614,4 +614,79 @@ test('la voix anglaise du module 5 : Brielle, les ids du français, les jointure
     total += en.elements.reduce((a, e) => a + e.texte.length, 0);
   }
   assert.ok(total > 25000 && total < 31000, `${total} caractères (autant de crédits)`);
+});
+
+/* Module 6 (« Sous-requêtes et ensembles », 15 novembre) : les dix vidéos en anglais, leur vignette, leur voix préparée (les prix
+   à décimales, 46.72, se disent tels quels) */
+const M6 = ['sous-requete-in', 'sous-requete-select', 'sous-requete-from', 'insert-select', 'exists', 'any-all', 'with-cte', 'union', 'intersect-except', 'with-recursive'];
+test('le module 6 en entier : chaque vidéo charge ses textes anglais, gardés nombre pour nombre, avec sa vignette, préchargés', () => {
+  const f = x => [String([...new Set(x.match(/\{\w+\}/g) || [])].sort()), String((x.match(/<\d+\/?>/g) || []).sort())];
+  for (const c of M6) {
+    const pg = lire(`assets/anim/${c}.html`), textes = textesDe(c);
+    assert.ok(pg.includes(`<script src="../../langues.js?v=4" data-textes="{langue}/${c}.js?v=1"></script>`), c);
+    assert.ok(Object.keys(textes).length > 120, `${c} : ${Object.keys(textes).length} textes`);
+    for (const k in textes) assert.deepEqual(f(textes[k]), f(k), `${c} : ${k}`);
+    for (const v of Object.values(textes)) assert.ok(!/[«»]|\s[:;?!](?!\S)/.test(v.replace(/\{\w+\}/g, 'X').replace('? points', '').replace('? rows', '')), `${c} : la typographie anglaise : ${v}`);
+    for (const g of [`'./assets/anim/en/${c}.js?v=1'`, `'./assets/anim/en/${c}-thumb.webp'`]) assert.ok(sw.includes(g), g);
+    assert.ok(fs.statSync(path.join(ROOT, `assets/anim/en/${c}-thumb.webp`)).size > 10000, c);
+    assert.ok(/<body data-table="(clients|produits|commandes)">/.test(pg), c);
+  }
+  assert.ok(app.replace(/,\n\s*'/g, ",'").includes("const LV_VIGNETTES={en:['bases-relationnelles','as','distinct'," + [...M2, ...M3, ...M4, ...M5, ...M6].map(c => `'${c}'`).join(',') + ']};'));
+  /* Les milliers à l'anglaise (1,250) ; les jours du calendrier en anglais (M T W T F S S) */
+  assert.ok(lire('assets/anim/union.html').includes("const milliers = v => String(v).replace(/\\B(?=(\\d{3})+(?!\\d))/g, typeof LG !== 'undefined' && LG ? ',' : '\\u00a0');"));
+  assert.ok(lire('assets/anim/with-recursive.html').includes("<div class=\"wd\" data-en=\"${'MTWTFSS'[i]}\">${d}</div>"));
+  /* Les sous-requêtes, la CTE et ses colonnes calculées, sur la base anglaise */
+  const {L} = anglais();
+  assert.equal(L.sql('SELECT nom, (SELECT MAX(date_commande) FROM commandes WHERE commandes.produit_id = produits.id) AS derniere_commande FROM produits'),
+    'SELECT name, (SELECT MAX(order_date) FROM orders WHERE orders.product_id = products.id) AS last_order FROM products');
+  assert.equal(L.sql('SELECT AVG(montant) FROM (SELECT p.prix * c.quantite AS montant FROM commandes c JOIN produits p ON c.produit_id = p.id) AS commandes_montants'),
+    'SELECT AVG(amount) FROM (SELECT p.price * c.quantity AS amount FROM orders c JOIN products p ON c.product_id = p.id) AS order_amounts');
+  assert.equal(L.sql('WITH totaux AS (SELECT client_id, COUNT(*) AS nb_commandes FROM commandes GROUP BY client_id) SELECT clients.prenom, totaux.nb_commandes FROM clients JOIN totaux ON clients.id = totaux.client_id'),
+    'WITH totals AS (SELECT customer_id, COUNT(*) AS order_count FROM orders GROUP BY customer_id) SELECT customers.first_name, totals.order_count FROM customers JOIN totals ON customers.id = totals.customer_id');
+  assert.equal(L.sql("SELECT nom, prix FROM produits WHERE prix > ALL (SELECT prix FROM produits WHERE categorie = 'Bien-être')"),
+    "SELECT name, price FROM products WHERE price > ALL (SELECT price FROM products WHERE category = 'Wellness')");
+  /* Les tables d'une seule page : invites (guests), jours (days), les libellés des indicateurs */
+  for (const [c, q, en] of [['insert-select', "INSERT INTO invites SELECT prenom, nom, email FROM clients WHERE ville = 'Lyon'", "INSERT INTO guests SELECT first_name, last_name, email FROM customers WHERE city = 'Lyon'"],
+    ['with-recursive', "WITH RECURSIVE jours(jour) AS (SELECT '2026-07-01' UNION ALL SELECT DATE(jour, '+1 day') FROM jours WHERE jour < '2026-07-31') SELECT jour FROM jours",
+      "WITH RECURSIVE days(day) AS (SELECT '2026-07-01' UNION ALL SELECT DATE(day, '+1 day') FROM days WHERE day < '2026-07-31') SELECT day FROM days"],
+    ['union', "SELECT 'Nombre de clients' AS indicateur, COUNT(*) AS valeur FROM clients", "SELECT 'Number of customers' AS indicator, COUNT(*) AS value FROM customers"]]) {
+    const {L: L3, ctx} = anglais();
+    vm.runInNewContext(lire(`assets/anim/en/${c}.js`), ctx);
+    assert.equal(L3.sql(q), en, c);
+  }
+  /* Les fiches des cours du module 6 */
+  for (const [fr, en] of [['La sous-requête fournit une <1>liste de valeurs</1>.', 'The subquery provides a <1>list of values</1>.'],
+    ['Garde les lignes du premier résultat qui ne figurent pas dans le second. L’ordre des requêtes compte !', 'Keeps the rows of the first result that aren’t in the second. The order of the queries matters!']])
+    assert.equal(L.t(fr), en, fr);
+  /* « AS » : la légende cite les mots d'un alias sans guillemets, pas des colonnes ; un <code> peut porter sa traduction (data-en) */
+  assert.ok(MOTEUR.includes("if (TEL_QUEL[n.nodeName]) { if (n.nodeName === 'CODE' && !surPlace(n)) codeSql(n);"));
+  assert.ok(lire('assets/anim/as.html').includes('"Sans guillemets, <code data-en=\\"Product\\">Nom</code> devient l’alias, puis <code data-en=\\"name\\">du produit</code> provoque une erreur."'));
+  assert.ok(lire('tools/voix/en/as.json').includes('Without quotes, Product becomes the alias, then name causes an error.') && !lire('tools/voix/en/as.json').includes('du produit'));
+});
+
+test('la voix anglaise du module 6 : Brielle, les ids du français, les mots-clés en capitales, les dates sans apostrophes', () => {
+  const br = JSON.parse(lire('tools/voix/en/bases-relationnelles.json')), prep = lire('tools/voix/preparer-langue.mjs');
+  const DIRE = new Function(prep.slice(prep.indexOf('const B = '), prep.indexOf('const parFichier')) + '\nreturn DIRE;')();
+  for (const [x, dit] of [["Select '2026-07-01' provides the starting date: July 1.", 'Select 2026, dash, 07, dash, 01 provides the starting date: July 1.'],
+    ['Your turn! For each product, is price > ALL (…) true or false?', 'Your turn! For each product, is price greater than ALL true or false?'],
+    ['With WITH totals AS (…), we give the name totals to the result.', 'Writing WITH totals as, we give the name totals to the result.'],
+    ['In the next lesson, you’ll create a series of values with WITH RECURSIVE.', 'In the next lesson, you’ll create a series of values with the WITH RECURSIVE clause.'],
+    ['Which keyword stacks the rows of several SELECTs?', 'Which keyword stacks the rows of several select queries?']])
+    assert.equal(DIRE(x), dit, x);
+  let total = 0;
+  for (const c of M6) {
+    const fr = JSON.parse(lire(`tools/voix/${c}.json`)), en = JSON.parse(lire(`tools/voix/en/${c}.json`));
+    assert.equal(en.langue, 'en'); assert.equal(en.cours, c); assert.deepEqual(en.voix, br.voix, c); assert.equal(en.modele, fr.modele);
+    const ids = fr.elements.map(e => e.id), chs = ids.filter(i => /^ch/.test(i));
+    assert.deepEqual(en.elements.map(e => e.id), ids.filter(i => en.elements.some(e => e.id === i)), `${c} : l’ordre du français`);
+    assert.ok(!en.elements.some(e => e.id === chs[chs.length - 1]), `${c} : le « Pour finir » n’est pas joué dans l’appli`);
+    for (const e of en.elements) {
+      const t = e.texte.replace(/^\[\w+\]\s*/, '');
+      assert.ok(t.length > 3, `${c} ${e.id} : vide`);
+      assert.ok(!/[«»<>=≠→⇔|+*%_×−'"]|\(…\)|\w\(|[A-Za-z_]\.[A-Za-z]|&[a-z]+;|Pour finir|idées à retenir|\b(SELECT|FROM|WHERE|JOIN|COUNT|GROUP BY|DISTINCT)\b/.test(t), `${c} ${e.id} : ${t}`);
+      if (e.cles) assert.equal(e.phrases.length, e.cles.length, `${c} ${e.id}`);
+    }
+    total += en.elements.reduce((a, e) => a + e.texte.length, 0);
+  }
+  assert.ok(total > 28000 && total < 33000, `${total} caractères (autant de crédits)`);
 });

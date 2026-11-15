@@ -210,7 +210,8 @@
         table = L[q] && L[q].table ? L[q].table : alias[prefixe] || '';
         /* Préfixe inconnu (une sous-requête nommée, un alias posé sur une autre carte) : la table du contexte qui a cette colonne */
         if (!table) { for (j = 0; j < autour.length && !table; j++) if (Object.prototype.hasOwnProperty.call(T[autour[j]][1], nom)) table = autour[j]; }
-        if (!table) continue;
+        /* … sinon le nom seul (une colonne calculée d'une CTE : totaux.nb_commandes) */
+        if (!table) { var g2 = colonneSeule(nom); if (g2) e.v = casse(e.v, g2); continue; }
       } else {
         /* Sans préfixe : la table citée la plus proche qui a cette colonne */
         var mieux = -1;
@@ -271,7 +272,7 @@
     for (var n = el.firstChild; n; n = n.nextSibling) {
       if (n.nodeType === 3) { s += n.nodeValue; if (/\S/.test(n.nodeValue)) etat.texte = true; }
       else if (n.nodeType === 1) {
-        if (TEL_QUEL[n.nodeName]) { if (n.nodeName === 'CODE') codeSql(n); etat.morceaux.push(n); s += '<' + etat.morceaux.length + '/>'; }
+        if (TEL_QUEL[n.nodeName]) { if (n.nodeName === 'CODE' && !surPlace(n)) codeSql(n); etat.morceaux.push(n); s += '<' + etat.morceaux.length + '/>'; }
         else if (simple(n)) {
           etat.morceaux.push(n); var k = etat.morceaux.length, sous = { morceaux: etat.morceaux }, dedans = phrase(n, sous);
           if (dedans == null) return null;
@@ -363,7 +364,8 @@
     })(el);
   }
   /* data-en (data-<langue>) : la traduction écrite sur l'élément lui-même, quand le même mot se traduit selon l'endroit
-     (« nom » : last_name pour un client, name pour un produit). */
+     (« nom » : last_name pour un client, name pour un produit). Aussi sur le <code> d'une phrase (15 novembre : la légende de « AS »
+     cite les mots d'un alias sans guillemets, <code data-en="Product">Nom</code>, pas des colonnes). */
   function surPlace(el) {
     /* data-en-src : l'image de la langue (une image qui porte du texte) */
     var src = el.getAttribute && el.getAttribute('data-' + CODE + '-src');

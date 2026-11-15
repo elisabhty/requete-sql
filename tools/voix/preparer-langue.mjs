@@ -67,7 +67,14 @@ const PARLE = s => s
   .replace(/\bWith \+,/g, 'With the plus sign,').replace(/\+, -, \* and \//g, 'plus, minus, times and divided by')
   .replace(/(\S) \* (\d)/g, '$1 times $2').replace(/(\d) \/ (\d)/g, '$1 divided by $2').replace(/ × /g, ' times ').replace(/ − /g, ' minus ')
   .replace(/(\S) \+ (\S)/g, '$1 plus $2').replace(/\bThe \+ (\d)/g, 'The plus $1').replace(/\bCMD-,/g, 'C-M-D dash,')
-  .replace(/'(CMD-[\d-]+|\d+|OK)'/g, '$1').replace(/\bCMD-(\d+)-(\d+)\b/g, 'C-M-D, dash, $1, dash, $2');
+  .replace(/'(CMD-[\d-]+|\d+|OK)'/g, '$1').replace(/\bCMD-(\d+)-(\d+)\b/g, 'C-M-D, dash, $1, dash, $2')
+  /* Module 6 (15 novembre) : les sous-requêtes et les ensembles. Les mots-clés restent en capitales (EXISTS, ALL, ANY, WITH, UNION…) :
+     des mots anglais que la voix lit tels quels, et qui gardent leur relief ; en minuscules, « all is true » ou « with with » se
+     liraient mal. « (…) » ne se lit pas ; une date entre apostrophes se dit sans elles. */
+  .replace(/ \(…\)/g, '').replace(/'(\d{4}, dash, [^']+)'/g, '$1').replace(/\bOVER\(\)/g, 'OVER').replace(/\bSELECTs\b/g, 'select queries')
+  .replace(/\bwith WITH RECURSIVE\b/g, 'with the WITH RECURSIVE clause').replace(/\bwith WITH\b/g, 'with the WITH clause')
+  .replace(/\bWith WITH ([a-z_]+) (as|AS),/g, 'Writing WITH $1 $2,')
+  .replace(/\bback WITH\b/g, 'back, WITH');
 const DIRE = s => PARLE(s.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&'))
   /* Comme les retouches de la voix française : « Prix en euros », « l’euro entre parenthèses », « le numéro de la page moins un » */
   .replace(/Price \(€\)/g, 'Price in euros').replace(/\(€\)/g, 'the euro in parentheses')
