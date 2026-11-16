@@ -174,7 +174,7 @@ async function construire() {
   const srv = await serveur(), browser = await navigateur();
   for (const f of PAGES) {
     const {ctx, p} = await pagesFrancaises(browser, srv.base, f);
-    const res = await p.evaluate(({D, LANGUE, LOCALE, f, relever, adresseSrc, autres, publie}) => {
+    const res = await p.evaluate(({D, LANGUE, SITE_P, LOCALE, f, relever, adresseSrc, autres, publie}) => {
       const adresse = new Function('return ' + adresseSrc)();
       const r = new Function('return (' + relever + ')()')(), manque = [];
       const tr = s => { const k = r.propre(s); if (!k) return s; if (Object.prototype.hasOwnProperty.call(D, k)) return D[k]; manque.push(k); return null; };
@@ -185,6 +185,12 @@ async function construire() {
       if (r.titre) { const t = tr(r.titre.textContent); if (t != null) r.titre.textContent = t; }
       document.documentElement.lang = LANGUE;
       const og = document.querySelector('meta[property="og:locale"]'); if (og) og.setAttribute('content', LOCALE);
+      /* 16 novembre (le référencement) : l’adresse principale de la page (canonical, og:url) est celle de la page traduite, et la
+         langue d’à côté (og:locale:alternate) est le français */
+      const ici = SITE_P + LANGUE + '/' + (f === 'index.html' ? '' : f);
+      const can = document.querySelector('link[rel="canonical"]'); if (can && can.getAttribute('href').startsWith(SITE_P)) can.setAttribute('href', ici);
+      const ogu = document.querySelector('meta[property="og:url"]'); if (ogu && ogu.getAttribute('content').startsWith(SITE_P)) ogu.setAttribute('content', ici);
+      const oga = document.querySelector('meta[property="og:locale:alternate"]'); if (oga) oga.setAttribute('content', 'fr_FR');
       /* Les adresses : un dossier plus bas */
       for (const el of document.querySelectorAll('[src],[href],[poster],[srcset],[data-src]')) {
         for (const a of ['src', 'href', 'poster', 'data-src']) if (el.hasAttribute(a)) el.setAttribute(a, adresse(el.getAttribute(a)));
@@ -210,7 +216,7 @@ async function construire() {
       /* Les scripts sont gardés pour la suite (traduits dans Node) : on les repère */
       [...document.querySelectorAll('script:not([src])')].forEach((s, n) => s.setAttribute('data-n', n));
       return {html: '<!doctype html>\n' + document.documentElement.outerHTML, manque};
-    }, {D, LANGUE, LOCALE: LOCALES[LANGUE] || LANGUE, f, relever: relever.toString(), adresseSrc: adresse.toString(), autres: [['fr', SITE], [LANGUE, SITE + LANGUE + '/'], ['x-default', SITE]], publie: estPubliee()});
+    }, {D, LANGUE, SITE_P: SITE, LOCALE: LOCALES[LANGUE] || LANGUE, f, relever: relever.toString(), adresseSrc: adresse.toString(), autres: [['fr', SITE], [LANGUE, SITE + LANGUE + '/'], ['x-default', SITE]], publie: estPubliee()});
     res.manque.forEach(m => manque.add(m));
     /* Les scripts de la page : les chaînes traduites, les adresses écrites dans le code recalculées ; le JSON-LD, chaîne par chaîne */
     let html = res.html.replace(/<script([^>]*?) data-n="\d+"([^>]*)>([\s\S]*?)<\/script>/g, (tout, a1, a2, code) => {
