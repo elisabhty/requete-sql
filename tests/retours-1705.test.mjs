@@ -46,12 +46,8 @@ test('l’appli appelle chaque fonction avec les paramètres de sa migration', (
   };
   assert.deepEqual(appel('onboarding_compter'), sig('20261104160656_onboarding_entonnoir.sql', 'onboarding_compter'));
   assert.deepEqual(appel('lecon_noter'), sig('20261104160655_avis_lecon.sql', 'lecon_noter'));
-  assert.deepEqual(appel('parcours_voter'), sig('20261104160653_parcours_vote.sql', 'parcours_voter'));
-  /* Les parcours qu’on peut voter sont ceux de l’appli qui ne sont pas encore ouverts (SQL l’est) */
-  const parcours = [...app.matchAll(/\{id:'(\w+)',titre:'[^']+',court:'[^']+',stk:'\w+'(,dispo:true)?[,}]/g)];   // (11 novembre : une phrase et des thèmes ensuite)
-  assert.deepEqual(parcours.map(m => m[1]), ['sql', 'python', 'excel', 'powerbi']);
-  assert.deepEqual(parcours.filter(m => !m[2]).map(m => m[1]), ['python', 'excel', 'powerbi']);
-  assert.ok(lire('supabase/migrations/20261104160653_parcours_vote.sql').includes("check (parcours in ('python', 'excel', 'powerbi'))"));
+  /* 16 novembre : le vote est retiré avec les parcours à venir ; l’appli n’appelle plus parcours_voter, ni rien d’autre des parcours */
+  assert.ok(!/clsRpc\('parcours_/.test(app) && !app.includes("const PARCOURS="));
 });
 
 test('la page de confidentialité dit ce qui part désormais', () => {
@@ -62,16 +58,16 @@ test('la page de confidentialité dit ce qui part désormais', () => {
   assert.ok(p.includes('ni ton nom, ni ton e-mail, ni tes réponses. Nous n’en tirons qu’un décompte (combien d’appareils ont vu chaque écran)'));
   assert.ok(p.includes('ni outil de mesure d’audience d’un tiers, ni pixel de suivi. La seule mesure est celle que Requête fait elle-même, et seulement si tu l’acceptes&nbsp;: les écrans de l’accueil et les statistiques d’usage anonymes (voir plus haut), demandées une fois, au premier lancement.'));
   assert.ok(!p.includes('ni outil de mesure d’audience, ni pixel de suivi'), 'plus « aucune mesure » : les écrans de l’accueil sont comptés');
-  /* Dans l’ordre : le vote, les avis, les écrans de l’accueil, puis les messages de contact */
-  const i = ['<li><b>Vote pour le prochain parcours</b>', '<li><b>Avis sur les leçons</b>', '<li><b>Écrans de l’accueil</b>', '<li><b>Messages de contact.</b>'].map(k => p.indexOf(k));
+  /* Dans l’ordre : les avis, les écrans de l’accueil, puis les messages de contact (le vote, retiré le 16 novembre, n’y est plus) */
+  assert.ok(!p.includes('<li><b>Vote pour le prochain parcours</b>'));
+  const i = ['<li><b>Avis sur les leçons</b>', '<li><b>Écrans de l’accueil</b>', '<li><b>Messages de contact.</b>'].map(k => p.indexOf(k));
   assert.ok(i.every((x, k) => x > 0 && (k === 0 || x > i[k - 1])), i.join(' < '));
 });
 
 test('le guide iOS : appliquées, et ce qu’il faut déclarer dans App Store Connect', () => {
   const ios = lire('IOS.md');
   assert.ok(!ios.includes('À appliquer avant l’envoi'), 'plus rien à appliquer');
-  for (const k of ['Appliquée le 4 novembre : `supabase/migrations/20261104160653_parcours_vote.sql`.',
-    'Appliquée le 4 novembre : `supabase/migrations/20261104160655_avis_lecon.sql`.',
+  for (const k of ['Appliquée le 4 novembre : `supabase/migrations/20261104160655_avis_lecon.sql`.',
     'Appliquée le 4 novembre : `supabase/migrations/20261104160656_onboarding_entonnoir.sql`.',
     '- **Avis sur les leçons** (« Donne ton avis sur la leçon », fin de leçon, 4 novembre)', '- **Étapes de l’onboarding** (4 novembre)',
     'vues `avis_lecons` (les\n  leçons les moins bien notées d’abord) et `avis_commentaires`', '**Résultats** : vue `onboarding_entonnoir`'])

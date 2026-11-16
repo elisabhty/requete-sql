@@ -170,7 +170,7 @@ test('14 h 08 : les chiffres de l’accueil montent une fois ; la confidentialit
   const conf = lire('decouvrir/confidentialite.html');
   for (const t of ['<section id="compte"><h2>Ton compte</h2>',   // 13 novembre : plus de « (appli iPhone) », il n’y a plus qu’elle
     'tu peux te connecter avec Apple ou avec Google, sans mot de passe chez nous', 'Tes leçons et exercices validés, tes défis réussis',   // 14 novembre : facultatif
-    'l’accès «&nbsp;Se connecter avec Apple&nbsp;» est retiré chez Apple', 'Dernière mise à jour&nbsp;: 15 novembre 2026'])
+    'l’accès «&nbsp;Se connecter avec Apple&nbsp;» est retiré chez Apple', 'Dernière mise à jour&nbsp;: 16 novembre 2026'])
     assert.ok(conf.includes(t), t);
   assert.ok(!conf.includes('Si Requête propose un jour une connexion'));
   assert.ok(lire('connexion.js').includes("appel('user', {data: {given_name: donne}}, s.access_token, 'PUT')"), 'le prénom seul');

@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=766b0724" data-defis></script>
+<script src="langues.js?v=58bb1ac2" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -6819,7 +6819,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=387">
+<link rel="stylesheet" href="ludique.css?v=388">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=73">
 <style id="lesson-video-css">
@@ -8058,14 +8058,6 @@ html.lq #scr-compte .plus-row-icon.is-icone,#scr-compte .plus-row-icon.is-icone{
       <div class="lgtitle"><div class="eyebrow">SQLite et les autres</div><h1>Selon le SGBD</h1>
         </div>
       <div id="sgbd-screen-body"></div>
-    </section>
-
-    <!-- PARCOURS : SQL, puis les parcours à venir (renderParcoursScreen) -->
-    <section id="scr-parcours" class="screen">
-      <button type="button" class="home-back root-home-back" id="parcours-back" onclick="parcoursBack()" aria-label="Retour à l’accueil"><svg viewBox="0 0 12 20" fill="none" aria-hidden="true"><path d="M10 2L3 10l7 8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Accueil</span></button>
-      <div class="lgtitle"><div class="eyebrow">Tes parcours</div><h1>Parcours</h1>
-        <p class="sub">Un parcours par compétence. SQL est le premier, d’autres arrivent.</p></div>
-      <div id="parcours-body"></div>
     </section>
 
     <!-- ENTRETIEN -->
@@ -24847,16 +24839,6 @@ function normalizeState(raw){
   const rangVu=Number(stkSrc.rang);if(Number.isInteger(rangVu)&&rangVu>=0&&rangVu<=5)stickers.rang=rangVu;
   /* Les cours déjà ouverts une fois (15 h 57 : « Commencer » la première fois, « Continuer » ensuite). */
   const lecOuvertes=Array.isArray(source.lecOuvertes)?[...new Set(source.lecOuvertes.filter(Number.isInteger))].slice(-400):[];
-  /* Les parcours à venir (3 novembre) : les alertes de sortie demandées, les annonces déjà montrées, le vote pour le prochain
-     (envoye:false tant qu’il n’est pas parti à la base de l’appli). */
-  const pcId=v=>typeof v==='string'&&/^[a-z0-9]{2,16}$/.test(v);
-  const parcoursAlertes=Array.isArray(source.parcoursAlertes)?[...new Set(source.parcoursAlertes.filter(pcId))].slice(0,20):[];
-  const parcoursAnnonces=Array.isArray(source.parcoursAnnonces)?[...new Set(source.parcoursAnnonces.filter(pcId))].slice(0,20):[];
-  const pv=source.parcoursVote;
-  const parcoursVote=pv&&typeof pv==='object'&&pcId(pv.id)?{id:pv.id,le:Math.max(0,Math.floor(Number(pv.le))||0),envoye:pv.envoye!==false}:null;
-  /* La notification de l’alerte (11 novembre) : le jeton de push de l’iPhone et les parcours déjà inscrits à la base de l’appli */
-  const pp=source.parcoursPush&&typeof source.parcoursPush==='object'?source.parcoursPush:{};
-  const parcoursPush={jeton:typeof pp.jeton==='string'&&/^[0-9a-f]{64,200}$/.test(pp.jeton)?pp.jeton:'',faits:Array.isArray(pp.faits)?[...new Set(pp.faits.filter(pcId))].slice(0,20):[]};
   /* L’avis sur chaque leçon (Elisa, 4 novembre, 12 h 35, voir bravoAvisHtml) : l’id de la leçon → la note de 1 à 5, sa date, et s’il
      est parti à la base de l’appli (envoye:false tant qu’il attend le réseau). */
   const avisSrc=source.avis&&typeof source.avis==='object'&&!Array.isArray(source.avis)?source.avis:{};
@@ -24866,7 +24848,7 @@ function normalizeState(raw){
     const c=typeof a.c==='string'?a.c.replace(/\s+/g,' ').trim().slice(0,500):'';
     if(n>=1&&n<=5)avis[k]=Object.assign({n,le:Math.max(0,Math.floor(Number(a.le))||0),envoye:a.envoye!==false},c?{c}:{});
   });
-  return {lessons,defis,notes,plan,onboarded,inscritLe,name,profile,accountMode,...(accountProvider?{accountProvider}:{}),...(accountLabel?{accountLabel}:{}),entretien,preferences,actDays,defisJour,actSince,salle,study,stickers,lecOuvertes,parcoursAlertes,parcoursAnnonces,parcoursVote,parcoursPush,avis};
+  return {lessons,defis,notes,plan,onboarded,inscritLe,name,profile,accountMode,...(accountProvider?{accountProvider}:{}),...(accountLabel?{accountLabel}:{}),entretien,preferences,actDays,defisJour,actSince,salle,study,stickers,lecOuvertes,avis};
 }
 /* Un nombre écrit en texte ('07', '2026') vaut ce nombre : STRFTIME('%m', date) et MONTH(date) donnent le même résultat. */
 function normCell(v){return typeof v==='number'?Math.round(v*1000)/1000:(typeof v==='string'&&/^-?\d+(?:\.\d+)?$/.test(v)?Math.round(Number(v)*1000)/1000:v);}
@@ -26922,7 +26904,6 @@ if(typeof document!=='undefined'&&typeof document.addEventListener==='function')
 });
 /* Mon compte est une destination de la barre du bas (onglet « Compte »). */
 function primaryTabFor(tab){
-  if(tab==='parcours')return 'learn';
   if(['console','defis','jeu','practice'].includes(tab))return 'practice';
   if(['notes','collection','stickers','entretien','sgbd','library'].includes(tab))return 'library';
   return tab;
@@ -26948,10 +26929,10 @@ function syncTabUI(tab){
     if(on)requestAnimationFrame(()=>lqTabIntoView(t));
   });
   const quickFab=document.getElementById('fab');
-  if(quickFab)quickFab.classList.toggle('context-hide',['learn','defis','planning','console','notes','collection','stickers','entretien','sgbd','compte','practice','library','jeu','parcours'].includes(tab));
+  if(quickFab)quickFab.classList.toggle('context-hide',['learn','defis','planning','console','notes','collection','stickers','entretien','sgbd','compte','practice','library','jeu'].includes(tab));
 }
 function screenForTab(tab){
-  const map={practice:'scr-practice',library:'scr-library',jeu:'scr-defis',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',sgbd:'scr-sgbd',stickers:'scr-stickers',compte:'scr-compte',parcours:'scr-parcours'};
+  const map={practice:'scr-practice',library:'scr-library',jeu:'scr-defis',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',sgbd:'scr-sgbd',stickers:'scr-stickers',compte:'scr-compte'};
   return document.getElementById(map[tab]||'scr-learn');
 }
 function refreshTabScreen(tab){
@@ -26967,7 +26948,6 @@ function refreshTabScreen(tab){
   else if(tab==='console') renderConsoleScreen();
   else if(tab==='entretien') renderEntretien();
   else if(tab==='sgbd') renderSgbdScreen();
-  else if(tab==='parcours') renderParcoursScreen();
   majBadgePlanning();
 }
 /* Le toucher (ou la flèche du clavier) qui change d’onglet vient-il de la barre du bas ? L’évènement en cours le dit. */
@@ -26976,6 +26956,7 @@ function tabDepuisBarre(){
 }
 function switchTab(name){
   if(name==='jeu')name='defis';
+  if(name==='parcours')name='learn';   // l’écran « Parcours », retiré le 16 novembre (une position gardée d’avant)
   annulerBilanAuto();
   closeSchemaSheet();
   if(activeTab==='console'&&name!=='console') persistEditor('ed-console');
@@ -26986,7 +26967,7 @@ function switchTab(name){
     closeConsoleProject();
     return;
   }
-  const map={practice:'scr-practice',library:'scr-library',jeu:'scr-defis',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',sgbd:'scr-sgbd',stickers:'scr-stickers',compte:'scr-compte',parcours:'scr-parcours'};
+  const map={practice:'scr-practice',library:'scr-library',jeu:'scr-defis',learn:'scr-learn',defis:'scr-defis',planning:'scr-planning',notes:'scr-notes',collection:'scr-collection',console:'scr-console',entretien:'scr-entretien',sgbd:'scr-sgbd',stickers:'scr-stickers',compte:'scr-compte'};
   if(name==='schema') name='console';
   const prevCur=document.querySelector('.screen.active');
   if(prevCur&&activeTab){
@@ -27136,7 +27117,7 @@ function switchTab(name){
 const TAB_BACK_NAME={learn:['Accueil','à l’accueil'],planning:['Planning','au planning'],practice:['Pratiquer','à Pratiquer'],
   library:['Bibliothèque','à la bibliothèque'],compte:['Compte','à Mon compte'],defis:['Défis','aux défis'],console:['Console','à la console'],
   notes:['Notes','aux notes'],collection:['Cartes mémo','aux cartes mémo'],stickers:['Stickers','aux stickers'],entretien:['Entretien','à l’entretien'],
-  sgbd:['Selon le SGBD','à « Selon le SGBD »'],parcours:['Parcours','aux parcours']};
+  sgbd:['Selon le SGBD','à « Selon le SGBD »']};
 const tabFrom={};
 let tabBackNav=false;
 function tabBackDest(tab){
@@ -28473,416 +28454,15 @@ function leconVerrouDire(id){
     oui:leconEntamee(cle.id)?'Reprendre ma leçon':'Y aller',non:'Plus tard',fleche:true}).then(ok=>{if(ok)openLesson(cle.id);});
 }
 const LQ_SEARCH_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>';
-/* ---------- Les parcours ----------
-   Elisa, 3 novembre, 18 h 25 : « mettre en avant le fait qu’il y aura plusieurs modules par la suite même si aujourd’hui on en
-   a qu’un » ; 19 h 01 : « Ok pour ça », sur la maquette. SQL est le premier parcours (ses modules sont sur l’accueil) ; les suivants
-   sont annoncés « À venir », sans date ni contenu promis. Chacun a sa page : une alerte (un message dans l’appli le jour où il
-   ouvre) et le vote pour le prochain, envoyé à la base de l’appli (parcours_voter : un vote par appareil, qu’on peut changer).
-   Quand un parcours ouvre : dispo:true ; ceux qui avaient demandé l’alerte la voient à l’ouverture de l’appli (parcoursAnnonce). */
-/* 11 novembre, 15 h 15 (sa maquette de la page Python) : chaque parcours à venir a sa phrase et ses trois thèmes (des domaines, pas
-   un programme ni une date). */
-const PARCOURS=[
-  {id:'sql',titre:'SQL',court:'SQL',stk:'db',dispo:true},
-  {id:'python',titre:'Python pour la data',court:'Python',stk:'term',
-    desc:'Un nouveau parcours pour manipuler, analyser et exploiter tes données avec Python.',themes:[['barres','Analyse de\u00a0données'],['engrenage','Automatisation'],['base','Projets concrets']]},
-  {id:'excel',titre:'Excel et tableaux croisés',court:'Excel',stk:'table',
-    desc:'Un nouveau parcours pour organiser, calculer et résumer tes données avec Excel.',themes:[['fx','Formules'],['grille','Tableaux croisés'],['barres','Graphiques']]},
-  {id:'powerbi',titre:'Power BI',court:'Power BI',stk:'chart',
-    desc:'Un nouveau parcours pour construire des tableaux de bord et faire parler tes données avec Power BI.',themes:[['bord','Tableaux de\u00a0bord'],['barres','Visualisation'],['base','Projets concrets']]}
-];
-/* Les pictogrammes de la page d’un parcours (traits, comme le reste de l’appli) */
-const PC_ICO=(()=>{const g=(d,w)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w||2}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;return {
-  fusee:g('<path d="M13.5 4.5c2.7-1.5 5.4-1.5 6.5-1.5 0 1.1 0 3.8-1.5 6.5L13 15l-4-4z"/><path d="M9 11l-3.5.5L3 14l4.5.5M13 15l-.5 3.5L10 21l-.5-4.5"/><circle cx="15.5" cy="8.5" r="1.4"/><path d="M6.5 17.5c-1.3.3-2.2 1.3-2.5 3 1.7-.3 2.7-1.2 3-2.5"/>'),
-  barres:g('<path d="M4 20h16M7 16v-4M12 16V8M17 16v-7"/><rect x="5.5" y="11" width="3" height="5" rx="1"/><rect x="10.5" y="7" width="3" height="9" rx="1"/><rect x="15.5" y="8" width="3" height="8" rx="1"/>',1.8),
-  engrenage:g('<circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/><circle cx="12" cy="12" r="6.5"/>',1.8),
-  base:g('<ellipse cx="12" cy="6" rx="7" ry="2.8"/><path d="M5 6v12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6M5 12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8"/>',1.8),
-  fx:g('<path d="M10 5.5c-1.6-.4-2.7.3-3 1.9L5.3 18c-.3 1.6-1.4 2.2-3 1.8M4.5 10.5h6M13 10l6 8M19 10l-6 8"/>',1.8),
-  grille:g('<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15"/>',1.8),
-  bord:g('<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M3.5 9h17M10 9v11"/><path d="M13 16.5l2-2.5 1.5 1.5 2-3"/>',1.8),
-  vote:g('<path d="M5 19V12M10 19V6M15 19v-9M20 19V9"/>',3),
-  coche:g('<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8 12.5l3 3 5.5-6"/>',2.4)
-};})();
-const PC_TETE_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#FF7A1A" d="M12.9 1.9c.5 2.6 2 4.3 3.6 6.1 1.8 2 3.6 4.2 3.6 7.6a8.1 8.1 0 0 1-16.2 0c0-2.8 1.3-5 2.9-6.7.3 1.4 1 2.5 2.1 3.2-.2-4.4 1.6-7.8 4-10.2z"/><path fill="#FFC83D" d="M12.3 12.2c.3 1.6 1.4 2.5 2.3 3.6.7.8 1.1 1.7 1.1 2.8a3.7 3.7 0 0 1-7.4 0c0-1.5.8-2.7 1.8-3.6.1.7.5 1.3 1 1.6 0-1.8.4-3.2 1.2-4.4z"/></svg>';
-const PC_BELL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15zM10 20.5a2 2 0 0 0 4 0"/></svg>';
-const PC_BOOK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5c2.7-1 5.3-1 8 .8 2.7-1.8 5.3-1.8 8-.8v13c-2.7-1-5.3-1-8 .8-2.7-1.8-5.3-1.8-8-.8z"/><path d="M12 6.3v13"/></svg>';
-let parcoursVue=null,parcoursDeListe=false,parcoursChoix=null,parcoursEnvoi=false;
-/* 14 novembre, 19 h 36 (Elisa : « Est-ce qu’on peut cacher les pages et les ajouter quand elles seront prêtes, une par une, avec la
-   fonction à distance ») : pour la 1.0 (l’audit App Review, règle 2.1 : pas de contenu « à venir » dans une appli soumise), les
-   parcours à venir sont cachés : ni pastilles sur l’accueil, ni section « À venir », ni pages, ni alerte de lancement. Un parcours
-   prêt passe à dispo:true et apparaît avec ses leçons. Les alertes déjà demandées restent gardées sur l’appareil, sans rien afficher.
-   19 h 54 (« Mais comment ils vont faire pour voter ? Pour le prochain parcours ? ») : le vote, lui, reste. C’est un sondage qui
-   marche (son choix part à la base de l’appli, les résultats s’affichent), rien n’y est annoncé.
-   20 h 09 : une pastille « Vote pour le prochain parcours › » sous « Parcours SQL » ouvrait une page de vote. 20 h 54 (« supprime
-   finalement l’onglet avec le vote, je vais pas le mettre ») : retirée, avec sa page ; pas de vote dans la 1.0. Les votes déjà
-   donnés restent gardés. Le vote (parcoursVoteHTML) ne vit plus que sur la page d’un parcours, quand les annonces sont montrées.
-   true : les annonces reviennent telles qu’avant (pastilles, section « À venir », pages des parcours, alerte, vote). */
-let PARCOURS_AVENIR_MONTRES=false;
-function parcoursAVenir(){return PARCOURS_AVENIR_MONTRES?PARCOURS.filter(p=>!p.dispo):[];}
-/* Les choix du vote : les parcours pas encore ouverts, montrés ou non */
-function parcoursVotables(){return PARCOURS.filter(p=>!p.dispo);}
-function parcoursAlertes(){return Array.isArray(state.parcoursAlertes)?state.parcoursAlertes.filter(id=>PARCOURS.some(p=>p.id===id&&!p.dispo)):[];}
-function parcoursVote(){const v=state.parcoursVote;return v&&PARCOURS.some(p=>p.id===v.id&&!p.dispo)?v:null;}
-function parcoursSqlFaites(){return MODULES.reduce((n,m)=>n+m.lessons.filter(l=>state.lessons[l.id]&&state.lessons[l.id].done).length,0);}
-function parcoursSqlEtat(done){return done>=TOTAL?'Terminé':done?'En cours':'Disponible';}
+/* ---------- Le parcours SQL ----------
+   16 novembre, 17 h 45 (Elisa : « tu peux supprimer à distance les autres learning path, j’aurais pas besoin ») : Python, Excel et
+   Power BI sont retirés de l’appli, avec tout ce qui ne servait qu’à eux : leurs pages, l’écran « Parcours », l’alerte de lancement
+   et sa notification, le vote pour le prochain parcours, « En tête » et l’annonce d’ouverture. SQL est le seul parcours ; ses modules
+   sont sur l’accueil. Ce qu’un appareil gardait (alertes, vote, jeton de notification) est oublié au prochain enregistrement :
+   normalizeState ne le reprend plus. */
 /* 7 novembre, 8 h 38 (« plus positif ») : jamais « 0 leçon validée sur 71 ». Rien de validé : « 71 leçons » ; tout : « 71 leçons
    validées » ; entre les deux : « 5 leçons validées sur 71 ». */
 function parcoursValidees(done){return !done?`${TOTAL} leçons`:done>=TOTAL?`${TOTAL} leçons validées`:`${done} leçon${done>1?'s':''} validée${done>1?'s':''} sur ${TOTAL}`;}
-/* Accueil, sous « Parcours SQL » : la rangée des parcours (elle défile à l’horizontale sur un téléphone). Chaque pastille sur
-   deux lignes, le nom puis l’état (19 h 48 : « les écritures et tout ça font tassé »). */
-function parcoursChipsHTML(done){
-  /* 14 novembre : un seul parcours montré (SQL, les autres cachés pour la 1.0) : pas de rangée ni de « Tous les parcours » */
-  const vus=PARCOURS.filter(p=>p.dispo||PARCOURS_AVENIR_MONTRES);
-  if(vus.length<2)return '';
-  const items=vus.map(p=>p.dispo
-    ?`<li><span class="pc-chip is-on"><i class="pc-chip-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-chip-t"><b>${esc(p.court)}</b><small>${parcoursSqlEtat(done)}</small></span></span></li>`
-    :`<li><button type="button" class="pc-chip" onclick="openParcours('${p.id}')" aria-label="${escAttr(p.titre)}, à venir"><i class="pc-chip-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-chip-t"><b>${esc(p.court)}</b><small>À venir</small></span></button></li>`).join('');
-  return `<ul class="pc-chips" aria-label="Tes parcours">${items}<li><button type="button" class="pc-chip is-all" onclick="openParcours()">Tous les parcours${DEF_CHEV_SVG}</button></li></ul>`;
-}
-function openParcours(id){
-  const p=id&&PARCOURS_AVENIR_MONTRES?PARCOURS.find(x=>x.id===id&&!x.dispo):null;
-  parcoursDeListe=!!p&&activeTab==='parcours'&&!parcoursVue;
-  parcoursVue=p?p.id:null;
-  parcoursChoix=null;
-  switchTab('parcours');
-}
-/* Le retour : d’un parcours ouvert depuis la liste, vers la liste ; sinon vers la page d’où l’on vient (l’accueil). */
-function parcoursBack(){
-  if(parcoursVue&&parcoursDeListe){parcoursVue=null;parcoursDeListe=false;parcoursChoix=null;switchTab('parcours');return;}
-  parcoursVue=null;parcoursDeListe=false;parcoursChoix=null;
-  returnToParent();
-}
-function renderParcoursScreen(){
-  const scr=document.getElementById('scr-parcours'),host=document.getElementById('parcours-body');
-  if(!scr||!host)return;
-  const p=parcoursVue&&PARCOURS_AVENIR_MONTRES?PARCOURS.find(x=>x.id===parcoursVue&&!x.dispo):null;
-  if(!p){parcoursVue=null;parcoursDeListe=false;}
-  scr.classList.toggle('is-detail',!!p);
-  const b=document.getElementById('parcours-back'),sp=b&&b.querySelector('span'),liste=!!p&&parcoursDeListe;
-  if(sp)sp.textContent=liste?'Parcours':'Accueil';
-  if(b)b.setAttribute('aria-label',liste?'Retour aux parcours':'Retour à l’accueil');
-  host.innerHTML=p?parcoursPageHTML(p):parcoursListeHTML();
-  if(p){parcoursTeteCharger();if(parcoursVote()){parcoursResultatsPeindre();parcoursResultatsCharger();}}
-}
-function parcoursListeHTML(){
-  const done=parcoursSqlFaites(),pct=TOTAL?Math.min(100,Math.round(done/TOTAL*100)):0,al=parcoursAlertes(),v=parcoursVote();
-  const vp=v&&PARCOURS.find(p=>p.id===v.id);
-  const nMods=MODULES.filter(m=>m.lessons.length).length;
-  /* 12 novembre (Elisa, sur les cloches de la liste : « une micro-interaction qui dit que c’est bon, mais pas emmené vers une autre
-     page ») : la cloche est un bouton à part, posé sur la carte ; elle active ou coupe l’alerte sur place (parcoursCloche). La carte,
-     elle, ouvre toujours la page du parcours. */
-  const soon=parcoursAVenir().map(p=>{const on=al.includes(p.id);
-    return `<li class="pc-soon"><button type="button" class="pc-card is-soon" onclick="openParcours('${p.id}')" aria-label="${escAttr(p.titre)}, à venir"><i class="pc-card-stk" aria-hidden="true">${lqStkSvg(p.stk)}</i><span class="pc-card-copy"><b>${esc(p.titre)}</b><em class="pc-tag">À venir</em></span><span class="pc-bell-place" aria-hidden="true"></span></button><button type="button" class="pc-bell${on?' is-on':''}" aria-pressed="${on?'true':'false'}" aria-label="${escAttr('M’avertir au lancement de '+p.titre)}" onclick="parcoursCloche('${p.id}',this)">${PC_BELL_SVG}<i class="pc-bell-ok" aria-hidden="true"></i></button></li>`;}).join('');
-  return `<div class="pc-view">
-    <p class="pc-sec">Disponible</p>
-    <button type="button" class="pc-card is-on" onclick="returnToHome()" aria-label="${escAttr(`Parcours SQL, ${parcoursSqlEtat(done).toLowerCase()} : ${parcoursValidees(done)}`)}"><i class="pc-card-stk" aria-hidden="true">${lqStkSvg('db')}</i><span class="pc-card-copy"><span class="pc-card-top"><b>SQL</b><em class="pc-tag is-on">${parcoursSqlEtat(done)}</em></span><span class="pc-card-meta">${PC_BOOK_SVG}${nMods} modules · ${TOTAL} leçons</span><span class="pc-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>${done?`<small>${parcoursValidees(done)}</small>`:''}</span><span class="pc-card-go" aria-hidden="true">${DEF_CHEV_SVG}</span></button>
-    ${soon.length?`<p class="pc-sec">À venir</p>
-    <ul class="pc-list">${soon}</ul>
-    <button type="button" class="pc-vote-cta" onclick="openParcours('${(vp||parcoursAVenir()[0]).id}')"><span><b>Quel parcours après SQL\u00a0?</b><small>${vp?`Ton vote\u00a0: ${esc(vp.titre)}.`:'Aide-nous à choisir le prochain.'}</small></span><em>${vp?'Changer':'Voter'}</em></button>`:''}
-  </div>`;
-}
-/* 11 novembre, 15 h 15 (sa maquette) : la carte violette (l’étiquette, le titre souligné d’un trait jaune, sa phrase, ses trois
-   thèmes, le chat à l’ordinateur), l’alerte avec sa cloche, le vote avec son pictogramme, une icône par parcours, et « En tête »
-   sur le parcours qui a le plus de votes (parcoursTete : de vrais votes, à partir de 10, sans égalité). L’étiquette garde
-   « En préparation » (jamais « bientôt » dans les textes). */
-function parcoursPageHTML(p){
-  const on=parcoursAlertes().includes(p.id);
-  /* 16 h 11 : le choix coché est le parcours affiché (la carte suit le choix, parcoursMontrer) ; le vote, le même sur les trois
-     pages, est marqué « Ton vote » sous son nom. */
-  const sel=p.id;
-  const themes=parcoursThemesHTML(p);
-  const chat=typeof mascotReduced==='function'&&mascotReduced()?'assets/chat-ordi-fixe.webp':'assets/chat-ordi.webp';
-  return `<div class="pc-view">
-    <section class="pc-hero" aria-labelledby="pc-titre">
-      <img class="pc-hero-chat" src="${chat}" alt="" width="314" height="358" decoding="async">
-      <div class="pc-hero-copy">
-        <em class="pc-hero-tag">${PC_ICO.fusee}En préparation</em>
-        <h2 id="pc-titre">${esc(p.titre)}</h2>
-        <svg class="pc-hero-trait" viewBox="0 0 160 12" aria-hidden="true"><path d="M3 8.5C38 4.5 92 3 157 4.5" fill="none" stroke="#FFC83D" stroke-width="5" stroke-linecap="round"/><path d="M24 10.5c30-2 66-2.6 98-2" fill="none" stroke="#FFC83D" stroke-width="2.5" stroke-linecap="round" opacity=".7"/></svg>
-        <p class="pc-hero-sub">${esc(p.desc||'')}</p>
-      </div>
-      ${themes?`<ul class="pc-themes" aria-label="Au programme">${themes}</ul>`:''}
-    </section>
-    <label class="pc-alert">
-      <i class="pc-alert-ico" aria-hidden="true">${PC_BELL_SVG}</i>
-      <span class="pc-alert-copy"><b>M’avertir au lancement</b><small>Reçois une notification le jour de l’ouverture.</small></span>
-      <input type="checkbox" role="switch" class="pc-switch"${on?' checked':''} onchange="parcoursAlerte('${p.id}',this.checked)">
-    </label>
-    ${parcoursVoteHTML(sel,'pc-vote')}
-  </div>`;
-}
-/* Le vote, d’après sa maquette (11 novembre, 15 h 15) : la question en légende avec son pictogramme, une icône par parcours, « Ton
-   vote » sous son nom, « En tête », le bouton avec sa coche, le message. Coché : le parcours affiché ; sans choix, le bouton
-   attend. nom : le groupe des boutons radio de la carte. */
-function parcoursVoteHTML(sel,nom){
-  const v=parcoursVote(),vp=v&&PARCOURS.find(x=>x.id===v.id);
-  const opts=parcoursVotables().map(o=>`<label class="pc-opt"><input type="radio" name="${nom}" value="${o.id}"${o.id===sel?' checked':''} onchange="parcoursChoisir(this.value,this)"><i class="pc-opt-ico" aria-hidden="true">${lqStkSvg(o.stk)}</i><span class="pc-opt-t">${esc(o.titre)}${v&&v.id===o.id?'<small class="pc-opt-moi">Ton vote</small>':''}</span>${o.id===parcoursTete?PC_TETE_HTML:''}</label>`).join('');
-  return `<fieldset class="pc-vote">
-      <legend><i class="pc-vote-ico" aria-hidden="true">${PC_ICO.vote}</i><span>Quel parcours <span class="pc-insec">aimerais-tu</span> découvrir ensuite\u00a0?</span></legend>
-      <p class="pc-vote-sub">Ton vote nous aide à choisir le prochain\u00a0!</p>
-      <div class="pc-opts">${opts}</div>
-      <button type="button" class="pc-vote-go" onclick="parcoursVoter(this)"${!sel||parcoursVoteFait(sel)?' disabled':''}>${PC_ICO.coche}<span>${parcoursVoteLabel(sel)}</span></button>
-      <p class="pc-vote-ok" role="status" aria-live="polite">${parcoursVoteMsg(vp)}</p>
-    </fieldset>`;
-}
-function parcoursThemesHTML(p){return (p.themes||[]).map(t=>`<li>${PC_ICO[t[0]]||''}<span>${esc(t[1])}</span></li>`).join('');}
-const PC_TETE_HTML=`<em class="pc-tete">${PC_TETE_SVG}En tête</em>`;
-/* Le parcours en tête des votes (parcours_en_tete : sans chiffres, à partir de 10 votes, sans égalité), relu toutes les 5 minutes
-   au plus quand on ouvre la page d’un parcours, et après son propre vote ; hors ligne, pas de badge. */
-let parcoursTete=null,parcoursTeteLe=0,parcoursTeteVa=false;
-function parcoursTeteCharger(force){
-  if(parcoursTeteVa||(!force&&Date.now()-parcoursTeteLe<300000)||typeof clsRpc!=='function')return Promise.resolve(parcoursTete);
-  parcoursTeteVa=true;
-  return clsRpc('parcours_en_tete',{}).then(r=>{
-    const id=r&&r.parcours;
-    parcoursTete=PARCOURS.some(p=>p.id===id&&!p.dispo)?id:null;parcoursTeteLe=Date.now();
-  }).catch(()=>{}).then(()=>{parcoursTeteVa=false;parcoursTetePeindre();return parcoursTete;});
-}
-function parcoursTetePeindre(){
-  parcoursVoteHotes().forEach(h=>h.querySelectorAll('.pc-opt').forEach(l=>{
-    const i=l.querySelector('input'),b=l.querySelector('.pc-tete');
-    if(!i)return;
-    if(i.value===parcoursTete&&!b)l.insertAdjacentHTML('beforeend',PC_TETE_HTML);
-    else if(i.value!==parcoursTete&&b)b.remove();
-  }));
-}
-function parcoursVoteFait(id){const v=parcoursVote();return !!v&&v.id===id&&v.envoye!==false;}
-function parcoursVoteLabel(id){const v=parcoursVote();return !v?'Voter':v.id===id?(v.envoye!==false?'Vote enregistré':'Voter'):'Changer mon vote';}
-function parcoursVoteMsg(vp){
-  const v=parcoursVote();
-  if(!v||!vp)return '';
-  if(parcoursEnvoi)return 'Envoi de ton vote…';
-  return v.envoye!==false?`Merci\u00a0! Ton vote\u00a0: ${esc(vp.titre)}.`:`Ton vote (${esc(vp.titre)}) est gardé sur ton appareil\u00a0: il partira dès que possible.`;
-}
-function parcoursChoisir(id,el){
-  if(!parcoursVotables().some(p=>p.id===id))return;
-  parcoursChoix=id;
-  /* el : le bouton radio touché ; sa carte (l’accueil ou la page d’un parcours) a son propre bouton Voter */
-  const carte=el&&typeof el.closest==='function'?el.closest('.pc-vote'):null;
-  const btn=carte?carte.querySelector('.pc-vote-go'):document.querySelector('#parcours-body .pc-vote-go'),t=btn&&btn.querySelector('span');
-  if(btn){btn.disabled=parcoursVoteFait(id);if(t)t.textContent=parcoursVoteLabel(id);else btn.textContent=parcoursVoteLabel(id);}
-  if(carte&&!carte.closest('#parcours-body'))return;   /* le vote de l’accueil ne change pas la page d’un parcours */
-  if(parcoursVue&&parcoursVue!==id){const avant=parcoursVue;parcoursVue=id;parcoursMontrer(id,avant);}
-}
-/* 11 novembre, 16 h 11 (« quand on clique sur Python, adapte le cadre du haut, de manière fluide ») : le vote sert aussi à passer
-   d’un parcours à l’autre, sans recharger la page. La carte violette et l’alerte suivent le choix : l’ancien contenu glisse et
-   s’efface, le nouveau arrive du côté du choix (plus bas dans la liste : par la droite), le trait jaune se redessine, les thèmes
-   sautillent un à un, le chat fait un petit bond, la carte change de hauteur en douceur, avec un petit cran sous le doigt. Si le
-   haut de la carte est sorti de l’écran, la page suit ce changement de hauteur : le vote reste sous le doigt. Mouvement réduit :
-   tout change d’un coup. Un choix pendant l’animation reprend proprement (parcoursTour). */
-let parcoursAnims=[],parcoursTour=0;
-/* Ce qui défile autour de la carte : l’écran « Parcours » lui-même (overflow:auto), sinon la page */
-function parcoursDefile(el){
-  for(let e=el.parentElement;e;e=e.parentElement){const o=getComputedStyle(e).overflowY;if((o==='auto'||o==='scroll')&&e.scrollHeight>e.clientHeight)return e;}
-  return document.scrollingElement||document.documentElement;
-}
-function parcoursMontrer(id,avant){
-  const p=PARCOURS.find(x=>x.id===id&&!x.dispo);
-  if(!p||typeof document==='undefined'||!document.querySelector)return;
-  const hero=document.querySelector('#parcours-body .pc-hero');
-  if(!hero)return;
-  if(typeof buzz==='function')buzz('selection');
-  const sw=document.querySelector('#parcours-body .pc-switch');
-  if(sw){sw.checked=parcoursAlertes().includes(id);sw.onchange=function(){parcoursAlerte(id,this.checked);};}
-  const q=s=>hero.querySelector(s),titre=q('h2'),trait=q('.pc-hero-trait'),sub=q('.pc-hero-sub'),themes=q('.pc-themes'),chat=q('.pc-hero-chat');
-  const remplir=()=>{if(titre)titre.textContent=p.titre;if(sub)sub.textContent=p.desc||'';if(themes)themes.innerHTML=parcoursThemesHTML(p);};
-  const tour=++parcoursTour;
-  parcoursAnims.forEach(a=>{try{a.cancel();}catch(e){}});parcoursAnims=[];
-  if(typeof hero.animate!=='function'||(typeof mascotReduced==='function'&&mascotReduced())){remplir();return;}
-  const ordre=parcoursAVenir().map(x=>x.id),sens=ordre.indexOf(id)<ordre.indexOf(avant)?-1:1,doux='cubic-bezier(.2,.8,.2,1)';
-  const joue=(el,k,o)=>{if(!el)return null;const a=el.animate(k,o);parcoursAnims.push(a);return a;};
-  const bouts=[titre,trait,sub,...(themes?[...themes.children]:[])].filter(Boolean);
-  const sorties=bouts.map((el,i)=>joue(el,[{opacity:1,transform:'none'},{opacity:0,transform:`translateX(${-sens*16}px)`}],{duration:130,delay:i*12,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'}));
-  joue(chat,[{transform:'none'},{transform:'translateY(-8px) rotate(-3deg)',offset:.4},{transform:'none'}],{duration:440,easing:'cubic-bezier(.3,.7,.4,1)'});
-  return Promise.all(sorties.map(a=>a&&a.finished?a.finished.catch(()=>{}):null)).then(()=>{
-    if(tour!==parcoursTour)return;
-    const zone=parcoursDefile(hero),r0=hero.getBoundingClientRect(),h0=r0.height,y0=zone.scrollTop;
-    const suit=r0.top<(zone===document.scrollingElement||zone===document.documentElement?0:zone.getBoundingClientRect().top);
-    sorties.forEach(a=>{if(a)a.cancel();});
-    remplir();
-    const h1=hero.getBoundingClientRect().height;
-    if(Math.abs(h1-h0)>1){
-      const a=joue(hero,[{height:h0+'px'},{height:h1+'px'}],{duration:320,easing:doux});
-      if(suit&&a&&typeof requestAnimationFrame==='function'){
-        const pas=()=>{if(tour!==parcoursTour)return;zone.scrollTop=Math.max(0,y0+hero.getBoundingClientRect().height-h0);if(a.playState==='running')requestAnimationFrame(pas);};
-        requestAnimationFrame(pas);
-      }
-    }
-    joue(titre,[{opacity:0,transform:`translateX(${sens*18}px)`},{opacity:1,transform:'none'}],{duration:300,easing:doux,fill:'backwards'});
-    joue(trait,[{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0 0 0)'}],{duration:380,delay:110,easing:'cubic-bezier(.3,.7,.3,1)',fill:'backwards'});
-    joue(sub,[{opacity:0,transform:`translateX(${sens*14}px)`},{opacity:1,transform:'none'}],{duration:300,delay:60,easing:doux,fill:'backwards'});
-    if(themes)[...themes.children].forEach((li,i)=>joue(li,[{opacity:0,transform:'translateY(8px) scale(.9)'},{opacity:1,transform:'none'}],{duration:340,delay:150+i*60,easing:'cubic-bezier(.3,1.4,.5,1)',fill:'backwards'}));
-  });
-}
-function parcoursAlerte(id,on){
-  if(!parcoursAVenir().some(p=>p.id===id))return;
-  const al=parcoursAlertes().filter(x=>x!==id);
-  if(on)al.push(id);
-  parcoursAlerteFin(al,on,'il ouvre');
-}
-function parcoursAlerteFin(al,on,quand){
-  state.parcoursAlertes=al;save();
-  if(typeof buzz==='function')buzz('light');
-  const dire=m=>{if(typeof lqSay==='function')lqSay(m);};
-  if(!on){parcoursPushSync();dire('Alerte retirée.');return;}
-  if(!parcoursPushPont()){dire(`C’est noté\u00a0: un message t’attendra dans l’appli le jour où ${quand}.`);return;}
-  parcoursPushJeton(true).then(r=>{
-    if(r&&r.autorise&&r.jeton){parcoursPushSync();dire(`C’est noté\u00a0: tu recevras une notification le jour où ${quand}.`);}
-    else if(r&&r.refuse)dire(`Les notifications de Requête sont coupées (Réglages › Notifications)\u00a0: un message t’attendra dans l’appli le jour où ${quand}.`);
-    else dire(`C’est noté\u00a0: un message t’attendra dans l’appli le jour où ${quand}.`);
-  });
-}
-/* 11 novembre, 15 h 55 (« Ça peut pas être une notification push ? ») : dans l’appli iPhone, l’alerte devient une vraie notification,
-   même l’appli fermée. En l’activant, iOS demande l’autorisation (une fois) et donne le jeton de push de l’iPhone (RequeteWidget,
-   notifAutoriser) ; l’appareil s’inscrit à la base de l’appli (parcours_alerter : l’empreinte de sa clé, le parcours, le jeton ;
-   supabase/migrations/…_parcours_alerte_push.sql). Le jour où le parcours ouvre, Elisa envoie la notification à tous les inscrits
-   (fonction parcours-annoncer, IOS.md). L’alerte coupée, la ligne s’en va. Notifications refusées, ou sur le site : le message dans
-   l’appli à son ouverture, comme avant (parcoursAnnonce). Hors ligne : l’inscription repart au retour du réseau ou à la prochaine
-   ouverture ; un nouveau jeton (iOS en change parfois) réinscrit tout. */
-function parcoursPushPont(){
-  const C=typeof window!=='undefined'?window.Capacitor:null;
-  return !!(C&&C.isNativePlatform&&C.isNativePlatform()&&typeof C.nativePromise==='function'&&(!C.isPluginAvailable||C.isPluginAvailable('RequeteWidget')));
-}
-function parcoursPushEtat(){
-  const p=state.parcoursPush;
-  if(p&&typeof p==='object'&&Array.isArray(p.faits))return p;
-  return (state.parcoursPush={jeton:'',faits:[]});
-}
-function parcoursPushJeton(demander){
-  if(!parcoursPushPont())return Promise.resolve(null);
-  return Promise.resolve(window.Capacitor.nativePromise('RequeteWidget',demander?'notifAutoriser':'notifJeton',{})).then(r=>{
-    const j=r&&typeof r.jeton==='string'&&/^[0-9a-f]{64,200}$/i.test(r.jeton)?r.jeton.toLowerCase():'';
-    const P=parcoursPushEtat();
-    if(j&&j!==P.jeton){P.jeton=j;P.faits=[];save();}
-    return {autorise:!!(r&&r.autorise),refuse:!!(r&&r.refuse),jeton:j};
-  }).catch(()=>null);
-}
-let parcoursPushVa=false;
-function parcoursPushSync(){
-  if(parcoursPushVa||typeof clsRpc!=='function'||typeof clsCle!=='function')return Promise.resolve(false);
-  const P=parcoursPushEtat(),al=parcoursAlertes();
-  const ajout=P.jeton?al.filter(id=>!P.faits.includes(id)):[],retrait=P.faits.filter(id=>!al.includes(id));
-  if(!ajout.length&&!retrait.length)return Promise.resolve(true);
-  parcoursPushVa=true;
-  const un=(id,on)=>clsRpc('parcours_alerter',{p_cle:clsCle(),p_parcours:id,p_jeton:on?P.jeton:null,p_on:on}).then(r=>{
-    if(!(r&&r.ok))return false;
-    const f=new Set(parcoursPushEtat().faits);
-    if(on)f.add(id);else f.delete(id);
-    parcoursPushEtat().faits=[...f];
-    return true;
-  }).catch(()=>false);
-  return [...ajout.map(id=>[id,true]),...retrait.map(id=>[id,false])]
-    .reduce((p,[id,on])=>p.then(ok=>un(id,on).then(o=>ok&&o)),Promise.resolve(true))
-    .then(ok=>{parcoursPushVa=false;save();return ok;});
-}
-function parcoursVoter(btn){
-  const carte=btn&&typeof btn.closest==='function'?btn.closest('.pc-vote'):null;
-  const coche=carte?carte.querySelector('input:checked'):document.querySelector('#parcours-body input[name="pc-vote"]:checked');
-  const id=carte?coche&&coche.value:parcoursChoix||(coche&&coche.value);
-  const p=PARCOURS.find(x=>x.id===id&&!x.dispo);
-  if(!p||parcoursEnvoi||parcoursVoteFait(p.id))return;
-  if(typeof buzz==='function')buzz('success');
-  state.parcoursVote={id:p.id,le:Date.now(),envoye:false};save();
-  parcoursChoix=null;
-  /* 12 novembre (réf. 15 : « il y a un flash au vote et on voit pas les résultats ? ») : la page n’est plus redessinée (son entrée se
-     rejouait : le flash, et l’écran pouvait remonter) ; ce que le vote change se met à jour sur place, puis les résultats s’affichent. */
-  parcoursEnvoyerVote().then(ok=>{parcoursVoteMaj();if(ok){parcoursTeteCharger(true);parcoursResultatsCharger(true);}});
-  parcoursVoteMaj(true);
-}
-/* Sur place : « Ton vote » sous le bon parcours, le bouton (« Envoi… », puis « Vote enregistré », d’un petit bond), le message, les résultats. */
-function parcoursVoteMaj(anim){
-  const v=parcoursVote(),vp=v&&PARCOURS.find(x=>x.id===v.id);
-  parcoursVoteHotes().forEach(host=>{
-    host.querySelectorAll('.pc-opt').forEach(l=>{
-      const i=l.querySelector('input'),t=l.querySelector('.pc-opt-t'),m=t&&t.querySelector('.pc-opt-moi'),moi=!!(v&&i&&v.id===i.value);
-      if(moi&&t&&!m)t.insertAdjacentHTML('beforeend','<small class="pc-opt-moi">Ton vote</small>');else if(!moi&&m)m.remove();
-    });
-    const coche=host.querySelector('.pc-vote input:checked'),sel=coche?coche.value:(v&&v.id);
-    const btn=host.querySelector('.pc-vote-go'),bt=btn&&btn.querySelector('span');
-    if(btn){
-      const envoi=parcoursEnvoi&&v&&v.id===sel;
-      btn.disabled=envoi||!sel||parcoursVoteFait(sel);
-      if(bt)bt.textContent=envoi?'Envoi…':parcoursVoteLabel(sel);
-      if(anim&&!prefersReduceMotion()){btn.classList.remove('is-vote');void btn.offsetWidth;btn.classList.add('is-vote');setTimeout(()=>btn.classList.remove('is-vote'),700);}
-    }
-    const ok=host.querySelector('.pc-vote-ok');if(ok)ok.innerHTML=parcoursVoteMsg(vp);
-  });
-  parcoursResultatsPeindre();
-}
-/* Les résultats du vote (parcours_resultats : la part de chaque parcours en pour cent, sans aucun nombre de votes, dès le premier vote,
-   son choix ; supabase/migrations/20261112090000_parcours_resultats.sql) : une barre derrière chaque choix, son pourcentage à droite,
-   une fois qu’on a voté. Si la base posait un seuil plus haut, une phrase le dirait ; hors ligne, rien ne s’affiche. */
-let parcoursRes=null,parcoursResLe=0,parcoursResVa=false;
-function parcoursResultatsCharger(force){
-  if(parcoursResVa||(!force&&Date.now()-parcoursResLe<60000)||typeof clsRpc!=='function')return Promise.resolve(parcoursRes);
-  parcoursResVa=true;
-  return clsRpc('parcours_resultats',{}).then(r=>{parcoursRes=r&&typeof r==='object'?r:null;parcoursResLe=Date.now();})
-    .catch(()=>{}).then(()=>{parcoursResVa=false;parcoursResultatsPeindre();return parcoursRes;});
-}
-function parcoursResultatsPeindre(){
-  const v=parcoursVote(),r=v?parcoursRes:null,parts=r&&r.parts&&typeof r.parts==='object'?r.parts:null;
-  const seuil=r&&!parts&&Number(r.seuil)>1?Number(r.seuil):0;
-  parcoursVoteHotes().forEach(host=>{
-    host.querySelectorAll('.pc-opt').forEach(l=>{
-      const i=l.querySelector('input'),id=i&&i.value;let b=l.querySelector('.pc-res');
-      const n=parts&&id?Number(parts[id]):NaN,pc=Number.isFinite(n)?Math.max(0,Math.min(100,Math.round(n))):null;
-      if(pc==null){if(b)b.remove();l.classList.remove('has-res');return;}
-      if(!b){l.insertAdjacentHTML('beforeend','<span class="pc-res"><i aria-hidden="true"></i><b></b></span>');b=l.querySelector('.pc-res');}
-      l.classList.add('has-res');
-      /* --pc-part, pas --p : --p est enregistré pour l’anneau de progression (@property, un nombre, non hérité) ; la barre restait à 0 */
-      requestAnimationFrame(()=>b.style.setProperty('--pc-part',pc+'%'));
-      b.querySelector('b').textContent=pc+'\u00a0%';
-    });
-    let note=host.querySelector('.pc-res-note');
-    if(seuil){
-      if(!note){host.querySelector('.pc-vote-ok')?.insertAdjacentHTML('afterend','<p class="pc-res-note"></p>');note=host.querySelector('.pc-res-note');}
-      if(note)note.textContent=`Les résultats s’afficheront dès ${seuil}\u00a0votes.`;
-    }else if(note)note.remove();
-  });
-}
-/* Là où une carte de vote est affichée : la page « Parcours » (le vote, ou la page d’un parcours) */
-function parcoursVoteHotes(){
-  if(typeof document==='undefined'||!document||typeof document.getElementById!=='function')return [];
-  const h=document.getElementById('parcours-body');
-  return h&&typeof h.querySelector==='function'&&h.querySelector('.pc-vote')?[h]:[];
-}
-/* La cloche d’un parcours à venir, dans la liste : l’alerte s’active (ou se coupe) sur place. Activée, la cloche se remplit, sonne,
-   lâche deux ondes, et une coche menthe se pose à son coin ; coupée, elle se vide d’un petit frisson. La carte annonce l’état. */
-function parcoursCloche(id,btn){
-  if(!btn||!parcoursAVenir().some(p=>p.id===id))return;
-  const on=!parcoursAlertes().includes(id);
-  parcoursAlerte(id,on);
-  btn.classList.toggle('is-on',on);btn.setAttribute('aria-pressed',on?'true':'false');
-  if(!prefersReduceMotion()){
-    btn.classList.remove('is-sonne','is-coupe');void btn.offsetWidth;btn.classList.add(on?'is-sonne':'is-coupe');
-    clearTimeout(btn._pcT);btn._pcT=setTimeout(()=>btn.classList.remove('is-sonne','is-coupe'),1300);
-  }
-}
-/* Le vote part à la base de l’appli (Supabase, Paris), avec l’identifiant tiré au hasard de l’appareil (le même que le classement
-   des défis) : ni nom, ni e-mail. Hors ligne, ou si la base ne répond pas (parcours_voter : supabase/migrations/…_parcours_vote.sql),
-   il reste sur l’appareil et repart au retour du réseau ou à la prochaine ouverture de l’appli. */
-function parcoursEnvoyerVote(){
-  const v=parcoursVote();
-  if(!v||v.envoye!==false||parcoursEnvoi||typeof clsRpc!=='function'||typeof clsCle!=='function')return Promise.resolve(false);
-  parcoursEnvoi=true;
-  return clsRpc('parcours_voter',{p_cle:clsCle(),p_parcours:v.id}).then(r=>{
-    const ok=!!(r&&r.ok);
-    if(ok&&state.parcoursVote&&state.parcoursVote.id===v.id){state.parcoursVote.envoye=true;save();}
-    return ok;
-  }).catch(()=>false).then(ok=>{parcoursEnvoi=false;return ok;});
-}
-/* Un parcours vient d’ouvrir (dispo:true) : ceux qui avaient demandé l’alerte le voient une fois, à l’ouverture de l’appli. */
-function parcoursAnnonce(){
-  const al=Array.isArray(state.parcoursAlertes)?state.parcoursAlertes:[],vus=Array.isArray(state.parcoursAnnonces)?state.parcoursAnnonces:[];
-  const p=PARCOURS.find(x=>x.dispo&&x.id!=='sql'&&al.includes(x.id)&&!vus.includes(x.id));
-  if(!p)return;
-  state.parcoursAnnonces=[...vus,p.id];save();
-  if(typeof lqSay==='function')lqSay(`Le parcours ${p.titre} est ouvert\u00a0!`);
-}
-if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
-  window.addEventListener('load',()=>setTimeout(()=>{try{parcoursEnvoyerVote();parcoursAnnonce();
-    if(parcoursAlertes().length&&parcoursPushPont())parcoursPushJeton(false).then(()=>parcoursPushSync());else parcoursPushSync();}catch(e){}},4000));
-  window.addEventListener('online',()=>{try{parcoursEnvoyerVote();parcoursPushSync();}catch(e){}});
-}
 function renderModules(){
   const host=document.getElementById('modules');
   if(!host)return;
@@ -28910,9 +28490,9 @@ function renderModules(){
     return `<details class="module home-module ${complete?'validated':''}${moduleIndex===curMod?' is-current':''}${ferme?' is-verrou':''}" data-module-index="${moduleIndex}" data-mc="${moduleIndex%8}" style="--i:${moduleIndex}"${openModules.has(String(moduleIndex))?' open':''} ontoggle="lqModuleToggle(this)"><summary class="home-module-summary"><span class="home-module-num">${complete?ENT_OK_SVG:String(moduleIndex+1)}${ferme?`<i class="home-module-cad" role="img" aria-label="Module verrouillé">${LQ_CADENAS_SVG}</i>`:''}</span><span class="home-module-copy"><small class="lq-unit-k">Module ${moduleIndex+1}${moduleIndex===curMod?' · en cours':''}${secs>=60?studyPill(secs,'home-module-time'):''}</small><b>${esc(mod.titre)}</b><small>${esc(status)}</small></span><span class="home-module-side">${complete?`<em class="home-module-valid">Validé</em>`:`<span class="home-module-count">${done}/${tot}</span>`}<span class="home-module-chev" aria-hidden="true">${DEF_CHEV_SVG}</span></span><span class="home-module-progress" role="progressbar" aria-label="Progression du module ${esc(mod.titre)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></span></summary><div class="list">${rows}</div></details>`;
   }).join('');
   const toolsOpen=catalogToolsOpen||!!courseSearch||courseFilter!=='all';
-  /* « Parcours SQL », le premier d’une série (3 novembre, 19 h 01) : la rangée des parcours vient sous le titre. */
+  /* « Parcours SQL » : ses leçons validées et ses modules sous le titre (le seul parcours depuis le 16 novembre). */
   const nMods=MODULES.filter(m=>m.lessons.length).length;
-  const html=`<div class="home-catalog-head"><div><span>Tes parcours</span><h2>Parcours SQL</h2></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Explorer</span></button></div><p class="pc-head-sub">${parcoursValidees(allDone)} · ${nMods} modules</p>${parcoursChipsHTML(allDone)}<div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search"><button id="clear-course-search" class="lq-clear" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>${LQ_X_SVG}</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p><div id="course-search-suggest" class="sq-suggest"></div></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
+  const html=`<div class="home-catalog-head"><div><span>Tes parcours</span><h2>Parcours SQL</h2></div><button type="button" class="lq-search-toggle" onclick="toggleCatalogTools(this)" aria-expanded="${toolsOpen}" aria-controls="catalog-tools">${LQ_SEARCH_SVG}<span>Explorer</span></button></div><p class="pc-head-sub">${parcoursValidees(allDone)} · ${nMods} modules</p><div id="catalog-tools" class="catalog-tools"${toolsOpen?'':' hidden'}><div class="catalog-search"><label for="course-search">Trouver une notion</label><div><input id="course-search" type="search" placeholder="SELECT, jointure, dates…" value="${escAttr(courseSearch)}" oninput="filterCourseCatalog(this.value)" onkeydown="courseSearchKeydown(event)" aria-controls="course-search-results" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" inputmode="search"><button id="clear-course-search" class="lq-clear" type="button" onclick="clearCourseSearch()" aria-label="Effacer la recherche de cours" hidden>${LQ_X_SVG}</button></div><p id="course-search-status" role="status" aria-live="polite" aria-atomic="true"></p><div id="course-search-suggest" class="sq-suggest"></div></div>${courseCatalogFiltersHTML()}</div><div id="course-search-results" hidden></div>${modulesHTML}`;
   /* Rien n’a changé depuis le dernier rendu (3 novembre) : l’accueil garde ses éléments. Les remplacer recalculait tout l’écran et
      relançait la cascade d’ouverture du module à chaque retour sur l’accueil ; la recherche gardait aussi le clavier. */
   if(host.__lqHtml!==html||!host.firstElementChild){
@@ -44379,7 +43959,7 @@ function lqStkSvg(k){
 /* Le haut de chaque page dans la DA de la vitrine (Elisa, 31 octobre, 2 h 18) : la rubrique au tiret (« — TES RESSOURCES »), le titre
    souligné au trait jaune et l’autocollant de la page, qui se colle d’un claquement à chaque arrivée sur la page ; le toucher le fait
    sauter. Le titre garde son texte (le trait jaune est le fond d’un span ; le planning ne réécrit plus son titre s’il n’a pas changé). */
-const LQ_HEAD_STK={'scr-planning':'cal','scr-practice':'rocket','scr-library':'book','scr-compte':'user','scr-stickers':'peel','scr-sgbd':'db','scr-collection':'cards','scr-notes':'note','scr-entretien':'mic','scr-parcours':'route'};
+const LQ_HEAD_STK={'scr-planning':'cal','scr-practice':'rocket','scr-library':'book','scr-compte':'user','scr-stickers':'peel','scr-sgbd':'db','scr-collection':'cards','scr-notes':'note','scr-entretien':'mic'};
 function lqHeads(){
   if(typeof document==='undefined')return;
   Object.keys(LQ_HEAD_STK).forEach(id=>{
@@ -49656,7 +49236,7 @@ async function fichierRecuTraiter(){
 /* 11 h 08 (réf. 3, « le lien ne fonctionne pas vers les défis ») : touché pendant l’onboarding (ou en pleine séance), le raccourci ne
    faisait rien, sans un mot. L’onboarding d’abord, toujours, mais il le dit maintenant dans un bandeau, et en séance, une bulle. */
 /* Les onglets qu’un lien de notification peut ouvrir (« requete://onglet.planning »), ceux de switchTab. */
-const RACC_ONGLETS=['learn','defis','planning','notes','collection','console','entretien','sgbd','stickers','compte','parcours','library','practice'];
+const RACC_ONGLETS=['learn','defis','planning','notes','collection','console','entretien','sgbd','stickers','compte','library','practice'];
 function raccourciOuvrir(type){
   type=String(type||'');
   /* 13 novembre, 19 h 52, statistiques : quel raccourci sert (l’icône, l’île, le widget, l’invitation), sans le code d’une salle */
@@ -49681,13 +49261,13 @@ function raccourciOuvrir(type){
   const salle=/\.salle-(partager|lancer|rejouer)$/.exec(type);
   if(salle){if(typeof ileSalleAction==='function')ileSalleAction(salle[1]);return;}
   /* Une notification push touchée (16 novembre, RequetePushLien) : son lien choisit l’écran, sans nouvelle version de l’app.
-     « parcours.python » ouvre la page d’un parcours (l’annonce de son ouverture), « onglet.planning » un onglet de l’appli. */
+     « onglet.planning » ouvre un onglet de l’appli. (« parcours.<id> », la page d’un parcours, est retiré avec les parcours à venir :
+     un tel lien n’ouvre plus rien.) */
   const vers=/\.(parcours|onglet)\.([a-z]{1,20})$/.exec(type);
-  const parcoursId=vers&&vers[1]==='parcours'?vers[2]:null;
   const onglet=vers&&vers[1]==='onglet'&&RACC_ONGLETS.includes(vers[2])?vers[2]:null;
   const requete=!vers&&type.endsWith('.requete'),adieu=!vers&&type.endsWith('.adieu'),avis=!vers&&type.endsWith('.avis'),seance=!vers&&type.endsWith('.seance'),cartes=!vers&&type.endsWith('.cartes'),planning=!vers&&type.endsWith('.planning');
-  if(!requete&&!adieu&&!avis&&!seance&&!cartes&&!planning&&!parcoursId&&!onglet)return;
-  if(!state.onboarded){obBandeau((parcoursId||onglet)?'Termine ton parcours de bienvenue : tout le reste t’attend juste après !':requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':seance?'Termine ton parcours de bienvenue : ta flamme t’attend juste après !':cartes?'Termine ton parcours de bienvenue : tes cartes mémo t’attendent juste après !':planning?'Termine ton parcours de bienvenue : ton planning t’attend juste après !':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
+  if(!requete&&!adieu&&!avis&&!seance&&!cartes&&!planning&&!onglet)return;
+  if(!state.onboarded){obBandeau(onglet?'Termine ton parcours de bienvenue : tout le reste t’attend juste après !':requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':seance?'Termine ton parcours de bienvenue : ta flamme t’attend juste après !':cartes?'Termine ton parcours de bienvenue : tes cartes mémo t’attendent juste après !':planning?'Termine ton parcours de bienvenue : ton planning t’attend juste après !':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
   /* 14 novembre, 12 h 27 (l’audit avant la mise en production) : sans abonnement, le paywall garde l’appli ; un raccourci (widget,
      île, icône) n’ouvre plus de leçon ni d’onglet dessous. */
   if(typeof obGardeBloque==='function'&&obGardeBloque())return;
@@ -49696,7 +49276,7 @@ function raccourciOuvrir(type){
     else if(seance&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la\u00a0: ta flamme s’allume à la fin.','info');
     else if(cartes&&typeof toast==='function')toast('Tu es déjà en séance','Tes cartes mémo t’attendent juste après.','info');
     else if(planning&&typeof toast==='function')toast('Tu es déjà en séance','Ton planning t’attend juste après.','info');
-    else if((parcoursId||onglet)&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la, puis tu pourras y aller.','info');
+    else if(onglet&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la, puis tu pourras y aller.','info');
     return;
   }
   if(seance){
@@ -49707,7 +49287,6 @@ function raccourciOuvrir(type){
     switchTab('learn');
     if(id!=null)setTimeout(()=>{try{openItem(id,0);}catch(e){}},350);
   }
-  else if(parcoursId){if(typeof openParcours==='function')openParcours(parcoursId);}   // la page du parcours, ou la liste s’il est ouvert
   else if(onglet)switchTab(onglet);
   else if(cartes)switchTab('collection');   // l’album des cartes mémo (le widget La carte mémo, tout à jour)
   else if(planning)switchTab('planning');   // « Voir mon planning », le bouton des rappels (15 novembre, 21 h 36)
@@ -50609,7 +50188,7 @@ function compteAutre(id){
   return vus.length>0&&!vus.includes(id);
 }
 function compteViderPourAutre(){
-  const garde={onboarded:state.onboarded,preferences:state.preferences,salle:state.salle,parcoursPush:state.parcoursPush};
+  const garde={onboarded:state.onboarded,preferences:state.preferences,salle:state.salle};
   state=normalizeState(garde);
   try{localStorage.removeItem('requete-nav-long-v1');}catch(e){}
   /* les réponses et positions des vidéos (suivent le compte depuis le 16 novembre, 4 h 33) */
@@ -53837,7 +53416,7 @@ const DC_RUBRIQUES=[
     '<b>Le classement</b>\u00a0: tes points, tes parties et les défis réussis.',
     '<b>Les salles</b>\u00a0: tes temps, tes réactions et tes messages, effacés au bout de 24\u00a0heures.',
     '<b>«\u00a0Contacte-nous\u00a0»</b>\u00a0: ton message, ce que tu y joins et ton e-mail si tu le donnes, pour te répondre. Le message est effacé au bout de 3\u00a0ans.',
-    '<b>Tes avis</b> sur les leçons et ton vote pour le prochain parcours, sans ton prénom.',
+    '<b>Tes avis</b> sur les leçons, sans ton prénom.',
     '<b>Des statistiques d’usage anonymes</b>, si tu les acceptes\u00a0: écrans de l’accueil vus, jours d’usage, flammes, leçons, défis, parties, paywall vu. Sans lien avec toi ni ton pseudo. Gardées 13\u00a0mois.'],
     note:'Tout est hébergé chez Supabase, à Paris.'},
   {k:'confid',stk:'shield',t:'Ta confidentialité',r:'Personne ne voit tes requêtes.',c:['Dans une salle, les autres joueurs voient ton pseudo, ton drapeau, tes temps et tes réactions. Jamais tes requêtes.',
@@ -54585,7 +54164,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-16-module-v3111';
+  const SW_CACHE='requete-2026-11-16-module-v3112';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

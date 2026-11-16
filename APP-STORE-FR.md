@@ -138,7 +138,7 @@ Collecte de données : oui. Suivi (tracking) : non, pour toutes les données. Pa
 | Localisation › Localisation approximative | pays choisi pour le drapeau (choix prudent : pas de géolocalisation) | Fonctionnalité de l'app | oui |
 | Contenu utilisateur › Assistance clientèle | messages de contact et pièces jointes | Fonctionnalité de l'app | oui |
 | Contenu utilisateur › Contenu de jeu | scores, classement, parties, salles de défi | Fonctionnalité de l'app | oui |
-| Contenu utilisateur › Autre contenu | notes et requêtes sauvegardées, avis sur les leçons, vote, réactions | Fonctionnalité de l'app, Analyses | oui |
+| Contenu utilisateur › Autre contenu | notes et requêtes sauvegardées, avis sur les leçons, réactions | Fonctionnalité de l'app, Analyses | oui |
 | Identifiants › Identifiant utilisateur | compte, pseudo | Fonctionnalité de l'app | oui |
 | Identifiants › Identifiant de l'appareil | identifiant tiré au hasard, jeton de notification (alerte de lancement) | Fonctionnalité de l'app, Analyses | oui |
 | Achats › Historique des achats | RevenueCat : offre, dates, renouvellement (identifiant anonyme) | Fonctionnalité de l'app | non |

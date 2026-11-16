@@ -1,7 +1,8 @@
 /* Elisa, 11 novembre, 15 h 55 : « Ça peut pas être une notification push ? », sur « M’avertir au lancement » ; puis « Oui, en
-   push ». Dans l’appli iPhone, activer l’alerte d’un parcours à venir demande l’autorisation des notifications et inscrit
-   l’appareil (son jeton de push) à la base de l’appli ; le jour où le parcours ouvre, Elisa envoie la notification à tous les
-   inscrits (fonction parcours-annoncer). Refusée, ou sur le site : le message dans l’appli, comme avant. */
+   push ». 16 novembre, 17 h 45 (« tu peux supprimer à distance les autres learning path, j’aurais pas besoin ») : les parcours à
+   venir sont retirés de l’appli, avec leur alerte. Restent, sans plus rien qui les appelle depuis la page : le pont natif de la 1.0
+   (RequetePush, l’AppDelegate), la table des inscrits et la fonction parcours-annoncer dans Supabase. Ces tests les gardent tels
+   qu’ils sont en ligne ; l’appli, elle, ne s’inscrit plus. */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -10,81 +11,9 @@ import { createAnnonceHandler, chargeAnnonce, egal, pousserUn, PROD, BAC } from 
 
 const lire = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const app = lire('index.html');
-const block = app.slice(app.indexOf('/* ---------- Les parcours ----------'), app.indexOf('function renderModules(){'));
 const sql = lire('supabase/migrations/20261111160000_parcours_alerte_push.sql');
 const swift = lire('resources/ios/widget/App/RequeteWidgetPlugin.swift');
 const widget = lire('scripts/ios-widget.mjs');
-const attendre = () => new Promise(r => setTimeout(r, 0));
-const J1 = 'ab'.repeat(32), J2 = 'cd'.repeat(32);
-
-/* La page des parcours, dans un bac à sable : un iPhone (le pont RequeteWidget) qui répond à notifAutoriser / notifJeton */
-function sandbox({ natif = true, reponse = { autorise: true, refuse: false, jeton: J1.toUpperCase() }, rpcKo = false, state = {} } = {}) {
-  const calls = [], dits = [];
-  const window = natif ? { Capacitor: { isNativePlatform: () => true, isPluginAvailable: n => n === 'RequeteWidget',
-    nativePromise: (p, m, d) => { calls.push(['natif', p, m]); return Promise.resolve(typeof reponse === 'function' ? reponse(m) : reponse); } } } : {};
-  const ctx = vm.createContext({
-    window, state: { lessons: {}, ...state }, save() {}, MODULES: [], TOTAL: 0, lqStkSvg: () => '', esc: String, escAttr: String, DEF_CHEV_SVG: '',
-    activeTab: 'parcours', switchTab() {}, returnToParent() {}, returnToHome() {}, buzz() {}, lqSay: m => dits.push(m), mascotReduced: () => false, Date,
-    document: { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [] },
-    clsCle: () => 'cle', clsRpc: (fn, body) => { calls.push(['rpc', fn, JSON.parse(JSON.stringify(body))]); return rpcKo ? Promise.reject(new Error('réseau')) : Promise.resolve({ ok: true }); }
-  });
-  vm.runInContext(block, ctx);
-  vm.runInContext('PARCOURS_AVENIR_MONTRES=true', ctx);   // cachés pour la 1.0 (14 novembre) : montrés ici pour tester les annonces
-  return { ctx, calls, dits };
-}
-const rpcs = (calls, fn = 'parcours_alerter') => calls.filter(c => c[0] === 'rpc' && c[1] === fn).map(c => c[2]);
-
-test('iPhone : activer l’alerte demande l’autorisation, puis inscrit l’appareil avec son jeton ; la couper le désinscrit', async () => {
-  const s = sandbox();
-  s.ctx.parcoursAlerte('python', true);
-  await attendre(); await attendre(); await attendre();
-  assert.deepEqual(s.calls[0], ['natif', 'RequeteWidget', 'notifAutoriser']);
-  assert.deepEqual(rpcs(s.calls), [{ p_cle: 'cle', p_parcours: 'python', p_jeton: J1, p_on: true }], 'le jeton en minuscules');
-  assert.deepEqual(JSON.parse(JSON.stringify(s.ctx.state.parcoursPush)), { jeton: J1, faits: ['python'] });
-  assert.equal(s.dits.at(-1), 'C’est noté : tu recevras une notification le jour où il ouvre.');
-  s.ctx.parcoursAlerte('python', false);
-  await attendre(); await attendre();
-  assert.deepEqual(rpcs(s.calls).at(-1), { p_cle: 'cle', p_parcours: 'python', p_jeton: null, p_on: false });
-  assert.deepEqual([...s.ctx.state.parcoursPush.faits], []);
-  assert.equal(s.dits.at(-1), 'Alerte retirée.');
-});
-
-test('notifications refusées ou sur le site : le message dans l’appli, rien ne part', async () => {
-  const r = sandbox({ reponse: { autorise: false, refuse: true, jeton: '' } });
-  r.ctx.parcoursAlerte('excel', true);
-  await attendre(); await attendre();
-  assert.deepEqual(rpcs(r.calls), []);
-  assert.ok(r.dits.at(-1).startsWith('Les notifications de Requête sont coupées (Réglages › Notifications)'));
-  assert.deepEqual([...r.ctx.state.parcoursAlertes], ['excel'], 'l’alerte reste sur l’appareil');
-  const w = sandbox({ natif: false });
-  w.ctx.parcoursAlerte('excel', true);
-  await attendre();
-  assert.deepEqual(w.calls, []);
-  assert.equal(w.dits.at(-1), 'C’est noté : un message t’attendra dans l’appli le jour où il ouvre.');
-});
-
-test('hors ligne : l’inscription attend ; un nouveau jeton réinscrit tout ; à l’ouverture de l’appli, le jeton est relu sans rien demander', async () => {
-  const s = sandbox({ rpcKo: true });
-  s.ctx.parcoursAlerte('python', true);
-  await attendre(); await attendre(); await attendre();
-  assert.deepEqual([...s.ctx.state.parcoursPush.faits], [], 'pas encore inscrite');
-  s.ctx.clsRpc = (fn, body) => { s.calls.push(['rpc', fn, JSON.parse(JSON.stringify(body))]); return Promise.resolve({ ok: true }); };
-  assert.equal(await s.ctx.parcoursPushSync(), true);
-  assert.deepEqual([...s.ctx.state.parcoursPush.faits], ['python']);
-  assert.equal(await s.ctx.parcoursPushSync(), true);
-  assert.equal(rpcs(s.calls).length, 2, 'déjà inscrite : rien ne repart');
-  /* iOS a changé le jeton */
-  const t = sandbox({ reponse: { autorise: true, jeton: J2 }, state: { parcoursAlertes: ['python', 'powerbi'], parcoursPush: { jeton: J1, faits: ['python', 'powerbi'] } } });
-  const r = await t.ctx.parcoursPushJeton(false);
-  assert.deepEqual(JSON.parse(JSON.stringify(r)), { autorise: true, refuse: false, jeton: J2 });
-  assert.deepEqual(t.calls[0], ['natif', 'RequeteWidget', 'notifJeton'], 'sans demander l’autorisation');
-  await t.ctx.parcoursPushSync();
-  assert.deepEqual(rpcs(t.calls).map(b => [b.p_parcours, b.p_jeton]), [['python', J2], ['powerbi', J2]]);
-  assert.ok(block.includes("if(parcoursAlertes().length&&parcoursPushPont())parcoursPushJeton(false).then(()=>parcoursPushSync());else parcoursPushSync();"));
-  /* La progression garde le jeton et les inscriptions */
-  assert.ok(app.includes("const parcoursPush={jeton:typeof pp.jeton==='string'&&/^[0-9a-f]{64,200}$/.test(pp.jeton)?pp.jeton:'',faits:Array.isArray(pp.faits)?[...new Set(pp.faits.filter(pcId))].slice(0,20):[]};"));
-});
-
 test('iPhone : le pont demande l’autorisation et rend le jeton reçu par l’AppDelegate', () => {
   assert.ok(swift.includes('import UserNotifications'));
   assert.ok(swift.includes('CAPPluginMethod(name: "notifAutoriser", returnType: CAPPluginReturnPromise)') && swift.includes('CAPPluginMethod(name: "notifJeton", returnType: CAPPluginReturnPromise)'));
@@ -101,7 +30,7 @@ test('iPhone : le pont demande l’autorisation et rend le jeton reçu par l’A
   assert.ok(lire('resources/ios/widget/App/App.entitlements').includes('<key>aps-environment</key>'), 'le droit des push, déjà là (la salle dans l’île)');
 });
 
-test('base de l’appli : la table des inscrits, sans droit direct ; parcours_alerter ; Supprimer mon compte les efface', () => {
+test('base de l’appli : la table des inscrits, sans droit direct ; parcours_alerter ; Supprimer mon compte les efface ; l’appli ne l’appelle plus', () => {
   assert.ok(sql.includes("parcours text not null check (parcours in ('python', 'excel', 'powerbi')),") && sql.includes("jeton text not null check (jeton ~ '^[0-9a-f]{64,200}$'),") && sql.includes('primary key (cle, parcours)'));
   assert.ok(sql.includes('alter table public.parcours_alerte enable row level security;') && sql.includes('revoke all on public.parcours_alerte from public, anon, authenticated;'));
   assert.ok(sql.includes('grant select, delete on public.parcours_alerte to service_role;'), 'la fonction d’envoi la lit et l’efface');
@@ -110,10 +39,10 @@ test('base de l’appli : la table des inscrits, sans droit direct ; parcours_al
   assert.ok(sql.includes('on conflict (cle, parcours) do update set jeton = excluded.jeton, inscrit_le = now();'));
   assert.ok(sql.includes('grant execute on function public.parcours_alerter(text, text, text, boolean) to anon, authenticated;'));
   assert.ok(sql.includes('  delete from public.parcours_vote where cle = v_cle;\n  delete from public.parcours_alerte where cle = v_cle;'), 'Supprimer mon compte');
-  /* L’appel de l’appli a les paramètres de la fonction */
-  assert.ok(block.includes("clsRpc('parcours_alerter',{p_cle:clsCle(),p_parcours:id,p_jeton:on?P.jeton:null,p_on:on})"));
+  /* 16 novembre : l’appli ne s’inscrit plus (l’alerte est retirée) et la confidentialité n’en parle plus */
+  assert.ok(!app.includes("clsRpc('parcours_alerter'") && !app.includes('notifAutoriser') && !app.includes('notifJeton'));
   const conf = lire('decouvrir/confidentialite.html');
-  assert.ok(conf.includes('<li><b>Alerte «&nbsp;M’avertir au lancement&nbsp;»</b> (facultatif).') && conf.includes('ton vote, tes alertes de parcours, tes avis sur les leçons'));
+  assert.ok(!conf.includes('M’avertir au lancement') && !conf.includes('tes alertes de parcours') && conf.includes('tes avis sur les leçons'));
 });
 
 /* ---------- La fonction d’envoi ---------- */
@@ -158,14 +87,12 @@ test('parcours-annoncer : la notification part à chacun, puis les inscrits serv
   assert.deepEqual(await pousserUn('9'.repeat(64), {}, async () => ({ status: 400, raison: 'DeviceTokenNotForTopic' })), { ok: false, oublier: true });
 });
 
-test('parcours-annoncer : déployée sans JWT, la clé d’Apple de la salle dans l’île, le secret de l’annonce ; la commande est dans IOS.md', () => {
+test('parcours-annoncer : déployée sans JWT, la clé d’Apple de la salle dans l’île, le secret de l’annonce ; IOS.md dit qu’elle ne sert plus', () => {
   const idx = lire('supabase/functions/parcours-annoncer/index.ts');
   assert.ok(idx.includes("const cle = Deno.env.get('PARCOURS_ANNONCE_CLE') ?? '';") && idx.includes("'apns-push-type': 'alert', 'apns-topic': sujet"));
   assert.ok(idx.includes('Deno.serve(createAnnonceHandler({cle, pret: !!(pem && kid && equipe), lire, effacer, envoyer}));'));
   assert.equal(lire('supabase/functions/parcours-annoncer/apns.mjs'), lire('supabase/functions/jeu-ile/apns.mjs'), 'la même signature que la salle dans l’île');
   const ios = lire('IOS.md');
-  assert.ok(ios.includes('### Le jour où un parcours ouvre : la notification (11 novembre, 15 h 55)'));
-  assert.ok(ios.includes(`curl -sS -X POST "https://ynuenrxozcpkrjdbeftc.supabase.co/functions/v1/parcours-annoncer" -H "x-annonce: TA_CLE" -H "Content-Type: application/json" -d '{"parcours":"python","essai":true}'`));
-  assert.ok(ios.includes('`PARCOURS_ANNONCE_CLE`, avec un mot de passe que tu choisis'));
-  assert.ok(!/—/.test(ios.slice(ios.indexOf('    curl -sS'), ios.indexOf('La fonction (`supabase/functions/parcours-annoncer`)'))), 'pas de tiret long dans les commandes');
+  assert.ok(ios.includes('### Le jour où un parcours ouvre : la notification (11 novembre ; retirée le 16 novembre)'));
+  assert.ok(ios.includes('la fonction `parcours-annoncer` et le secret `PARCOURS_ANNONCE_CLE`. Les retirer\ntouche la base en ligne : seulement quand Elisa le demande.'));
 });

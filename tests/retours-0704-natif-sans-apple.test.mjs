@@ -111,26 +111,25 @@ test('2. le pont reçoit les notifications push touchées ; leur lien devient un
   assert.ok(lire('supabase/functions/parcours-annoncer/handler.mjs').includes("sound: 'default'}, parcours: id};"));
 });
 
-test('2. la page : « parcours.X » ouvre le parcours, « onglet.X » un onglet connu ; l’onboarding, le paywall et la séance d’abord', () => {
+test('2. la page : « onglet.X » ouvre un onglet connu, « parcours.X » plus rien (16 novembre) ; l’onboarding, le paywall et la séance d’abord', () => {
   const src = cut('const RACC_ONGLETS=', '\nfunction raccourciOuvrir(') + '\n' + fn('raccourciOuvrir');
   const essai = ({onboarded = true, bloque = false, seance = false} = {}) => {
     const j = {tabs: [], parcours: [], bandeau: [], toast: []};
     const ctx = vm.createContext({state: {onboarded}, stat: () => {}, sessionStorage: {setItem() {}, removeItem() {}},
       obBandeau: t => j.bandeau.push(t), obGardeBloque: () => bloque, toast: (a, b) => j.toast.push(b),
       document: {querySelector: q => (seance && q.includes('#scr-lesson.active')) ? {} : null},
-      switchTab: t => j.tabs.push(t), openParcours: id => j.parcours.push(id), setTimeout: () => {}});
+      switchTab: t => j.tabs.push(t), setTimeout: () => {}});
     vm.runInContext(src, ctx);
     return {j, ouvrir: t => ctx.raccourciOuvrir(t)};
   };
   let e = essai();
   e.ouvrir('fr.requete.app.parcours.python'); e.ouvrir('fr.requete.app.onglet.planning'); e.ouvrir('fr.requete.app.onglet.console');
   e.ouvrir('fr.requete.app.onglet.inconnu'); e.ouvrir('fr.requete.app.onglet.cartes');
-  assert.deepEqual(e.j.parcours, ['python']);
-  assert.deepEqual(e.j.tabs, ['planning', 'console'], 'un onglet inconnu ne fait rien');
+  assert.deepEqual(e.j.tabs, ['planning', 'console'], 'un onglet inconnu ne fait rien ; un parcours non plus : les parcours à venir sont retirés');
   e = essai(); e.ouvrir('fr.requete.app.planning'); e.ouvrir('fr.requete.app.cartes');
   assert.deepEqual(e.j.tabs, ['planning', 'collection'], 'les raccourcis d’avant, inchangés');
-  e = essai({onboarded: false}); e.ouvrir('fr.requete.app.parcours.excel');
-  assert.deepEqual(e.j.parcours, []); assert.deepEqual(e.j.bandeau, ['Termine ton parcours de bienvenue : tout le reste t’attend juste après !']);
+  e = essai({onboarded: false}); e.ouvrir('fr.requete.app.parcours.excel'); e.ouvrir('fr.requete.app.onglet.compte');
+  assert.deepEqual(e.j.tabs, []); assert.deepEqual(e.j.bandeau, ['Termine ton parcours de bienvenue : tout le reste t’attend juste après !']);
   e = essai({bloque: true}); e.ouvrir('fr.requete.app.onglet.compte');
   assert.deepEqual(e.j.tabs, [], 'le paywall garde l’appli');
   e = essai({seance: true}); e.ouvrir('fr.requete.app.onglet.compte');

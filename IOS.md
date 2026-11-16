@@ -522,33 +522,14 @@ reste, avec un achat il ouvre l’appli ; l’offre de bienvenue à −50 % (`fr
 s’ouvre. Les montants s’écrivent tous de la même façon depuis 2 h 41 (« 19,99 $US au lieu de 39,99 $US ») : une capture avec
 « $19.99 » et « 20 $US » vient d’une version plus ancienne.
 
-### Le jour où un parcours ouvre : la notification (11 novembre, 15 h 55)
+### Le jour où un parcours ouvre : la notification (11 novembre ; retirée le 16 novembre)
 
-« M’avertir au lancement » (sur la page d’un parcours à venir, cachée pour la 1.0 depuis le 14 novembre) est une vraie notification dans l’appli iPhone : en activant
-l’alerte, iOS demande l’autorisation des notifications (une seule fois) ; l’appareil s’inscrit alors à la base de l’appli
-(`parcours_alerter` : l’empreinte de sa clé, le parcours, le jeton de push d’Apple ; table `parcours_alerte`,
-`supabase/migrations/20261111160000_parcours_alerte_push.sql`, appliquée le 11 novembre). Couper l’alerte efface la ligne ;
-« Supprimer mon compte » aussi. Notifications refusées, ou sur le site : le message dans l’appli à son ouverture, comme avant.
-Le jeton arrive par l’AppDelegate (branché par `scripts/ios-widget.mjs`) et `RequetePush` (`RequeteWidgetPlugin.swift`).
-
-**Une seule fois (Elisa)** : supabase.com › projet requete-sql › **Edge Functions** › **Secrets** › Add new secret :
-`PARCOURS_ANNONCE_CLE`, avec un mot de passe que tu choisis (long, à garder : c’est lui qui autorise l’envoi). La clé d’Apple est
-celle de la salle dans l’île (`APNS_KEY`, `APNS_KEY_ID`, `APNS_TEAM_ID`, plus haut) : sans elle, rien ne part.
-
-**Le jour J**, une fois en ligne sur l’App Store la mise à jour où le parcours est ouvert (`dispo:true` dans `PARCOURS`), dans le
-Terminal (remplace `TA_CLE` par ton mot de passe et `python` par `excel` ou `powerbi` si besoin). D’abord l’essai, qui n’envoie
-rien et dit combien d’iPhone attendent (`inscrits`) et si la clé d’Apple est là (`cleApple`) :
-
-    curl -sS -X POST "https://ynuenrxozcpkrjdbeftc.supabase.co/functions/v1/parcours-annoncer" -H "x-annonce: TA_CLE" -H "Content-Type: application/json" -d '{"parcours":"python","essai":true}'
-
-Puis l’envoi, la même commande sans l’essai :
-
-    curl -sS -X POST "https://ynuenrxozcpkrjdbeftc.supabase.co/functions/v1/parcours-annoncer" -H "x-annonce: TA_CLE" -H "Content-Type: application/json" -d '{"parcours":"python"}'
-
-La fonction (`supabase/functions/parcours-annoncer`) envoie « Python pour la data est ouvert ! — Le nouveau parcours t’attend
-dans Requête. Mets l’appli à jour si besoin. », puis efface les inscrits servis (et les iPhone qu’Apple ne connaît plus) ; elle
-répond `envoyees`, `oubliees` et `restantes` (Apple indisponible) : relancer la même commande renvoie seulement à ceux qui restent.
-`"veille": true` : la clé d’Apple manque. « Clé d’annonce absente ou fausse » : le mot de passe ne correspond pas au secret.
+16 novembre, 17 h 45 (Elisa : « tu peux supprimer à distance les autres learning path, j’aurais pas besoin ») : Python, Excel et
+Power BI sont retirés de l’appli, et avec eux « M’avertir au lancement » : l’appli ne propose plus l’alerte, ne demande plus
+l’autorisation des notifications pour elle et n’envoie plus de jeton. Restent dans Supabase, sans plus rien qui les appelle : la
+table `parcours_alerte` (`parcours_alerter`), la fonction `parcours-annoncer` et le secret `PARCOURS_ANNONCE_CLE`. Les retirer
+touche la base en ligne : seulement quand Elisa le demande. Le natif de la 1.0 (`RequetePush`, le jeton dans l’AppDelegate) ne
+change pas avant une nouvelle version sur l’App Store ; sans la page, il ne sert plus.
 
 ### Les retours par e-mail (12 novembre, 22 h 07)
 
@@ -704,17 +685,12 @@ dans App Store Connect (prix, abonnements, fiche). Apple autorise le télécharg
 ne change pas l’objet de l’appli telle qu’elle a été présentée, ne crée pas de boutique et ne contourne pas la sécurité du
 système : corriger et enrichir les cours reste dans ce cadre ; une fonction d’une tout autre nature, non.
 
-**Les parcours à venir, cachés pour la 1.0** (14 novembre, 19 h 36 ; l’audit App Review, règle 2.1 ; Elisa : « cacher les pages
-et les ajouter quand elles seront prêtes, une par une, avec la fonction à distance ») : `PARCOURS_AVENIR_MONTRES=false`
-(index.html) cache les pastilles « À venir » de l’accueil, la section « À venir », les pages de Python, Excel et Power BI et
-les alertes de chaque parcours. Le vote reste (19 h 54, « comment ils vont faire pour voter ? ») : c’est un sondage qui marche,
-rien n’y est annoncé. Puis (20 h 09) une pastille « Vote pour le prochain parcours › » sous « Parcours SQL » ouvrait sa page
-(vote et alerte) ; à 20 h 54, Elisa l’a retirée (« je vais pas le mettre ») : pas de vote ni d’alerte dans la 1.0, les votes et
-alertes déjà donnés restent gardés. Un parcours prêt passe à `dispo:true` et apparaît, avec ses vraies leçons. Deux précautions : ne pas remettre les pages
-d’annonce juste après la validation (la règle 2.5.19 du 16 octobre 2026 interdit les fonctions cachées pendant la vérification
-puis montrées) ; et un parcours entier, surtout Python, qui demandera son propre moteur, passe de préférence par une mise à
-jour sur l’App Store, décrite dans les notes pour la vérification (et annoncée dans « Nouveautés ») ; la mise à jour à
-distance reste faite pour ajouter des leçons et corriger.
+**Les parcours à venir, retirés** (16 novembre, 17 h 45 ; Elisa : « tu peux supprimer à distance les autres learning path,
+j’aurais pas besoin ») : Python, Excel et Power BI ne sont plus dans le code, pas seulement cachés (ils l’étaient depuis le
+14 novembre, `PARCOURS_AVENIR_MONTRES=false`). Partent avec eux l’écran « Parcours », les pages, l’alerte de lancement et sa
+notification, le vote, « En tête » et l’annonce d’ouverture ; SQL est le seul parcours. Les notes pour la vérification d’Apple le
+disent. Un nouveau parcours passerait par une version sur l’App Store, décrite dans les notes pour la vérification (règle 2.5.19 :
+pas de fonction cachée puis montrée) ; la mise à jour à distance reste faite pour ajouter des leçons et corriger.
 
 **Publier** (trois gestes, dans cet ordre) :
 
@@ -970,16 +946,9 @@ son accord, vérifiée par un essai annulé : rien n’est resté dans la base) 
   `contact_boite` : Storage › contact-pieces, puis le dossier du même nom, pour les ouvrir. Le ménage des 3 ans
   n’efface que les messages : supprimer à la main les fichiers des messages traités (et les dossiers sans message,
   si un envoi a échoué après le dépôt).
-- **Vote « Quel parcours après SQL ? »** (page d’un parcours à venir, 3 novembre ; plus proposé dans la 1.0 depuis le 14 novembre) : le parcours choisi, sa date et l’empreinte
-  de l’identifiant tiré au hasard par l’appareil partent dans la table `parcours_vote` (fonction `parcours_voter`, un vote
-  par appareil, revoter le remplace). Appliquée le 4 novembre : `supabase/migrations/20261104160653_parcours_vote.sql`.
-  **Résultats** : vue `parcours_votes`. Le badge « En tête » de la page d’un parcours lit `parcours_en_tete` (le seul
-  parcours en tête, sans chiffres, à partir de 10 votes et sans égalité ; appliquée le 11 novembre :
-  `supabase/migrations/20261111143000_parcours_en_tete.sql`). Dans App Store Connect, déclarer « Identifiant
-  utilisateur » (l’identifiant au hasard) et « Autres données d’usage » (le vote) ; usage « Analyses » ; non liés à
-  l’identité, sans pistage. L’alerte « M’avertir au lancement » ne reste plus seulement sur l’appareil depuis le 11 novembre :
-  avec les notifications acceptées, le jeton de notification d’Apple, les parcours et l’empreinte de l’identifiant vont dans
-  `parcours_alerte` (voir « Le jour où un parcours ouvre »), effacés à l’envoi ou quand l’alerte est coupée.
+- **Vote « Quel parcours après SQL ? »** et **alerte « M’avertir au lancement »** : retirés de l’appli le 16 novembre, avec les
+  parcours à venir. Ce qui reste dans la base (tables `parcours_vote` et `parcours_alerte`, vue `parcours_votes`,
+  `parcours_en_tete`) ne reçoit plus rien ; « Supprimer mon compte » l’efface toujours.
 - **Avis sur les leçons** (« Donne ton avis sur la leçon », fin de leçon, 4 novembre) : la note (1 à 5 étoiles), le
   commentaire facultatif (500 signes), le numéro et le titre de la leçon, la date et l’empreinte de l’identifiant au hasard
   partent dans la table `avis_lecon` (fonction `lecon_noter`, un avis par appareil et par leçon, le changer le remplace).
@@ -1101,8 +1070,8 @@ Une version d’avant ne les connaît pas : la page le voit et fait comme avant.
    de l’app, et l’App Store affiche les deux langues.
 2. **Une notification push touchée ouvre le bon écran** (`RequetePushLien`, le pont est le `pushNotificationHandler` de Capacitor) :
    la charge envoyée par le serveur porte `lien` (`requete://seance`, `requete://cartes`, `requete://planning`, `requete://requete`,
-   `requete://parcours.python`, `requete://onglet.compte`, ou une invitation `https://requeteapp.com/?partie=…`), ou `parcours`
-   (l’annonce d’un parcours, déjà envoyée par parcours-annoncer). La page choisit l’écran (index.html, `raccourciOuvrir`,
+   `requete://onglet.compte`, ou une invitation `https://requeteapp.com/?partie=…`). Un lien `parcours.<id>` (l’annonce d’un
+   parcours) n’ouvre plus rien depuis le 16 novembre : les parcours à venir sont retirés. La page choisit l’écran (index.html, `raccourciOuvrir`,
    `RACC_ONGLETS`), après l’onboarding, le paywall et la séance en cours. L’app ouverte, la notification s’affiche quand même.
 3. **De vrais fichiers à partager** (`partagerFichiers` : `{ fichiers: [{ nom, base64 }] }`, dix au plus, 50 Mo) : la feuille de
    partage d’iOS (Fichiers, Photos pour une image, AirDrop, Mail). `saveFile` (index.html) passe par lui dans l’app : les stickers,

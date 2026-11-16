@@ -24,8 +24,8 @@ test('6 novembre, 8 h 49 : le grand % du module laisse la place à la leçon (la
   /* Le bouton garde ses deux lignes ; la seconde dit maintenant le temps qui reste (« Encore ~3 min »), la leçon est en grand au-dessus */
   assert.ok(h.includes('<span class="lq-cta-t"><b>${esc(ctaLabel)}</b><small>${esc(sub)}</small></span></button></section>'));
   assert.ok(h.includes('<h3 class="lq-a-titre">${esc(meta.titre)}</h3>'));
-  /* Le calcul du parcours reste celui de la page Parcours */
-  assert.ok(app.includes('function parcoursSqlFaites(){return MODULES.reduce((n,m)=>n+m.lessons.filter(l=>state.lessons[l.id]&&state.lessons[l.id].done).length,0);}'));
+  /* Le calcul du parcours reste celui de l’accueil (la page Parcours est retirée le 16 novembre) */
+  assert.ok(app.includes("if(state.lessons[l.id]&&state.lessons[l.id].done) done++;"));
   assert.ok(app.includes('  lqSesAjuste(host);   // mesuré avec le vrai nombre, avant que le compteur parte de 0 (audit du 6 novembre, bug 6)\n  lqSesCount(host);\n  lqPctAnime(host);\n  if(typeof lqFlammeBravo===\'function\')lqFlammeBravo();\n}'), '10 h 30 : puis, s’il le faut, la page « Bravo » de la flamme du jour');
 });
 
@@ -63,5 +63,5 @@ test('le style : la barre jaune de la leçon, le bouton sur deux lignes ; plus d
     assert.ok(lq.includes(k), k);
   assert.ok(!lq.includes('.lq-parc-n') && !lq.includes('.lq-hero-parc') && !lq.includes('.lq-parc-bar'), 'le style du grand chiffre est parti avec lui');
   assert.ok(!lq.includes('.lq-hero-pct') && !lq.includes('.lq-pct-ring'), 'plus d’anneau');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=387">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=388">'));
 });

@@ -109,34 +109,8 @@ test('réf. 12, 13 et 14 : la connexion en grand ; fermer la feuille d’Apple o
   assert.ok(auth.includes("obAuthMessage=!vite?'':provider==='apple'?"), 'fermée à la main : rien ; refermée aussitôt par iOS : quoi faire');
 });
 
-test('réf. 15 : le vote se met à jour sur place, sans flash ; ses résultats en pour cent, dès le premier vote, sans aucun nombre', () => {
-  const voter = cut('function parcoursVoter(btn){', '/* Sur place :');   // 14 novembre : le bouton touché (sa carte : l’accueil ou la page)
-  assert.ok(!voter.includes('renderParcoursScreen()'), 'la page n’est plus redessinée');
-  const sql = lire('supabase/migrations/20261112090000_parcours_resultats.sql');
-  assert.ok(sql.includes("select jsonb_build_object('seuil', 1, 'parts',") && sql.includes('case when t.total >= 1 then') && !/'votes'|'total'/.test(sql.split('$$')[1]), 'son choix : dès le premier vote');
-  assert.ok(sql.includes('grant execute on function public.parcours_resultats() to anon, authenticated;'));
-  /* Les résultats posés sur la page : une barre et un pourcentage par choix, une fois voté */
-  const opts = ['python', 'excel', 'powerbi'].map(id => {
-    const kids = []; const l = { classList: new Set(), querySelector: s => (s === 'input' ? { value: id } : s === '.pc-res' ? kids[0] || null : null),
-      insertAdjacentHTML: () => { kids.push({ style: { setProperty(k, v) { this[k] = v; } }, querySelector: () => kids.b || (kids.b = { textContent: '' }), remove() {} }); } };
-    l.classList.add = l.classList.add.bind(l.classList); l.classList.remove = l.classList.delete.bind(l.classList); l.kids = kids; return l;
-  });
-  const host = { querySelector: s => (s === '.pc-vote' ? {} : null), querySelectorAll: () => opts };
-  const ctx = vm.createContext({ document: { getElementById: () => host }, requestAnimationFrame: f => f(), parcoursVote: () => ({ id: 'excel' }) });
-  vm.runInContext(cut('let parcoursRes=null', 'function parcoursCloche(id,btn){').replace('let parcoursRes=null,', 'var parcoursRes=null,'), ctx);
-  vm.runInContext("parcoursRes={seuil:10,parts:{python:46,excel:31,powerbi:23}}", ctx);
-  ctx.parcoursResultatsPeindre();
-  assert.deepEqual(opts.map(l => [l.classList.has('has-res'), l.kids[0].style['--pc-part'], l.kids.b.textContent]),   // 14 novembre : --pc-part (--p est pris par l’anneau)
-    [[true, '46%', '46 %'], [true, '31%', '31 %'], [true, '23%', '23 %']]);
-});
-
-test('les cloches de la liste : l’alerte s’active sur place, sans changer de page ; les boutons ne remontent plus en haut sans besoin', () => {
-  const liste = cut('function parcoursListeHTML(){', '/* 11 novembre, 15 h 15');
-  assert.ok(liste.includes('<button type="button" class="pc-bell${on?\' is-on\':\'\'}" aria-pressed="${on?\'true\':\'false\'}"') && liste.includes('onclick="parcoursCloche(\'${p.id}\',this)"'));
-  assert.ok(!/<button type="button" class="pc-card is-soon"[^`]*class="pc-bell/.test(liste.split('<span class="pc-bell-place"')[0]), 'la cloche n’est plus dans le bouton de la carte');
-  const cloche = cut('function parcoursCloche(id,btn){', '/* Le vote part à la base');
-  assert.ok(!/openParcours|switchTab/.test(cloche) && cloche.includes("btn.classList.add(on?'is-sonne':'is-coupe');"));
-  assert.ok(lq.includes('@keyframes pcSonne{') && lq.includes('html.lq .pc-bell.is-sonne .pc-bell-ok{animation:pcOk'));
+/* 16 novembre : réf. 15 (le vote) et les cloches de la liste sont retirés avec les parcours à venir ; reste le défilement des onglets */
+test('les boutons ne remontent plus en haut sans besoin', () => {
   const onglets = cut('function setConsoleProjectPanel(panel){', 'function onConsoleTabsKey(event){');
   assert.ok(!onglets.includes('screen.scrollTo({top:0,') && onglets.includes('if(y<haut)screen.scrollTo('), 'Éditeur, Épinglées, Historique : on reste où l’on est');
   assert.ok(cut('function entretienBack(){', 'returnToParent();').includes('const sc=document.getElementById(\'scr-entretien\'),y=entListeY;'), 'retour à la liste des questions : à sa place');

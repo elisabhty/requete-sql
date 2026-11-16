@@ -74,7 +74,7 @@ test('un autre compte sur le même iPhone : l’appareil se vide du compte d’a
   ls.set('requete-compte-dernier', 'u-2');
   assert.equal(ctx.compteAutre('u-2'), false); assert.equal(ctx.compteAutre('u-1'), true);
   const v = app.slice(app.indexOf('function compteViderPourAutre(){'), app.indexOf('\n}\n', app.indexOf('function compteViderPourAutre(){')));
-  assert.ok(v.includes('const garde={onboarded:state.onboarded,preferences:state.preferences,salle:state.salle,parcoursPush:state.parcoursPush};') && v.includes('state=normalizeState(garde);'),
+  assert.ok(v.includes('const garde={onboarded:state.onboarded,preferences:state.preferences,salle:state.salle};') && v.includes('state=normalizeState(garde);'),
     'seuls les réglages et le joueur restent');
   const a = app.slice(app.indexOf('async function obStartAuth('), app.indexOf('\n}\n', app.indexOf('async function obStartAuth(')));
   assert.ok(a.indexOf('const autre=') < a.indexOf("state.accountMode='connected';"), 'comparé avant de toucher à l’appareil');
