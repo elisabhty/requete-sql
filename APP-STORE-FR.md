@@ -103,5 +103,16 @@ Rien à écrire pour la 1.0 : le champ n'existe pas pour la première version (l
 ## Captures d’écran (préparées le 16 novembre, gardées par Elisa)
 
 Huit captures par langue, faites sur les vrais écrans de l’appli (accueil, cours en vidéo, moment « À toi », exécution pas à pas,
-console, défis, entretien, cartes mémo), dans un iPhone, avec une accroche et la mascotte Requête. Format 1320 × 2868 (iPhone 6,9 pouces,
-l’emplacement demandé par App Store Connect) ; une copie en 1206 × 2622 (6,3 pouces) est prête si on veut la mettre aussi.
+console, défis à plusieurs, entretien, cartes mémo), dans un iPhone, avec une accroche, la mascotte Requête, le doigt qui appuie,
+confettis et feux d'artifice. Dans App Store Connect (novembre 2026), l'emplacement demandé est « iPhone avec Dynamic Island (écran
+moyen) » : 1206 × 2622. Les fichiers sont sur le Mac d'Elisa, Téléchargements › Requete-AppStore › 6.3 (et les 1320 × 2868 à côté).
+
+## Rempli dans App Store Connect le 16 novembre (par Claude, à la demande d'Elisa ; rien n'est soumis)
+
+- Langue principale : Anglais (États-Unis) ; fiches française et anglaise : nom, sous-titre, texte promotionnel, description,
+  mots-clés, URL d'assistance et marketing ; catégorie Éducation ; URL de confidentialité dans les deux langues.
+- Prix : gratuit ; disponibilité : 174 pays, sans la Chine continentale ; les trois abonnements restent dans tous les pays.
+- Abonnements : noms et descriptions en anglais ajoutés (groupe, annuel, annuel bienvenue, hebdo).
+- Vérification : « Connexion requise » décochée, note pour l'équipe de vérification (en anglais).
+- Reste à Elisa : glisser les captures, l'en-tête (facultatif), le copyright et ses coordonnées, le build, la confidentialité des
+  données, la classification par âge, les droits sur le contenu, puis la soumission.

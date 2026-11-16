@@ -53,7 +53,7 @@ Comme en français (16 novembre) : le sous-titre ne répète pas « SQL », déj
     • Keep your daily flame alive and build your streak
     • Challenge your friends in live rooms: same case, same timer, the fastest wins
     • Home Screen and Lock Screen widgets, including a pocket SQL question you can answer without opening the app
-    • Lessons work offline once you’re signed in
+    • Lessons also work offline
 
     Sign in with Apple or Google if you want to save your progress and find it on another iPhone. Your imported files never leave your device.
 
