@@ -6575,6 +6575,13 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Table « {x1} » réinitialisée : données du cours rétablies": "“{x1}” table reset: lesson data restored",
     "Table « {x1} » réinitialisée : état initial du fichier rétabli": "“{x1}” table reset: the file’s initial state restored",
     "Projet « {x1} » supprimé": "“{x1}” project deleted",
+    /* 16 novembre, 6 h 49 : « Ouvrir dans Requête » (un fichier reçu d’une autre app) */
+    "Termine ton parcours de bienvenue : ton fichier s’ouvrira juste après, dans la Console.": "Finish your welcome journey: your file will open right after, in the Console.",
+    "Ton fichier t’attend": "Your file is waiting",
+    "Il s’ouvrira dans la Console à la fin de ta séance.": "It will open in the Console at the end of your session.",
+    "Il s’ouvrira quand tu auras fini cet import.": "It will open once you’ve finished this import.",
+    "Fichier illisible": "Unreadable file",
+    "« {x1} » n’a pas pu être ouvert. Essaie de l’importer depuis la Console, avec « Importer un fichier ».": "“{x1}” couldn’t be opened. Try importing it from the Console, with “Import a file”.",
     /* 16 novembre, 6 h 01 (Elisa, réf. 1 : « elle dit produit en français ») : la fin des 71 vidéos (« Pour finir… », « Ajoute ce
        résumé… ») n’était traduite que dans « Les bases de données relationnelles » ; ici, pour toutes. */
     "Pour finir, voici les <1>trois idées à retenir</1>.": "Finally, here are the <1>three ideas to remember</1>.",

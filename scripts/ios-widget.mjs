@@ -81,6 +81,34 @@ if (existsSync(infoApp)) {
   }
 }
 
+/* 1 sexies. « Ouvrir dans Requête » (16 novembre, 6 h 49, Elisa : « oui ça je le veux maintenant ») : un CSV, un Excel (xlsx, xls),
+   un tableur OpenDocument, un JSON, un script .sql ou une base SQLite reçu par mail, WhatsApp ou dans Fichiers propose Requête ; le
+   fichier arrive dans la Console (RequeteFichier, index.html fichierRecu). Requête n’est qu’une app de plus pour ces fichiers
+   (LSHandlerRank Alternate) ; iOS lui en donne une copie (LSSupportsOpeningDocumentsInPlace à NO, que l’App Store demande avec des
+   types de documents). .sql et .sqlite n’ont pas de type d’Apple : ils sont déclarés ici (UTImportedTypeDeclarations). Ajoutés une
+   fois, avant la fin du dictionnaire principal ; un Info.plist qui a déjà ses types de documents n’est pas touché. */
+if (existsSync(infoApp)) {
+  const t = readFileSync(infoApp, 'utf8'), k = t.lastIndexOf('</dict>');
+  const chaines = l => l.map(x => `\t\t\t\t<string>${x}</string>\n`).join('');
+  const types = ['public.comma-separated-values-text', 'public.tab-separated-values-text', 'public.json', 'org.openxmlformats.spreadsheetml.sheet',
+    'com.microsoft.excel.xls', 'org.oasis-open.opendocument.spreadsheet', 'fr.requete.sql', 'fr.requete.sqlite'];
+  const importe = (id, desc, conforme, ext, mime) => `\t\t<dict>\n\t\t\t<key>UTTypeIdentifier</key>\n\t\t\t<string>${id}</string>\n`
+    + `\t\t\t<key>UTTypeDescription</key>\n\t\t\t<string>${desc}</string>\n\t\t\t<key>UTTypeConformsTo</key>\n\t\t\t<array>\n${chaines(conforme)}\t\t\t</array>\n`
+    + `\t\t\t<key>UTTypeTagSpecification</key>\n\t\t\t<dict>\n\t\t\t\t<key>public.filename-extension</key>\n\t\t\t\t<array>\n${chaines(ext).replace(/\t\t\t\t<string>/g, '\t\t\t\t\t<string>')}\t\t\t\t</array>\n`
+    + `\t\t\t\t<key>public.mime-type</key>\n\t\t\t\t<array>\n${chaines(mime).replace(/\t\t\t\t<string>/g, '\t\t\t\t\t<string>')}\t\t\t\t</array>\n\t\t\t</dict>\n\t\t</dict>\n`;
+  const docs = '\t<key>CFBundleDocumentTypes</key>\n\t<array>\n\t\t<dict>\n\t\t\t<key>CFBundleTypeName</key>\n\t\t\t<string>Tableau ou base de données</string>\n'
+    + '\t\t\t<key>CFBundleTypeRole</key>\n\t\t\t<string>Viewer</string>\n\t\t\t<key>LSHandlerRank</key>\n\t\t\t<string>Alternate</string>\n'
+    + `\t\t\t<key>LSItemContentTypes</key>\n\t\t\t<array>\n${chaines(types)}\t\t\t</array>\n\t\t</dict>\n\t</array>\n`
+    + '\t<key>UTImportedTypeDeclarations</key>\n\t<array>\n'
+    + importe('fr.requete.sql', 'Script SQL', ['public.plain-text'], ['sql'], ['application/sql'])
+    + importe('fr.requete.sqlite', 'Base SQLite', ['public.data', 'public.database'], ['sqlite', 'sqlite3', 'db', 'db3'], ['application/vnd.sqlite3', 'application/x-sqlite3'])
+    + '\t</array>\n\t<key>LSSupportsOpeningDocumentsInPlace</key>\n\t<false/>\n';
+  if (t.includes('<string>fr.requete.sqlite</string>')) {}
+  else if (t.includes('<key>CFBundleDocumentTypes</key>')) console.warn('⚠️  Info.plist a déjà des types de documents : « Ouvrir dans Requête » n’y est pas (voir IOS.md).');
+  else if (k > 0 && t.indexOf('</plist>', k) > k) writeFileSync(infoApp, t.slice(0, k) + docs + t.slice(k));
+  else console.warn('⚠️  Info.plist inattendu : « Ouvrir dans Requête » n’y est pas.');
+}
+
 /* 2. Main.storyboard : le contrôleur de l’app, qui enregistre le pont du widget. Seulement une fois le projet prêt (étape 3) :
    un storyboard qui désignerait un contrôleur absent du projet ouvrirait l’app sur un écran vide. */
 const sb = readFileSync(story, 'utf8');

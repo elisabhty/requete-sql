@@ -1071,3 +1071,19 @@ Il lui faut une clé (developer.apple.com › Keys › « + », cocher **Sign in
 fr.requete.app ; télécharger le .p8, une seule fois) et trois secrets dans Supabase (Edge Functions › Secrets) :
 `APPLE_SIWA_KEY` (le contenu du .p8, lignes BEGIN et END comprises), `APPLE_SIWA_KEY_ID` (10 caractères), `APPLE_TEAM_ID`.
 Sans eux, la fonction répond « veille » : la connexion et la suppression marchent, sans la révocation.
+
+## « Ouvrir dans Requête » (16 novembre, 6 h 49)
+
+Un CSV, un TSV, un Excel (.xlsx, .xls), un tableur OpenDocument (.ods), un JSON, un script .sql ou une base SQLite (.sqlite, .db)
+reçu par mail, WhatsApp ou rangé dans Fichiers propose Requête (Partager › Requête, ou « Ouvrir dans… »). Le fichier arrive dans la
+Console, sur « Importer une table », comme « Importer un fichier ».
+
+- Info.plist (scripts/ios-widget.mjs, étape 1 sexies) : `CFBundleDocumentTypes` (Requête n’est qu’une app de plus pour ces fichiers,
+  `LSHandlerRank` Alternate), `UTImportedTypeDeclarations` pour .sql et .sqlite (Apple n’a pas de type pour eux) et
+  `LSSupportsOpeningDocumentsInPlace` à NO (iOS donne une copie ; l’App Store refuse des types de documents sans cette clé).
+- Le pont (RequeteWidgetPlugin.swift, `RequeteFichier`) : le délégué de scène passe le fichier comme un lien ; sa copie est rangée
+  dans Library/Caches/Fichiers et la page la lit (`fichierRecu`, index.html), puis la fait effacer (`fichierFini`).
+- La page attend la fin du parcours de bienvenue, du paywall ou de la séance en cours, et le dit une fois.
+
+Pour l’essayer après `npm run ios` (ou TestFlight) : dans Mail ou Fichiers, un CSV › Partager › Requête. Sans la nouvelle app
+(une version d’avant), rien ne change : Requête n’apparaît pas dans la liste.

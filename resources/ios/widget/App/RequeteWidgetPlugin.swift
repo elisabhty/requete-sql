@@ -40,6 +40,10 @@ enum RequeteRaccourci {
     /// Un lien de Requête (le bouton « Allumer ma flamme » du widget La cheminée, 7 novembre) : son hôte devient un raccourci,
     /// « seance » donne « fr.requete.app.seance ». La page ignore ce qu’elle ne connaît pas (index.html, raccourciOuvrir).
     static func ouvrir(_ lien: URL) {
+        if lien.isFileURL {
+            RequeteFichier.recevoir(lien)
+            return
+        }
         if lien.scheme == "https" {
             invitation(lien)
             return
@@ -61,6 +65,69 @@ enum RequeteRaccourci {
         let brut: String = elements.first(where: { $0.name == "de" })?.value ?? ""
         let de: String = String(brut.prefix(40)).replacingOccurrences(of: "|", with: "")
         recevoir("fr.requete.app.partie." + code + (de.isEmpty ? "" : "|" + de))
+    }
+}
+
+/// « Ouvrir dans Requête » (16 novembre, 6 h 49, Elisa : « oui ça je le veux maintenant ») : un CSV, un Excel, un JSON, un script
+/// .sql ou une base SQLite, reçu par mail, WhatsApp ou dans Fichiers, arrive comme un lien (SceneDelegate, RequeteRaccourci.ouvrir).
+/// iOS en donne une copie (Documents/Inbox, LSSupportsOpeningDocumentsInPlace à NO : scripts/ios-widget.mjs) ; elle est rangée dans
+/// Library/Caches/Fichiers, et la page la lit à l’adresse que Capacitor sert (convertFileSrc), puis l’importe dans la Console
+/// (index.html, fichierRecu). Une fois lue, la page la fait effacer (fichierFini) ; celles d’il y a plus d’un jour partent au lancement.
+enum RequeteFichier {
+    static var enAttente: [String: Any]?
+    static let annonce = Notification.Name("RequeteFichier")
+
+    static func dossier() -> URL? {
+        guard let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else { return nil }
+        return caches.appendingPathComponent("Fichiers", isDirectory: true)
+    }
+
+    static func recevoir(_ lien: URL) {
+        let acces: Bool = lien.startAccessingSecurityScopedResource()
+        defer {
+            if acces { lien.stopAccessingSecurityScopedResource() }
+        }
+        let fm = FileManager.default
+        guard let dos = dossier() else { return }
+        try? fm.createDirectory(at: dos, withIntermediateDirectories: true)
+        let nom: String = lien.lastPathComponent
+        let cible: URL = dos.appendingPathComponent(UUID().uuidString + "-" + nom)
+        do {
+            try fm.copyItem(at: lien, to: cible)
+        } catch {
+            return
+        }
+        // La copie qu’iOS a faite pour l’app (Documents/Inbox) ne sert plus.
+        if lien.path.contains("/Documents/Inbox/") {
+            try? fm.removeItem(at: lien)
+        }
+        let attributs = try? fm.attributesOfItem(atPath: cible.path)
+        let taille: Int = (attributs?[.size] as? NSNumber)?.intValue ?? 0
+        enAttente = ["chemin": cible.path, "nom": nom, "taille": taille]
+        NotificationCenter.default.post(name: annonce, object: nil)
+    }
+
+    /// Seulement nos copies (Library/Caches/Fichiers), jamais un autre fichier.
+    static func effacer(_ chemin: String) {
+        guard let dos = dossier() else { return }
+        let base: String = dos.standardizedFileURL.path + "/"
+        let url = URL(fileURLWithPath: chemin).standardizedFileURL
+        guard url.path.hasPrefix(base) else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    /// Au lancement : les copies d’il y a plus d’un jour (un fichier jamais lu, l’app fermée avant).
+    static func nettoyer() {
+        guard let dos = dossier() else { return }
+        let fm = FileManager.default
+        let limite = Date().addingTimeInterval(-86400)
+        let fichiers = (try? fm.contentsOfDirectory(at: dos, includingPropertiesForKeys: [.contentModificationDateKey])) ?? []
+        for f in fichiers {
+            let date = (try? f.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? Date()
+            if date < limite {
+                try? fm.removeItem(at: f)
+            }
+        }
     }
 }
 
@@ -124,12 +191,17 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "notifJeton", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "abonnementGerer", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "noter", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "widgetsPoses", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "widgetsPoses", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "fichierFini", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
         NotificationCenter.default.addObserver(self, selector: #selector(raccourciRecu), name: RequeteRaccourci.annonce, object: nil)
         raccourciRecu()   // choisi avant que le pont n’existe (app lancée par le raccourci)
+        // « Ouvrir dans Requête » : un fichier reçu avant que le pont n’existe (l’app lancée par le fichier), ou plus tard.
+        NotificationCenter.default.addObserver(self, selector: #selector(fichierRecu), name: RequeteFichier.annonce, object: nil)
+        RequeteFichier.nettoyer()
+        fichierRecu()
         // Une leçon restée dans la Dynamic Island (l’app fermée en pleine leçon) : la page s’ouvre, plus rien n’est en cours. La carte
         // d’une leçon réussie (la flamme dorée, un quart d’heure sur l’écran verrouillé) reste jusqu’au bout.
         if #available(iOS 16.2, *) {
@@ -150,6 +222,20 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         // Le petit miaou de la salle dans l’île (les alertes poussées par le serveur), rangé là où iOS le cherche.
         RequeteSon.installer()
+    }
+
+    @objc private func fichierRecu() {
+        guard let f = RequeteFichier.enAttente else { return }
+        RequeteFichier.enAttente = nil
+        notifyListeners("fichier", data: f, retainUntilConsumed: true)
+    }
+
+    /// La page a lu le fichier reçu (ou n’a pas pu) : sa copie est effacée. { chemin }. Répond { ok }.
+    @objc func fichierFini(_ call: CAPPluginCall) {
+        if let chemin = call.getString("chemin") {
+            RequeteFichier.effacer(chemin)
+        }
+        call.resolve(["ok": true])
     }
 
     @objc private func raccourciRecu() {

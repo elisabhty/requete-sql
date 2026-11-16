@@ -68,7 +68,7 @@ test('la Live Activity dans le widget : l’écran verrouillé, la Dynamic Islan
 test('le pont : leconDebut, leconMaj, leconFin (iOS 16.2), et rien de resté à la relance de l’app', () => {
   const noms = [...pont.matchAll(/CAPPluginMethod\(name: "(\w+)", returnType: CAPPluginReturnPromise\)/g)].map(m => m[1]);
   assert.deepEqual(noms, ['maj', 'raccourcis', 'fond', 'leconDebut', 'leconMaj', 'leconFin', 'partager', 'ouvrir', 'flammeProgrammer', 'flammeAllumee', 'flammeArreter',
-    'salleDebut', 'salleMaj', 'salleFin', 'partagerTexte', 'accueilDebut', 'accueilMaj', 'accueilFin', 'notifAutoriser', 'notifJeton', 'abonnementGerer', 'noter', 'widgetsPoses'],
+    'salleDebut', 'salleMaj', 'salleFin', 'partagerTexte', 'accueilDebut', 'accueilMaj', 'accueilFin', 'notifAutoriser', 'notifJeton', 'abonnementGerer', 'noter', 'widgetsPoses', 'fichierFini'],
     'partager et ouvrir : la sauvegarde et « Noter Requête » (4 novembre, 22 h 08) ; puis ta flamme en direct (7 novembre, ios-flamme-direct) et la salle dans l’île (ios-salle-ile), l’onboarding dans l’île (ios-accueil-ile)');
   const classe = cut(pont, 'public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {', '\n}\n');
   for (const n of noms) assert.ok(classe.includes(`@objc func ${n}(_ call: CAPPluginCall) {`), `${n} dans la classe`);
@@ -104,12 +104,16 @@ test('scripts/ios-widget.mjs : NSSupportsLiveActivities ajouté une fois à l’
     const avant = '<?xml version="1.0" encoding="UTF-8"?>\n<plist version="1.0">\n<dict>\n\t<key>CFBundleDevelopmentRegion</key>\n\t<string>fr</string>\n\t<key>UISupportedInterfaceOrientations</key>\n\t<array>\n\t\t<string>UIInterfaceOrientationPortrait</string>\n\t</array>\n\t<key>NSAppTransportSecurity</key>\n\t<dict>\n\t\t<key>NSAllowsArbitraryLoads</key>\n\t\t<false/>\n\t</dict>\n</dict>\n</plist>\n';
     fs.writeFileSync(info, avant);
     execFileSync('node', [path.join(t, 'scripts/ios-widget.mjs')], {encoding: 'utf8'});
-    const apres = fs.readFileSync(info, 'utf8');
+    const apres0 = fs.readFileSync(info, 'utf8');
+    /* 16 novembre, 6 h 49 : « Ouvrir dans Requête » (retours-0649) ajoute ensuite ses types de documents, une fois */
+    const DOCS = /\t<key>CFBundleDocumentTypes<\/key>\n[\s\S]*?\t<key>LSSupportsOpeningDocumentsInPlace<\/key>\n\t<false\/>\n(?=<\/dict>\n<\/plist>\n$)/;
+    assert.ok(DOCS.test(apres0) && apres0.split('<key>CFBundleDocumentTypes</key>').length === 2, 'les types de documents, à la fin, une fois');
+    const apres = apres0.replace(DOCS, '');
     assert.equal(apres, avant.replace('\t</dict>\n</dict>\n</plist>\n', '\t</dict>\n\t<key>NSSupportsLiveActivities</key>\n\t<true/>\n\t<key>NSCameraUsageDescription</key>\n\t<string>Pour joindre une photo à ton message dans « Contacte-nous ».</string>\n\t<key>NSPhotoLibraryUsageDescription</key>\n\t<string>Pour joindre une capture d’écran à ton message dans « Contacte-nous ».</string>\n'
       + '\t<key>CFBundleURLTypes</key>\n\t<array>\n\t\t<dict>\n\t\t\t<key>CFBundleURLName</key>\n\t\t\t<string>fr.requete.app</string>\n\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n\t\t\t\t<string>requete</string>\n\t\t\t</array>\n\t\t</dict>\n\t</array>\n</dict>\n</plist>\n'),
       'dans le dictionnaire principal, pas dans le dernier sous-dictionnaire ; puis l’appareil photo et les photos (4 novembre, 22 h 08), puis le schéma « requete » du widget La cheminée (7 novembre)');
     execFileSync('node', [path.join(t, 'scripts/ios-widget.mjs')], {encoding: 'utf8'});
-    assert.equal(fs.readFileSync(info, 'utf8'), apres, 'relancé : une seule fois');
+    assert.equal(fs.readFileSync(info, 'utf8'), apres0, 'relancé : une seule fois');
     /* Une Info.plist illisible n’est pas touchée */
     fs.writeFileSync(info, 'pas un plist');
     const r = execFileSync('node', [path.join(t, 'scripts/ios-widget.mjs')], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']});

@@ -202,7 +202,8 @@ test('scripts/ios-widget.mjs : le schéma « requete » déclaré une fois ; des
     const lancer = () => execFileSync('node', [path.join(t, 'scripts/ios-widget.mjs')], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
     fs.writeFileSync(info, '<?xml version="1.0" encoding="UTF-8"?>\n<plist version="1.0">\n<dict>\n\t<key>CFBundleDevelopmentRegion</key>\n\t<string>fr</string>\n</dict>\n</plist>\n');
     lancer(); lancer();
-    const p = fs.readFileSync(info, 'utf8');
+    /* 16 novembre, 6 h 49 : puis les types de documents de « Ouvrir dans Requête » (retours-0649), à la fin */
+    const p = fs.readFileSync(info, 'utf8').replace(/\t<key>CFBundleDocumentTypes<\/key>\n[\s\S]*?\t<key>LSSupportsOpeningDocumentsInPlace<\/key>\n\t<false\/>\n(?=<\/dict>\n<\/plist>\n$)/, '');
     assert.equal(p.split('<key>CFBundleURLTypes</key>').length - 1, 1, 'une seule fois');
     assert.ok(p.includes('\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n\t\t\t\t<string>requete</string>\n\t\t\t</array>\n\t\t</dict>\n\t</array>\n</dict>\n</plist>\n'), 'dans le dictionnaire principal');
     /* Des schémas d’URL déjà là (ajoutés dans Xcode) : laissés tels quels */
