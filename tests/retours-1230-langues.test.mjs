@@ -22,14 +22,15 @@ const VER = f => empreinte(fs.readFileSync(path.join(ROOT, f), 'utf8'));
 const MOTEUR = lire('langues.js'), EN = lire('langue-en.js'), app = lire('index.html'), sw = lire('sw.js');
 
 /* langues.js dans une fausse page. stock : le stockage de l’iPhone ; langue : celle de l’iPhone. */
-function page({stock = {}, langue = 'fr-FR', charger = true, fuseau = 'Europe/Paris', anglaisFini = false} = {}) {
+function page({stock = {}, langue = 'fr-FR', charger = true, fuseau = 'Europe/Paris', anglaisFini = true} = {}) {
   const ecrits = [], local = {...stock};
   const win = {};
   const ctx = {window: win, navigator: Array.isArray(langue) ? {language: langue[0], languages: langue} : {language: langue}, Intl: {DateTimeFormat: () => ({resolvedOptions: () => ({timeZone: fuseau})})}, location: {hostname: 'localhost.invalide', search: '', reload() { win.recharge = true; }},
     localStorage: {getItem: k => (k in local ? local[k] : null), setItem: (k, v) => { local[k] = String(v); }, removeItem: k => { delete local[k]; }},
     document: {write: h => ecrits.push(h), documentElement: {}, title: '', addEventListener() {}}, Map, WeakMap, JSON, Object, Array, String, RegExp, Math};
-  /* anglaisFini : le jour où l’anglais ne sera plus « en essai » */
-  vm.runInNewContext(anglaisFini ? MOTEUR.replace(/(en: \{[^}]*?), essai: true/, '$1') : MOTEUR, ctx);
+  /* 16 novembre, 8 h 12 (Elisa : « oui », l’anglais pour tout le monde à la sortie sur l’App Store) : l’anglais n’est plus « en
+     essai » ; anglaisFini: false l’y remet, pour vérifier ce mécanisme (il servira à la langue suivante) */
+  vm.runInNewContext(anglaisFini ? MOTEUR : MOTEUR.replace(/(entretien: '[^']*')( \})/, '$1, essai: true$2'), ctx);
   const L = win.REQUETE_LANGUE;
   if (charger && ecrits.length) vm.runInNewContext(EN, ctx);
   return {L, ecrits, local, win};
@@ -38,7 +39,8 @@ const ESSAI = {'requete-maj-canal': '"essai"'};
 const anglais = () => page({stock: {...ESSAI, 'requete-langue': 'en'}}).L;
 
 test('en français, langues.js ne fait rien', () => {
-  const p = page();
+  assert.deepEqual([...page().L.disponibles()], ['fr', 'en'], '16 novembre : l’anglais proposé à tous');
+  const p = page({anglaisFini: false});
   assert.equal(p.L.code, 'fr');
   assert.deepEqual(p.ecrits, [], 'aucun fichier de langue chargé');
   assert.equal(p.L.t('Continuer'), 'Continuer');
@@ -49,10 +51,10 @@ test('en français, langues.js ne fait rien', () => {
 });
 
 test('la langue de l’iPhone : jamais une langue inachevée toute seule, seulement sur un iPhone en essai qui l’a choisie', () => {
-  assert.equal(page({langue: 'en-US'}).L.code, 'fr', 'un iPhone en anglais reste en français tant que l’anglais est en essai');
-  assert.equal(page({stock: {'requete-langue': 'en'}}).L.code, 'fr', 'le choix seul ne suffit pas : il faut être en essai');
-  assert.equal(page({stock: ESSAI, langue: 'en-US'}).L.code, 'fr', 'en essai, mais sans l’avoir choisie');
-  const p = page({stock: {...ESSAI, 'requete-langue': 'en'}});
+  assert.equal(page({langue: 'en-US', anglaisFini: false}).L.code, 'fr', 'un iPhone en anglais reste en français tant que l’anglais est en essai');
+  assert.equal(page({stock: {'requete-langue': 'en'}, anglaisFini: false}).L.code, 'fr', 'le choix seul ne suffit pas : il faut être en essai');
+  assert.equal(page({stock: ESSAI, langue: 'en-US', anglaisFini: false}).L.code, 'fr', 'en essai, mais sans l’avoir choisie');
+  const p = page({stock: {...ESSAI, 'requete-langue': 'en'}, anglaisFini: false});
   assert.equal(p.L.code, 'en');
   assert.equal(p.L.locale, 'en-US');
   assert.deepEqual(p.ecrits, [`<script src="langue-en.js?v=${VER('langue-en.js')}"><\/script>`], 'le fichier de la langue est chargé tout de suite, avant le reste de la page');
@@ -63,7 +65,7 @@ test('la langue de l’iPhone : jamais une langue inachevée toute seule, seulem
   assert.equal(p.local['requete-langue'], 'fr');
   assert.equal(p.win.recharge, true);
   assert.equal(p.L.changer('de'), false);
-  assert.ok(MOTEUR.includes(`en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=${VER('langue-en.js')}', defis: 'langue-en-defis.js?v=${VER('langue-en-defis.js')}', entretien: 'langue-en-entretien.js?v=${VER('langue-en-entretien.js')}', essai: true }`), 'l’anglais reste en essai tant que sa traduction n’est pas terminée');
+  assert.ok(MOTEUR.includes(`en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=${VER('langue-en.js')}', defis: 'langue-en-defis.js?v=${VER('langue-en-defis.js')}', entretien: 'langue-en-entretien.js?v=${VER('langue-en-entretien.js')}' }`), '16 novembre : l’anglais n’est plus en essai');
 });
 
 test('traduire un texte : tel quel, avec ses nombres, le prénom, les mois et les jours ; sans traduction, il reste en français et il est noté', () => {
@@ -222,6 +224,8 @@ test('le jour où l’anglais est terminé : la langue de l’iPhone, sinon cell
   /* le choix fait dans Mon compte passe avant tout */
   assert.equal(code('en-US', 'America/New_York', {'requete-langue': 'fr'}), 'fr');
   assert.equal(code('fr-FR', 'Europe/Paris', {'requete-langue': 'en'}), 'en');
-  /* aujourd’hui (l’anglais en essai) : tout le monde reste en français */
-  for (const l of ['en-US', 'de-DE', 'ar-EG', 'ja-JP']) assert.equal(page({langue: l, fuseau: 'Asia/Tokyo', charger: false}).L.code, 'fr', l);
+  /* une langue encore en essai : tout le monde reste en français */
+  for (const l of ['en-US', 'de-DE', 'ar-EG', 'ja-JP']) assert.equal(page({langue: l, fuseau: 'Asia/Tokyo', charger: false, anglaisFini: false}).L.code, 'fr', l);
+  /* 16 novembre : l’anglais ouvert, sans rien d’autre */
+  assert.equal(page({langue: 'en-US', fuseau: 'America/New_York', charger: false}).L.code, 'en');
 });
