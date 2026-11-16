@@ -62,9 +62,11 @@ export async function navigateur() {
   try { pw = await import('playwright'); } catch (e) { pw = await import('/opt/npm-tools/node_modules/playwright/index.mjs'); }
   return pw.chromium.launch();
 }
-/* Un contexte d'iPhone vertical à la taille de la scène (1080 × 1920), dans la langue (le français : aucun réglage) */
+/* Un contexte d'iPhone vertical à la taille de la scène (1080 × 1920), dans la langue. 16 novembre (l'anglais ouvert à tous) :
+   le français aussi est choisi, sinon un navigateur en anglais verrait la vidéo en anglais. */
 export async function contexte(browser, langue, opts = {}) {
-  const ctx = await browser.newContext({viewport: {width: 1080, height: 1920}, deviceScaleFactor: opts.echelle || 1, serviceWorkers: 'block'});
+  const ctx = await browser.newContext({viewport: {width: 1080, height: 1920}, deviceScaleFactor: opts.echelle || 1, serviceWorkers: 'block', locale: !langue || langue === 'fr' ? 'fr-FR' : undefined});
+  if (!langue || langue === 'fr') await ctx.addInitScript(() => { try { localStorage.setItem('requete-langue', 'fr'); } catch (e) {} });
   if (langue && langue !== 'fr') await ctx.addInitScript(l => { try { localStorage.setItem('requete-langue-essai', '1'); localStorage.setItem('requete-langue', l); } catch (e) {} }, langue);
   /* Rien ne sort du serveur local (polices, Supabase…) */
   await ctx.route(u => !/^http:\/\/127\.0\.0\.1:\d+\//.test(String(u)) && !/^(data|blob):/.test(String(u)), r => r.fulfill({status: 404, body: ''}));

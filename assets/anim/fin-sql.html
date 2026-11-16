@@ -5,6 +5,9 @@
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
 <title>Requête · La fin du SQL : merci pour tout</title>
+<!-- La langue de l’appli (16 novembre, Elisa : l’anglais pour tous) : en français, rien ne change ; dans une autre langue, les
+     textes de cette vidéo sont dans {langue}/fin-sql.js (en/fin-sql.js pour l’anglais). -->
+<script src="../../langues.js?v=99e437e2" data-textes="{langue}/fin-sql.js?v=2f56d181"></script>
 <link rel="stylesheet" href="core.css">
 <style>
 /* La fin de l’apprentissage du SQL : une vidéo à part, que le lecteur lance seulement quand le dernier chapitre du projet
@@ -110,7 +113,7 @@
 .fflash{position:absolute;inset:0;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,.95),rgba(201,190,255,.4) 45%,rgba(201,190,255,0) 75%);opacity:0;visibility:hidden;pointer-events:none}
 </style>
 </head>
-<body>
+<body data-table="clients">
 <div id="stage">
   <div class="blob b1"></div>
   <div class="blob b2"></div>
@@ -305,13 +308,14 @@ function dom(){
     `<i class="fdot" id="zd${j + 1}">${j + 1}</i><span class="flb">${FMOD[j]}</span></div>`).join('');
   f += `<div class="fqt" id="fqt">Ta toute première requête</div><div class="fq" id="fq"><span class="k">SELECT</span> * <span class="k">FROM</span> clients;</div></div>`;
   f += '<div class="abs ftt" id="ftt"><span class="tg"><span class="emo">🎓</span>Apprentissage terminé</span><b>' +
-    [...'Tu parles SQL !'].map(c => c === ' ' ? ' ' : `<span>${c}</span>`).join('') + '</b></div>';
-  f += '<div class="abs fsx" id="fsx">' + FSTAT.map(([n, l], k) => `<div><b class="sw" id="zs${k}">${fcount(n).map((v, j) => `<i class="a${j}">${v}</i>`).join('')}</b><span>${l}</span></div>`).join('') + '</div>';
+    [...(typeof LG !== 'undefined' && LG ? LG.t('Tu parles SQL !') : 'Tu parles SQL !')].map(c => c === ' ' ? ' ' : `<span>${c}</span>`).join('') + '</b></div>';   // traduit avant d’être coupé en lettres
+  f += '<div class="abs fsx" id="fsx">' + FSTAT.map(([n, l], k) => `<div><b class="sw" id="zs${k}">${fcount(n).map((v, j) => `<i class="a${j}">${v}</i>`).join('')}</b><span${l === 'cours' ? ' data-en="lessons"' : ''}>${l}</span></div>`).join('') + '</div>';
   f += FBURST.map(([x, y, c], k) => `<div class="fbu" id="zb${k}" style="left:${x}px;top:${y}px"><b></b>` +
     Array.from({length: 26}, (_, i) => `<i style="background:${i % 3 ? c : '#fff'};box-shadow:0 0 14px ${c}"></i>`).join('') + '</div>').join('');
   f += `<div class="abs fpr" id="fpr"><span><span class="emo">⚑</span>${FDEFIS} défis t’attendent dans Pratiquer</span></div>`;
   f += '<img class="abs mascot fma" id="fma" src="mascotte.webp" alt=""><i class="fflash" id="fflash"></i></div>';
   $('#sf').innerHTML = f;
+  if (typeof LG !== 'undefined' && LG && LG.ecrireCode) LG.ecrireCode($('#fq'));   // la requête traduite avant d’être coupée en lettres
   splitChars($('#fq'));
 
   $('#sg').insertAdjacentHTML('beforeend', '<div class="abs emo tapf" id="tapf">👆</div><div class="abs emo tapf" id="tapw">👆</div>');

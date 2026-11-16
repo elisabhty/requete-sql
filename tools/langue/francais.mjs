@@ -20,7 +20,7 @@ try {
   for (const c of videos) {
     const pages = [];
     for (const s of [avant, ici]) {
-      const ctx = await b.newContext({viewport: {width: 1080, height: 1920}, deviceScaleFactor: 0.25, serviceWorkers: 'block'});
+      const ctx = await b.newContext({viewport: {width: 1080, height: 1920}, deviceScaleFactor: 0.25, serviceWorkers: 'block', locale: 'fr-FR'});   // 16 novembre : l'anglais ouvert à tous
       await ctx.route(u => !/^http:\/\/127\.0\.0\.1:\d+\//.test(String(u)) && !/^(data|blob):/.test(String(u)), r => r.fulfill({status: 404, body: ''}));
       const p = await ctx.newPage(); await p.goto(`${s.base}/assets/anim/${c}.html?app&embed`); await p.evaluate(() => window.__ready); pages.push(p);
     }

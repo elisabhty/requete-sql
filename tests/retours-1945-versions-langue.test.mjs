@@ -26,7 +26,7 @@ test('l’appli, les vidéos et le service worker demandent la version du jour',
     assert.ok(sw.includes(`'./${f}?v=${v}',`), `${f} dans sw.js`);
   }
   const pages = fs.readdirSync(path.join(ROOT, 'assets/anim')).filter(f => f.endsWith('.html') && lire('assets/anim/' + f).includes('data-textes="{langue}/'));
-  assert.equal(pages.length, 71);
+  assert.equal(pages.length, 72);   // les 71 vidéos des cours, et la vidéo de la fin du SQL (16 novembre : l’anglais ouvert à tous)
   for (const p of pages) assert.ok(lire('assets/anim/' + p).includes(`src="../../langues.js?v=${vl}"`), p);
   assert.ok(!/langues?(-en)?(-defis|-entretien)?\.js\?v=\d'/.test(sw + moteur), 'plus d’adresse fixe');
 });

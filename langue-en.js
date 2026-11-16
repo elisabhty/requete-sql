@@ -377,6 +377,7 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Texte et animations par défaut": "Default text and animations",
     "Contacte-nous": "Contact us",
     "Noter l’application": "Rate the app",
+    "Tu parles SQL !": "You speak SQL!",
     "Icône de l’app": "App icon",
     "Classique": "Classic",
     "Noël": "Christmas",
