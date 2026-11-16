@@ -174,7 +174,7 @@ test('« Partager l’invitation » : la feuille de partage avec « Rejoins-moi�
   /* Dans la carte de la salle : le bouton plein, puis « Copier le code » */
   /* 10 novembre, 9 h 10 (Elisa : « Copier le code avant partager ») */
   assert.ok(app.includes('${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><button type="button" class="jeu-btn is-wide jeu-share${jeuPartageCalme()?\' is-calme\':\'\'}" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button>'));
-  assert.ok(app.includes("'Tes amis entrent avec le lien de l’invitation, ou avec ce code.'") && app.includes('`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`'));
+  assert.ok(app.includes("'Tes amis entrent avec le lien de l’invitation, ou avec ce code.'") && !app.includes('J.pour'));
   assert.ok(app.includes('  html.lq #jeu-root .jeu-share{display:flex;align-items:center;justify-content:center;gap:9px;background:var(--accent)!important;'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-16-module-v3112';") && app.includes("const SW_CACHE='requete-2026-11-16-module-v3112';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-16-module-v3113';") && app.includes("const SW_CACHE='requete-2026-11-16-module-v3113';"));
 });

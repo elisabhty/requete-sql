@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=58bb1ac2" data-defis></script>
+<script src="langues.js?v=2cfce3e9" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -30386,16 +30386,10 @@ function amisListe(){
   Object.values(s.mates&&typeof s.mates==='object'?s.mates:{}).forEach(m=>{if(m&&m.n&&num(m.g)>0&&!(typeof jeuBloque==='function'&&jeuBloque(m.n)))out.set(drapCle(m.n),{n:m.n,g:num(m.g),w:num(m.w),l:num(m.l),at:num(m.at)});});
   return [...out.values()].sort((a,b)=>b.at-a.at||b.g-a.g);
 }
-/* « Défier » et « Inviter par lien » : une salle privée, au niveau et au nombre de manches habituels ; la salle d’attente donne le
-   code et « Copier le code » pour l’envoyer. */
-function jeuDefier(n){
-  if(typeof CHALLENGES==='undefined'||!SQL){if(typeof lqSay==='function')lqSay('Le moteur SQL se charge encore, réessaie dans un instant.');return;}
-  jeuPseudoPuis(()=>jeuStart(jeuRand(6),true,null,{nomId:'jeu-nom',pub:false,pour:n?jeuNom(n):''}));
-}
 /* La fiche d’un joueur (Elisa, 7 novembre, 21 h 44 : « depuis un classement, pouvoir défier quelqu’un ; depuis une fiche joueur, pouvoir
    voir ses scores ») : elle s’ouvre d’une ligne du classement ou de tes adversaires. Sa place (dans le classement d’où l’on vient), ses
    points et ses parties depuis toujours (jeu_classement_v2, portée « amis » réduite à lui : la base n’en donne pas plus), votre
-   face-à-face (tes parties avec lui, gardées sur l’appareil), puis « Défier » (8 novembre, 14 h 48 : plus « Ajouter à mes adversaires »).
+   face-à-face (tes parties avec lui, gardées sur l’appareil). (« Défier », retiré le 14 novembre, puis son code le 16.)
    La même feuille que celles de Jouer (dx-feuille) : × , le voile ou Échap la referment. */
 let dxFicheEtat=null;
 function dxFicheCls(id){
@@ -30489,12 +30483,6 @@ function dxFicheDuels(b){
   const on=l.hidden;l.hidden=!on;b.setAttribute('aria-expanded',String(on));
   const f=document.getElementById('dx-feuille');if(f&&typeof f._marque==='function')f._marque();
 }
-/* « Prendre ta revanche ⚡ » (22 h 19) quand ta dernière partie contre lui est perdue (sans elle, quand il mène) ; sinon « Défier ». */
-function dxFicheRevanche(m,e){
-  if(!m||!m.g)return false;
-  const d=dxDuels(e.n);
-  return d.length?d[0].res==='l':m.l>m.w;
-}
 /* 14 novembre, 22 h 39 (Elisa : « Dans le profil du joueur, précisez le niveau ») : son niveau SQL, en tête des pastilles sous son
    pseudo : « Niv. 3 » puis son nom, en jaune soleil, comme le badge de Mon compte. Envoyé par son appli avec son pseudo (nivSync),
    lu à l’ouverture du profil (jeu_niveaux) et gardé 10 min. Le nom au neutre (« Analyste relationnel·le ») : son genre n’est pas
@@ -30531,7 +30519,9 @@ function dxFicheHTML(){
      « Signaler ce pseudo » en petit sous les boutons (il quitte chaque ligne du classement).
      14 novembre, 18 h 09 (Elisa, sa capture de la fiche : « Ne pas mettre défier car c’est pas possible actuellement ») : plus de
      bouton « Défier » ni « Prendre ta revanche » : la salle privée qu’il ouvrait n’arrivait jamais chez l’autre joueur (seul son
-     code partagé à la main l’y menait). Il reste « Signaler et bloquer » ; dxFicheDefier attend un vrai moyen d’inviter. */
+     code partagé à la main l’y menait). Il reste « Signaler et bloquer ». 16 novembre, 18 h 17 (Elisa, sur la note pour Apple
+     « A "Challenge this player" button on player profiles is turned off » : « supprime également ») : le code du bouton
+     (dxFicheDefier, jeuDefier, dxFicheRevanche) est retiré aussi ; rien n’attend plus d’être rallumé. */
   const s=dxFicheSalle(e.n),niv=s?(JEU_NIVL[s.niv]||'Facile'):'';
   const c=typeof DEFIS!=='undefined'&&DEFIS.cls?DEFIS.cls:null;
   const x=c?Object.values(c.pages||{}).flat().find(y=>y&&!y.moi&&drapCle(y.pseudo)===drapCle(e.n)):null;
@@ -30585,11 +30575,6 @@ function dxFicheOuvrir(retour){
   if(bx){const marque=()=>bx.classList.toggle('is-defile',bx.scrollHeight>bx.clientHeight+1&&bx.scrollTop+bx.clientHeight<bx.scrollHeight-1);bx.addEventListener('scroll',marque,{passive:true});requestAnimationFrame(marque);el._marque=marque;setTimeout(marque,typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:720);}
   const montrer=()=>{el.classList.add('on');try{el.querySelector('.dx-f-boite').focus({preventScroll:true});}catch(e){}dxFeuilleCaler();};
   if(neuf){document.body.appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(montrer));}else montrer();
-}
-function dxFicheDefier(){
-  const e=dxFicheEtat;if(!e)return;
-  defisFeuilleFermer(true);dxFicheEtat=null;
-  jeuDefier(e.n);
 }
 function showScreen(){
   const scr=document.getElementById('scr-lesson');
@@ -37402,7 +37387,7 @@ function jeuStart(code,host,cid,opts){
   const niv=pris?pris.niv:picked?picked.niv:jeuNiv;
   const nb=pris?+pris.nb:Math.max(1,Math.min(jeuNb,jeuChallenges(niv).length||1));
   const me=sv?sv.me:jeuPid();
-  JEU={code,solo,verif,ranked:!!opts.secure,parCode:!!opts.parCode,created:!!host,me,nom,hostPid:host?me:null,niv,nb,max:solo?1:JEU_MAX,g:0,pub:!solo&&!!opts.pub,pour:solo?'':jeuNom(opts.pour||''),
+  JEU={code,solo,verif,ranked:!!opts.secure,parCode:!!opts.parCode,created:!!host,me,nom,hostPid:host?me:null,niv,nb,max:solo?1:JEU_MAX,g:0,pub:!solo&&!!opts.pub,
     players:{},order:[],rounds:[],over:false,net:solo?true:null,view:'',sig:'',
     seenU:new Set(),seenR:new Set(),seq:[],seen:{},ready:{},left:{},denied:{},helloOf:{},
     synced:!!host,syncAt:host?Date.now():0,echoAt:Date.now(),helloU:'',helloAt:0,skew:opts.secure?(window.REQUETE_JEU_ID?.skew||0):0,full:false,lost:false,claimAt:0,
@@ -39211,8 +39196,8 @@ function jeuRender(){
        de défi, avec « Partager l’invitation ». */
     /* 19 h 40 (Elisa : « remplace Ta salle est ouverte par celle en bas des joueurs ») : « Ta salle est ouverte » n’est plus dit qu’une
        fois, sous les joueurs (jeuLobbyEtatHTML) ; en haut, le titre de la salle et ce qu’on fait du code. */
-    const frame=etat(host?'target':'chat:pied',host?(J.pub?'Ta salle de défi':J.pour?`Défie ${esc(J.pour)}`:'Invite tes amis'):`Salle ${jeuDe(hostName)}`,
-      host&&J.pub?'Invite tes amis avec le code ou le lien de l’invitation.':host&&J.pour?`Envoie l’invitation à ${esc(J.pour)} pour jouer ensemble.`:'Tes amis entrent avec le lien de l’invitation, ou avec ce code.',
+    const frame=etat(host?'target':'chat:pied',host?(J.pub?'Ta salle de défi':'Invite tes amis'):`Salle ${jeuDe(hostName)}`,
+      host&&J.pub?'Invite tes amis avec le code ou le lien de l’invitation.':'Tes amis entrent avec le lien de l’invitation, ou avec ce code.',
       `<div class="jeu-lobby-body">${chips()}${codeTuiles()}<button type="button" class="jeu-btn is-wide jeu-copy" id="jeu-copy" onclick="jeuCopyCode()">${JEU_COPY_SVG}<span>Copier le code</span></button><button type="button" class="jeu-btn is-wide jeu-share${jeuPartageCalme()?' is-calme':''}" id="jeu-share" onclick="jeuShare()">${JEU_SHARE_SVG}<span>Partager l’invitation</span></button><p class="jeu-copied" id="jeu-copied" role="status" aria-live="polite"></p></div>`,'is-lobby',true);
     const players=`<div class="jeu-card"><p class="jeu-card-h">Joueurs <span class="jeu-n${jeuBadgeTous()?' is-tous':''}" id="jeu-n">${jeuBadgeHTML()}</span></p><ul class="jeu-players" id="jeu-players">${jeuPlayersHTML('lobby')}</ul>
       <div class="jeu-lobby-etat" id="jeu-lobby-etat" role="status" aria-live="polite">${(J.lobH=jeuLobbyEtatHTML())}</div>
@@ -54164,7 +54149,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-16-module-v3112';
+  const SW_CACHE='requete-2026-11-16-module-v3113';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

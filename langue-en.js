@@ -7326,8 +7326,6 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Tu n’étais pas prête au lancement. Pas de panique, d’autres salles t’attendent.": "You weren’t ready when it started. Don’t worry, other rooms are waiting for you.",
     "Tu n’étais pas prêt au lancement. Pas de panique, d’autres salles t’attendent.": "You weren’t ready when it started. Don’t worry, other rooms are waiting for you.",
     "Tu n’étais pas prêt·e au lancement. Pas de panique, d’autres salles t’attendent.": "You weren’t ready when it started. Don’t worry, other rooms are waiting for you.",
-    "Défie {x1}": "Challenge {x1}",
-    "Envoie l’invitation à {x1} pour jouer ensemble.": "Send the invitation to {x1} to play together.",
     "Temps": "Time",
     "Partie terminée · {1} manche": "Game over · {1} round",
     "⚖️ À égalité de points, le plus rapide au total passe devant (une manche non trouvée compte {1} min).": "⚖️ When points are tied, the fastest overall goes ahead (an unsolved round counts as {1} min).",

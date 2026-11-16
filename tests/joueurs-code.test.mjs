@@ -29,7 +29,7 @@ test('la liste et « Mes amis » : ceux avec qui tu as joué ; un ancien ajout r
     state: { salle: { mates: { a: { n: '@tom', g: 3, w: 2, l: 1, at: 2 }, b: { n: '@vu', g: 0, at: 9 } }, amisAjoutes: [{ n: '@lea', at: 5 }] } },
     drapCle: v => String(v || '').toLowerCase().replace(/^@+/, ''),
   });
-  vm.runInContext(cut('function amisListe(){', '\n/* « Défier » et « Inviter par lien »') + cut('function clsAmisPseudos(){', '\nfunction clsCleV2(){'), ctx);
+  vm.runInContext(cut('function amisListe(){', '\n/* La fiche d’un joueur') + cut('function clsAmisPseudos(){', '\nfunction clsCleV2(){'), ctx);
   assert.deepEqual(JSON.parse(JSON.stringify(ctx.amisListe().map(a => a.n))), ['@tom']);
   assert.ok(!ctx.amisListe()[0].ajout);
   assert.deepEqual(JSON.parse(JSON.stringify(ctx.clsAmisPseudos())), ['@tom', '@vu']);

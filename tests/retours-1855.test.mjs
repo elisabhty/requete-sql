@@ -183,7 +183,7 @@ test('une salle créée est publique par défaut ; l’hôte la publie dès que 
   assert.ok(app.includes("let JEU=null,jeuNiv='f',jeuNb=1,jeuMode='solo',jeuNivUser=false,jeuVis='pub';"), 'publique par défaut (19 h 10)');
   assert.ok(fn('defisFeuilleHTML', '\n}\n').includes("${seg('vis',[['pub','<span aria-hidden=\"true\">🌍</span> Publique'],['priv','<span aria-hidden=\"true\">🔒</span> Privée']],jeuVis)}"), 'Publique ou Privée (8 novembre, 9 h 42)');
   assert.ok(app.includes("else jeuPseudoPuis(()=>jeuStart(jeuRand(6),true,null,{nomId:'jeu-nom',pub:jeuVis==='pub'}));"));
-  assert.ok(app.includes("pub:!solo&&!!opts.pub,pour:solo?'':jeuNom(opts.pour||''),") && app.includes("if(host&&JEU.pub&&typeof jeuPublier==='function')jeuPublier(JEU,0);"));
+  assert.ok(app.includes("pub:!solo&&!!opts.pub,") && !app.includes('opts.pour') && app.includes("if(host&&JEU.pub&&typeof jeuPublier==='function')jeuPublier(JEU,0);"));
   let n = 0;
   const c = bac({ rpc: f => f === 'jeu_salle_publier' ? (++n < 3 ? { ok: false, raison: 'introuvable' } : { ok: true }) : {} });
   c.ev("JEU={code:'ABC123',solo:false,pub:true,created:true};jeuPublier(JEU,0)");
@@ -193,7 +193,7 @@ test('une salle créée est publique par défaut ; l’hôte la publie dès que 
   assert.deepEqual(J(c.minut.map(m => m[1])), [], 'puis plus rien');
   /* La salle d’attente le dit */
   const r = fn('jeuRender', '\nfunction jeuNextRound(){');
-  assert.ok(r.includes("host?(J.pub?'Ta salle de défi':J.pour?`Défie ${esc(J.pour)}`:'Invite tes amis')"));
+  assert.ok(r.includes("host?(J.pub?'Ta salle de défi':'Invite tes amis')"), '16 novembre : plus de salle « Défie @x » (le bouton Défier est retiré)');
   assert.ok(app.includes("if(host&&live.length<2)return '';"), '20 h 12 : seul dans sa salle, plus de carte sous les joueurs');
 });
 
@@ -268,5 +268,5 @@ test('la confidentialité, IOS.md, l’erreur réseau traduite, le cache et les 
   assert.ok(app.includes('<script src="multiplayer-security.js?v=12"></script>') && sw.includes("'./multiplayer-security.js?v=12',"));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=388">'));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-16-module-v3112');
+  assert.ok(app.includes(`const SW_CACHE='${cache}';`) && cache === 'requete-2026-11-16-module-v3113');
 });

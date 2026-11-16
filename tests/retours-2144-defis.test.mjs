@@ -171,8 +171,8 @@ test('depuis le classement : une ligne se touche (ou son nom au clavier) et ouvr
   assert.ok(!h.includes('dxFicheDefier()') && !h.includes('Défier @lea') && !h.includes('dx-fiche-ajout'), 'ni « Défier », ni « Ajouter »');
   assert.equal(c.appels.filter(x => x[0] === 'jeu_classement_v2').length, 1, 'rien de plus à demander');
   assert.equal(c.appels.length, n);
-  c.ev('dxFicheDefier()');   // la fonction attend un vrai moyen d’inviter : elle ouvre toujours une salle privée
-  assert.deepEqual(J(c.appels.slice(-2)), [['fermer', true], ['jeuStart', 'NOUV01', true, null, { nomId: 'jeu-nom', pub: false, pour: '@lea' }]], 'la feuille se ferme, puis une salle privée pour lui');
+  /* 16 novembre, 18 h 17 (« supprime également ») : son code aussi est retiré, rien n’attend d’être rallumé */
+  assert.equal(c.ev("typeof dxFicheDefier+typeof jeuDefier+typeof dxFicheRevanche"), 'undefinedundefinedundefined');
 });
 
 test('la fiche d’un adversaire : ses points demandés à la base (lui seul), votre face-à-face ; sans connexion, « — »', async () => {
@@ -186,7 +186,7 @@ test('la fiche d’un adversaire : ses points demandés à la base (lui seul), v
   const h = c.ev('dxFicheHTML()');
   assert.ok(h.includes('<p class="room-sub dx-f-pcs" id="dx-f-p"><span class="dx-pc is-verre is-adv"><span>Ton adversaire</span></span></p>'), 'pas de place sans classement d’où l’on vient');
   assert.ok(h.includes('<span class="is-tete"><b>2</b><small>@tom</small></span><i>–</i><span><b>0</b><small>Toi</small></span>') && h.includes('<div class="dx-fiche-duel is-down"'));
-  assert.ok(!h.includes('Prendre ta revanche') && c.ev("dxFicheRevanche(amisListe()[0],dxFicheEtat)") === true, 'il mène : la revanche serait proposée, mais plus de bouton (14 novembre)');
+  assert.ok(!h.includes('Prendre ta revanche'), 'plus de bouton (14 novembre)');
   /* Sans connexion */
   const k = bac({ rpcKo: true });
   k.ev("dxFiche('@noe')"); await attendre();
@@ -243,7 +243,7 @@ test('la fiche : « 4 confrontations » déplie vos dernières parties ; la reva
   assert.ok(f.includes('<button type="button" class="dx-duel-voir" aria-expanded="false" aria-controls="dx-fiche-duels" onclick="dxFicheDuels(this)"><span>4 confrontations</span>'));
   assert.ok(f.includes('<div class="dx-duel-plus" id="dx-fiche-duels" hidden><ol class="dx-duel-liste" id="dx-duel-liste"><li class="is-l"><b>Perdue</b><span>120&nbsp;pts contre 200</span><small>Hier · Facile · 1 manche</small></li><li class="is-w"><b>Gagnée</b><span>230&nbsp;pts contre 195</span>'));
   assert.ok(f.includes('<li class="is-e"><b>Égalité</b>') && f.includes('<p class="dx-duel-note">Les confrontations les plus anciennes ne sont plus gardées.</p></div>'), 'moins de parties gardées que jouées : on le dit');
-  assert.ok(!f.includes('Prendre ta revanche') && c.ev("dxFicheRevanche(amisListe()[0],dxFicheEtat)") === true, 'la dernière est perdue : la revanche (sans bouton depuis le 14 novembre), même s’il est derrière au total');
+  assert.ok(!f.includes('Prendre ta revanche'), 'la dernière est perdue : pas de bouton de revanche (14 novembre)');
   /* Déplier, replier */
   const l = { hidden: true }, b = { attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } };
   c.ctx.document.getElementById = id => id === 'dx-fiche-duels' ? l : null;
@@ -252,7 +252,7 @@ test('la fiche : « 4 confrontations » déplie vos dernières parties ; la reva
   /* La dernière gagnée : « Défier », même s’il mène au total */
   const d = bac({ salle: { mates: { lea: { n: '@lea', g: 3, w: 1, l: 2, at: N } }, hist: [h(N, 300, 100, 'w'), h(N - 1e7, 10, 90, 'l'), h(N - 2e7, 10, 90, 'l')] } });
   d.ev("dxFiche('@lea')");
-  assert.ok(!d.ev('dxFicheHTML()').includes('Défier') && d.ev("dxFicheRevanche(amisListe()[0],dxFicheEtat)") === false && !d.ev('dxFicheHTML()').includes('dx-duel-note'), 'toutes gardées : pas de note');
+  assert.ok(!d.ev('dxFicheHTML()').includes('Défier') && !d.ev('dxFicheHTML()').includes('dx-duel-note'), 'toutes gardées : pas de note');
   /* Jamais affronté : « Défier », pas de face-à-face */
   const e = bac(); e.ev("dxFiche('@noe')");
   assert.ok(!e.ev('dxFicheHTML()').includes('Défier') && !e.ev('dxFicheHTML()').includes('dx-fiche-duel'));
