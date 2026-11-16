@@ -15,9 +15,9 @@ captures d’écran en anglais sont prêtes (même série que les françaises, v
 
 ## Subtitle (30 au plus)
 
-    SQL practice for data analysts
+    Lessons, practice, interviews
 
-Autres possibles : « Interactive SQL lessons » ; « Learn SQL step by step ».
+Comme en français (16 novembre) : le sous-titre ne répète pas « SQL », déjà dans le nom ; « data analyst » passe dans les mots-clés.
 
 ## Promotional text (170 au plus, modifiable sans nouvelle version)
 
@@ -55,7 +55,7 @@ Autres possibles : « Interactive SQL lessons » ; « Learn SQL step by step ».
     • Home Screen and Lock Screen widgets, including a pocket SQL question you can answer without opening the app
     • Lessons work offline once you’re signed in
 
-    Sign in with Apple or Google to save your progress and find it on another iPhone. Your imported files never leave your device.
+    Sign in with Apple or Google if you want to save your progress and find it on another iPhone. Your imported files never leave your device.
 
     REQUÊTE PREMIUM
     Access to the lessons and practice requires a Requête Premium subscription, purchased in the app. Payment is charged to your Apple Account when you confirm the purchase. The subscription renews automatically unless you cancel it at least 24 hours before the end of the current period. You can manage or cancel it in your Apple Account settings. If a free trial is offered, it converts to a paid subscription when it ends unless you cancel before.
@@ -63,13 +63,15 @@ Autres possibles : « Interactive SQL lessons » ; « Learn SQL step by step ».
     Terms of use: https://requeteapp.com/decouvrir/en/conditions.html
     Privacy policy: https://requeteapp.com/decouvrir/en/confidentialite.html
 
-## Keywords (100 au plus, séparés par des virgules, sans espace ; « Requête », « Learn » et « SQL » sont déjà dans le nom)
+## Keywords (100 octets au plus, séparés par des virgules ; « Requête », « Learn », « SQL » et les mots du sous-titre sont déjà pris en compte) : 97
 
-    database,data analyst,query,mysql,postgresql,sqlite,interview,analytics,coding,course,join,excel
+    data analyst,database,query,sqlite,join,analytics,coding,exercises,tutorial,beginner,data science
 
-## What’s New (la version qui ouvre l’anglais)
+Sans « mysql », « postgresql » ni « excel » (des marques), comme en français.
 
-    Requête is now available in English: lessons, case studies, interview questions, widgets and reminders.
+## What’s New
+
+Rien à écrire pour la 1.0 : le champ n’existe pas pour la première version, et l’anglais sort avec elle.
 
 ## URLs
 
