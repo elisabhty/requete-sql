@@ -298,7 +298,9 @@ test('la voix anglaise des modules 1 et 2 : chaque vidéo a la sienne, calée su
     /* 16 novembre, 6 h 01 (Elisa, réf. 1 : « elle dit produit en français ») : la phrase périmée de AS (« then du produit causes an
        error ») est muette en attendant sa voix anglaise (tools/voix/en/complements-16-novembre.json) ; la fin (« Pour finir… »,
        « Ajoute ce résumé… »), dite en français dans onze voix, est retirée : les vidéos de l’appli s’arrêtent avant elle (core.js). */
-    const muettes = caps.filter(x => /Pour finir, voici|Ajoute ce résumé/.test(x[2])).length + (c === 'as' ? 1 : 0);
+    const muettes = caps.filter(x => /Pour finir, voici|Ajoute ce résumé/.test(x[2])).length;
+    /* 16 novembre, 7 h 31 (Elisa : « intègre la voix ») : la phrase de AS refaite (« then name causes an error »), dans son fichier */
+    if (c === 'as') assert.ok(voix.caps.some(x => x[0] === 'v127lkdf' && x[1] === 'ch03a'), 'as : « Without quotes… » a sa voix');
     assert.ok(voix.caps.length >= caps.length - 2 - muettes && voix.caps.every(x => cles.has(x[0])), `${c} : ${voix.caps.length} phrases sur ${caps.length} légendes`);
     const fr = JSON.parse(lire(`tools/voix/en/${c}.json`)).elements.filter(e => /Pour finir|résumé à tes notes/.test(e.texte || '')).flatMap(e => e.cles || []);
     assert.ok(!voix.caps.some(x => fr.includes(x[0])), `${c} : pas de fin dite en français`);
