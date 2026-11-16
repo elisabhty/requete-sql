@@ -4,8 +4,8 @@
 haut à droite de la fiche). Les chiffres sont ceux de l’appli : 71 cours, 15 modules, 477 cas pratiques sur 15 bases, 142 questions
 d’entretien, 72 cartes mémo. Pas de prix dans le texte : Apple affiche lui-même celui des abonnements.
 
-À faire avant d’envoyer : retirer « essai » de l’anglais dans l’appli (langues.js), et les captures d’écran en anglais (sans
-elles, l’App Store montre les françaises aux anglophones).
+Fait le 16 novembre : l’anglais n’est plus « en essai » (langues.js), il s’ouvre à tous avec la sortie sur l’App Store. Reste à
+faire : les captures d’écran en anglais (sans elles, l’App Store montre les françaises aux anglophones).
 
 ---
 
