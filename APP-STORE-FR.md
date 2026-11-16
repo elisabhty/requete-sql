@@ -111,8 +111,11 @@ moyen) » : 1206 × 2622. Les fichiers sont sur le Mac d'Elisa, Téléchargement
 
 - Langue principale : Anglais (États-Unis) ; fiches française et anglaise : nom, sous-titre, texte promotionnel, description,
   mots-clés, URL d'assistance et marketing ; catégorie Éducation ; URL de confidentialité dans les deux langues.
-- Prix : gratuit ; disponibilité : 168 pays. Retirés : Chine continentale, puis Uruguay, Brésil, RD Congo, Madagascar, Tunisie,
-  Algérie (pays où Apple ne collecte pas les taxes, annexe B du contrat ; retrait demandé par Elisa le 16 novembre). Le Maroc et
+- Prix : gratuit ; disponibilité : 169 pays. Retirés : Chine continentale, puis Uruguay, RD Congo, Madagascar, Tunisie, Algérie
+  (pays où Apple ne collecte pas les taxes, annexe B du contrat ; retrait demandé par Elisa le 16 novembre). Le Brésil, retiré
+  puis remis le même jour : Apple y retient lui-même la retenue à la source, la CIDE (10 %) et l'IOF (3,5 %). À faire plus tard :
+  l'attestation de résidence fiscale française (service des impôts), à déposer dans Business › Accords › Formulaires fiscaux ›
+  Brésil pour un taux de retenue réduit (convention France-Brésil), après examen par Apple. Le Maroc et
   l'Afghanistan sont en plus exclus par Apple à cause de la rubrique « Concours » (classements) de la classification par âge.
 - Abonnements : noms et descriptions en anglais ajoutés (groupe, annuel, annuel bienvenue, hebdo).
 - Vérification : « Connexion requise » décochée, note pour l'équipe de vérification (en anglais).
