@@ -81,8 +81,16 @@ test('le widget reçoit le chat de la saison une fois par saison ; une version d
   assert.ok(fn('widgetMaj').includes('widgetSaisonMaj();'), 'à chaque envoi du widget');
 });
 
-test('Mon compte : l’icône de l’app au choix, seulement si l’app a les icônes ; le changement vient d’un geste', async () => {
-  const src = cut('const ICONES=', '\nfunction langueLigneHTML(');
+test('Mon compte : l’icône de l’app au choix, cachée pour l’instant ; montrée, seulement si l’app a les icônes, et d’un geste', async () => {
+  const brut = cut('const ICONES=', '\nfunction langueLigneHTML(');
+  /* 16 novembre, 8 h 04 (Elisa : « Non, ne mets pas le bouton icône de l’app maintenant ») : la ligne est cachée */
+  assert.ok(brut.includes('const ICONES_PROPOSEES=false;'), 'cachée pour l’instant');
+  const cachee = vm.createContext({esc: x => x, iconesNatif: async () => { throw new Error('pas appelé'); }});
+  vm.runInContext(brut, cachee);
+  await cachee.iconesCharger();
+  assert.equal(cachee.iconeLigneHTML('>'), '', 'ni ligne'); assert.equal(cachee.iconeReglageHTML(), '', 'ni feuille');
+  /* Le jour où elle est montrée (ICONES_PROPOSEES à true) */
+  const src = brut.replace('const ICONES_PROPOSEES=false;', 'const ICONES_PROPOSEES=true;');
   const essai = (natif) => {
     const j = {choix: [], toasts: [], rendus: 0};
     const ctx = vm.createContext({esc: x => x, activeTab: 'compte', renderCompte: () => { j.rendus++; }, buzz: () => {}, toast: (a) => j.toasts.push(a),

@@ -1120,7 +1120,8 @@ Une version d’avant ne les connaît pas : la page le voit et fait comme avant.
 **Les six icônes de saison** (16 novembre, 7 h 38, Elisa : « 1 essai chacun ») : Noël, Nouvel An, Saint-Valentin, Pâques, Été,
 Halloween (resources/ios/icones/IconeNoel.appiconset… IconeHalloween.appiconset), faites avec ElevenLabs (Nano Banana 2) à partir de
 `resources/icon-only.png`, puis recadrées en 1024 × 1024, le `>_` à la place et à la taille de l’icône de base, sans transparence.
-Mon compte › Sur ton iPhone › « Icône de l’app » les propose dès que l’app les a (aperçus : assets/icones). **Requête en tenue de
+Le choix dans Mon compte › Sur ton iPhone › « Icône de l’app » est prêt mais caché (Elisa, 8 h 04 : « ne mets pas le bouton
+maintenant ») : `ICONES_PROPOSEES` à true dans index.html le montre, par une mise à jour à distance (aperçus : assets/icones). **Requête en tenue de
 saison** (assets/saisons, les mêmes six thèmes) : le chat du widget de la série suit la saison (index.html, `saisonDu`,
 `widgetSaisonMaj` : du 1er au 26 décembre, jusqu’au 3 janvier, du 7 au 14 février, la semaine de Pâques, juillet et août, du 20 au
 31 octobre).

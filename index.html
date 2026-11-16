@@ -53673,16 +53673,19 @@ function obBjParler(){
 const ICONES=[{id:'',cle:'base',nom:'Classique'},{id:'IconeNoel',cle:'noel',nom:'Noël'},{id:'IconeNouvelAn',cle:'nouvel-an',nom:'Nouvel An'},
   {id:'IconeSaintValentin',cle:'saint-valentin',nom:'Saint-Valentin'},{id:'IconePaques',cle:'paques',nom:'Pâques'},{id:'IconeEte',cle:'ete',nom:'Été'},
   {id:'IconeHalloween',cle:'halloween',nom:'Halloween'}];
+/* 16 novembre, 8 h 04 (Elisa : « Non, ne mets pas le bouton icône de l’app maintenant ») : les icônes vont dans l’app au prochain
+   envoi, mais la ligne de Mon compte reste cachée ; la passer à true la montre (mise à jour à distance, sans repasser chez Apple). */
+const ICONES_PROPOSEES=false;
 const ICN={charge:false,possible:false,liste:[],actuelle:''};
 async function iconesCharger(){
-  if(ICN.charge)return;
+  if(ICN.charge||!ICONES_PROPOSEES)return;
   ICN.charge=true;
   const r=await iconesNatif();
   if(!r)return;
   ICN.possible=!!r.possible;ICN.liste=r.liste;ICN.actuelle=r.actuelle||'';
   if(iconesIci()&&typeof activeTab!=='undefined'&&activeTab==='compte'&&typeof renderCompte==='function')renderCompte();
 }
-function iconesIci(){return ICN.possible&&ICONES.some(i=>i.id&&ICN.liste.includes(i.id));}
+function iconesIci(){return ICONES_PROPOSEES&&ICN.possible&&ICONES.some(i=>i.id&&ICN.liste.includes(i.id));}
 function iconeActuelle(){return ICONES.find(i=>i.id===ICN.actuelle)||ICONES[0];}
 function iconeLigneHTML(chevron){
   if(!iconesIci())return '';
@@ -54579,7 +54582,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3107';
+  const SW_CACHE='requete-2026-11-15-module-v3108';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
