@@ -92,3 +92,18 @@ test('stickers : petite version pour la planche, décodée à l’avance, prépa
   assert.ok(app.includes("if(draft.practiceDone&&typeof stkImgO==='function')try{stkImgO('requete',false);stkImgO('niv1',false);}catch(e){}"), 'la page Niveau 1 de la fin de l’onboarding');
   assert.ok(app.includes('if(mi>=0&&typeof stkImgO===\'function\'&&STK_MODULE_IDS[mi])stkImgO(STK_MODULE_IDS[mi],false);'), 'le sticker du module, dès la leçon ouverte');
 });
+
+/* 16 novembre, 1 h 15 (Elisa : « ok ») : sur un 2e iPhone, « J’ai déjà un compte » montre la page du rappel, seule */
+test('2e iPhone : la page du rappel seule après la connexion, puis la suite', () => {
+  const a = app.slice(app.indexOf('async function obStartAuth('), app.indexOf('\n}\n', app.indexOf('async function obStartAuth(')));
+  assert.ok(a.includes("if(typeof obRappelSeulVoulu==='function'&&obRappelSeulVoulu()){draft.rappelSeul=true;obGoto('rappel');}\n        else obApresCompte();"));
+  assert.ok(app.includes("return localStorage.getItem('requete-rappel')==null;"), 'jamais demandé sur cet iPhone');
+  assert.ok(app.includes("if(typeof draft!=='undefined'&&draft&&draft.rappelSeul){draft.rappelSeul=false;obApresCompte();return;}"), 'puis l’abonnement ou l’accueil');
+  for (const f of ['async function obRappelDemander(){', 'function obRappelRefuser(){']) {
+    const i = app.indexOf(f); assert.ok(app.slice(i, i + 120).includes('const suite=obRappelSuite;'), f);
+  }
+  assert.ok(app.includes("if(OB_SLIDES[obStep]==='rappel'&&draft&&draft.rappelSeul)return;"), 'pas de retour en arrière');
+  assert.ok(app.includes("if(slide==='rappel'&&typeof draft!=='undefined'&&draft&&draft.rappelSeul)return '<div class=\"ob-flow-top ob-flow-solo\"></div>';"), 'ni étapes');
+  assert.equal(textes['Un petit <1>rappel</1><2/>chaque jour ?'], 'A little <1>reminder</1><2/>every day?');
+  assert.ok(app.includes("if(typeof obLangue==='function'&&obLangue()&&typeof rappelHeureLoc==='function')return rappelHeureLoc(h||'19:00',1);"), '« Remind me at 7 PM »');
+});

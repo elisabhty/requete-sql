@@ -94,7 +94,7 @@ test('réf. 2 : la page du rappel, « À quel moment ? » comme dans Mon compte 
   const p = lastCut("}else if(slide==='rappel'){", "}else if(slide==='widget'){");
   assert.ok(p.includes("const fq=draft.freq||7,quand=fq===7?'chaque jour':fq===5?'en semaine':'tes jours de séance';") && p.includes('Un petit <em>rappel</em><br>${quand}&nbsp;?</h1>'));
   assert.ok(p.includes('${obRappelCarte()}') && p.includes('<p class="ob-rappel-note">Modifiable à tout moment dans Mon compte.</p>'));
-  assert.ok(p.includes("obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,'','','');"));
+  assert.ok(p.includes("obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,draft.rappelSeul?'Plus tard':'',draft.rappelSeul?obRappelRefuser:'','');"));
   const aides = cut('function obHeureTexte(h){', '/* La fenêtre en aperçu au centre de l’écran');
   const choix = cut('/* Les heures d’un moment ;', 'const RP_INFO_SVG=');
   const slots = cut('const RAPPEL_SLOTS=[', 'function rappelHeure(){');

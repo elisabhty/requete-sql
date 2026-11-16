@@ -78,13 +78,13 @@ test('le rappel : la fenêtre d’iOS en aperçu au centre de l’écran, la fl�
   assert.ok(s.includes("obMascotDit('Avec moi, tu n’oublieras pas ta séance !','reveil')"), '14 h 48 : sans « SQL » ; 7 novembre, 14 h 27 : le réveil qui sonne');
   /* 6 novembre, 23 h 08 : les deux boutons de l’aperçu se touchent pour de vrai (tests/retours-2308.test.mjs) */
   assert.ok(s.includes('<b aria-hidden="true">«&nbsp;Requête&nbsp;» souhaite vous envoyer des notifications</b>') && s.includes('<span class="ob-notif-btns"><button type="button" onclick="obRappelRefuser()" aria-label="Ne pas autoriser les rappels">Ne pas autoriser</button><button type="button" class="is-ok" onclick="obRappelDemander()" aria-label="Autoriser les rappels">Autoriser</button></span>'));
-  assert.ok(s.includes('<svg class="ob-notif-arrow"') && s.includes("obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,'','','');"), 'à l’heure choisie (11 h 08)');
+  assert.ok(s.includes('<svg class="ob-notif-arrow"') && s.includes("obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,draft.rappelSeul?'Plus tard':'',draft.rappelSeul?obRappelRefuser:'','');"), 'à l’heure choisie (11 h 08)');
   assert.ok(app.includes("  if(slide==='rappel')obNotifCaler();"));
   const caler = cut('function obNotifCaler(){', '/* Le widget, tel qu’il est sur l’iPhone');
   assert.ok(caler.includes('let dy=innerHeight/2-(r.top+r.height/2);'), 'centrée sur l’écran, là où iOS ouvre sa fenêtre');
   assert.ok(css.includes('html #onboarding.ob-vitrine .ob-notif-arrow{align-self:flex-end;width:34px;height:58px;margin:12px calc(25% - 17px) 0 0;'), 'sous le bouton de droite');
   /* La demande, exécutée seule */
-  const demande = cut('async function obRappelDemander(){', '/* La fenêtre en aperçu au centre');
+  const demande = cut('/* Le rappel seul, après « J’ai déjà un compte »', '/* La fenêtre en aperçu au centre');   // 16 novembre : avec obRappelSuite
   const essai = async ({reponse = 'granted', apercu = false} = {}) => {
     const appels = [], store = {};
     const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', obLock: false, obApercu: apercu, document: {getElementById: () => ({disabled: false})},

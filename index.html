@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=50893a54" data-defis></script>
+<script src="langues.js?v=30c65736" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -48118,9 +48118,21 @@ function obWidgetPossible(){
   return obFinWidget;
 }
 /* « Me rappeler de m’entraîner » : la vraie demande d’iOS (ou du navigateur), puis le rappel programmé si c’est oui. Rien en aperçu. */
+/* Le rappel seul, après « J’ai déjà un compte » : dans l’appli iPhone, jamais demandé sur cet appareil */
+function obRappelSeulVoulu(){
+  try{
+    const C=window.Capacitor;
+    if(!(C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications))return false;
+    return localStorage.getItem('requete-rappel')==null;
+  }catch(e){return false;}
+}
+function obRappelSuite(){
+  if(typeof draft!=='undefined'&&draft&&draft.rappelSeul){draft.rappelSeul=false;obApresCompte();return;}
+  obGoto(obFinSuivante('rappel'));
+}
 async function obRappelDemander(){
   if(obLock||obRappelEnCours)return;
-  const suite=()=>obGoto(obFinSuivante('rappel'));
+  const suite=obRappelSuite;
   if(typeof obApercu!=='undefined'&&obApercu){suite();return;}
   /* 11 h 08 : l’heure choisie sur la page (les jours sont ceux du parcours, rappelJours) */
   const h=(typeof draft!=='undefined'&&draft&&draft.rappelHeure)||rappelHeure();
@@ -48150,7 +48162,7 @@ async function obRappelDemander(){
 let obRappelEnCours=false;
 function obRappelRefuser(){
   if(obLock||obRappelEnCours)return;
-  const suite=()=>obGoto(obFinSuivante('rappel'));
+  const suite=obRappelSuite;
   if(typeof obApercu!=='undefined'&&obApercu){suite();return;}
   const h=(typeof draft!=='undefined'&&draft&&draft.rappelHeure)||rappelHeure();
   try{localStorage.setItem('requete-rappel-heure',h);localStorage.setItem('requete-rappel','0');}catch(e){}
@@ -48159,7 +48171,10 @@ function obRappelRefuser(){
 }
 /* L’heure et les jours du rappel (11 h 08, réf. 2). Les moments : un toucher ; l’heure exacte : la roue d’iOS (un champ « time »
    posé sur l’heure affichée). Tout change sur place, sans redessiner la page (la fenêtre en aperçu ne rejoue pas son entrée). */
-function obHeureTexte(h){const [hh,mm]=String(h||'19:00').split(':');return `${+hh}\u00a0h${mm&&mm!=='00'?'\u00a0'+mm:''}`;}
+function obHeureTexte(h){
+  /* 16 novembre : en anglais, « Remind me at 7 PM » (c’était « 19:00 ») */
+  if(typeof obLangue==='function'&&obLangue()&&typeof rappelHeureLoc==='function')return rappelHeureLoc(h||'19:00',1);
+  const [hh,mm]=String(h||'19:00').split(':');return `${+hh}\u00a0h${mm&&mm!=='00'?'\u00a0'+mm:''}`;}
 /* 5 novembre, 12 h 12 (réf. 5 : « mettre à jour l’onboarding en fonction de cette UI/UX ») : « À quel moment ? », Matin, Après-midi
    ou Soir, puis l’heure, comme dans Mon compte (rappelChoixHTML) ; les jours de séance dessous. */
 function obRappelCarte(){
@@ -49608,6 +49623,7 @@ function obBack(){
   if(typeof obGarde!=='undefined'&&obGarde&&OB_SLIDES[obStep]==='paywall'){if(obPwSortie)obSortieRefuser();return;}
   /* La garde du compte (13 novembre, 3 h 22) : pareil pour la page de connexion, tant que personne n’est connecté */
   if(OB_SLIDES[obStep]==='account'&&typeof obCompteBloque==='function'&&obCompteBloque())return;
+  if(OB_SLIDES[obStep]==='rappel'&&draft&&draft.rappelSeul)return;   // le rappel seul : « Plus tard » ou « Me rappeler »
   if(state.onboarded&&OB_SLIDES[obStep]===obEntry&&obEntry!=='welcome'){closeOnboardingAuth();return;}
   if(OB_SLIDES[obStep]==='paywall'&&obPwSortie){obSortieRefuser();return;}   /* de l’offre de bienvenue, « Retour » ramène aux offres */
   if(OB_SLIDES[obStep]==='paywall'){obGoto(obCompteVisible()?'account':'ready');return;}
@@ -50921,7 +50937,10 @@ async function obStartAuth(provider,btn){
       if(obCompteConnu(r)){
         draft.finConnexion='accueil';
         try{if(typeof obDraftDepuisEtat==='function')obDraftDepuisEtat();}catch(e){}
-        obApresCompte();
+        /* 16 novembre, 1 h 15 (Elisa : « ok ») : sur un 2e iPhone, le rappel n’a jamais été demandé ici (les questions sont sautées) :
+           sa page seule, puis la suite (l’abonnement, ou l’accueil). */
+        if(typeof obRappelSeulVoulu==='function'&&obRappelSeulVoulu()){draft.rappelSeul=true;obGoto('rappel');}
+        else obApresCompte();
       }else{
         /* 12 h 24 (« pas de texte notifié noir ») : plus de bandeau par-dessus la page des questions, qui le dit déjà */
         obGoto('questions');
@@ -50990,6 +51009,8 @@ function obBackButton(){
   return `<button type="button" class="ob-back" onclick="obBack()" aria-label="Retour"><svg viewBox="0 0 10 16" fill="none" aria-hidden="true"><path d="M8.5 1.5 2 8l6.5 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Retour</button>`;
 }
 function obFlowHeader(slide){
+  /* Le rappel seul (après « J’ai déjà un compte ») : ni « Retour » ni étapes, il n’y a pas de tunnel autour */
+  if(slide==='rappel'&&typeof draft!=='undefined'&&draft&&draft.rappelSeul)return '<div class="ob-flow-top ob-flow-solo"></div>';
   const steps=obFlowSteps();
   const active=steps.indexOf(slide);
   /* La garde du compte (13 novembre, 3 h 22) : la page de connexion sans « Retour », il n’y a nulle part où revenir. */
@@ -51791,7 +51812,7 @@ function paintOb(){
       <div class="ob-notif" id="ob-notif"><div class="ob-notif-cadre"><div class="ob-notif-alert"><b aria-hidden="true">«&nbsp;Requête&nbsp;» souhaite vous envoyer des notifications</b><small aria-hidden="true">Les notifications peuvent inclure des alertes, des sons et des pastilles d’icônes. Elles peuvent être configurées dans Réglages.</small><span class="ob-notif-btns"><button type="button" onclick="obRappelRefuser()" aria-label="Ne pas autoriser les rappels">Ne pas autoriser</button><button type="button" class="is-ok" onclick="obRappelDemander()" aria-label="Autoriser les rappels">Autoriser</button></span></div></div>
         <svg class="ob-notif-arrow" viewBox="0 0 40 70" aria-hidden="true"><path d="M20 66V8M6 22 20 7l14 15" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <p class="ob-rappel-note">Modifiable à tout moment dans Mon compte.</p></div>`;
-    obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,'','','');
+    obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,draft.rappelSeul?'Plus tard':'',draft.rappelSeul?obRappelRefuser:'','');
   }else if(slide==='widget'){
     /* L’écran d’accueil (d’après Duolingo) : les widgets de l’app, posés sur l’écran d’accueil. App iPhone seulement.
        13 novembre, 9 h 19 (« tu vas afficher des exemples […] d’abord le widget normal et après le widget verrouillé […] avec un
@@ -53990,7 +54011,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3092';
+  const SW_CACHE='requete-2026-11-15-module-v3093';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

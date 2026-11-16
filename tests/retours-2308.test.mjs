@@ -19,7 +19,7 @@ function etape({ reponse = 'granted', apercu = false } = {}) {
     window: { Capacitor: { isNativePlatform: () => true, Plugins: { LocalNotifications: { requestPermissions: () => { appels.push('demande d’iOS'); return new Promise(r => { repondre = () => r({ display: reponse }); }); } } } } },
     localStorage: { setItem: (k, v) => { store[k] = v; } }, rappelNativeSync: () => appels.push('rappel programmé'), buzz: () => {},
     obGoto: t => appels.push('vers ' + t), obFinSuivante: () => 'widget', draft: { rappelHeure: '08:00' }, rappelHeure: () => '19:00' });
-  vm.runInContext(cut('async function obRappelDemander(){', '/* La fenêtre en aperçu au centre'), ctx);
+  vm.runInContext(cut('/* Le rappel seul, après « J’ai déjà un compte »', '/* La fenêtre en aperçu au centre'), ctx);   // 16 novembre : avec obRappelSuite
   return { ctx, appels, store, repondre: () => repondre() };
 }
 
@@ -29,7 +29,7 @@ test('les deux boutons de l’aperçu sont de vrais boutons, avec leur action', 
   assert.ok(s.includes('<button type="button" onclick="obRappelRefuser()" aria-label="Ne pas autoriser les rappels">Ne pas autoriser</button>'));
   assert.ok(s.includes('<button type="button" class="is-ok" onclick="obRappelDemander()" aria-label="Autoriser les rappels">Autoriser</button>'));
   assert.ok(s.includes('<b aria-hidden="true">') && s.includes('<small aria-hidden="true">'), 'le texte imité d’iOS n’est pas lu');
-  assert.ok(s.includes("obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,'','','');"), 'le bouton du bas fait comme « Autoriser »');
+  assert.ok(s.includes("obSetFooter(`Me rappeler à ${obHeureTexte(draft.rappelHeure)}`,obRappelDemander,draft.rappelSeul?'Plus tard':'',draft.rappelSeul?obRappelRefuser:'','');"), 'le bouton du bas fait comme « Autoriser »');
 });
 
 test('« Autoriser » ouvre la vraie demande d’iOS, puis programme le rappel ; une seule demande à la fois', async () => {
