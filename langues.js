@@ -41,7 +41,7 @@
   /* essai : la langue n'est proposée qu'aux iPhone en essai, tant que sa traduction n'est pas terminée. */
   var LANGUES = {
     fr: { nom: 'Français', locale: 'fr-FR' },
-    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=2788a379', defis: 'langue-en-defis.js?v=45bd0376', entretien: 'langue-en-entretien.js?v=91e56a7f', essai: true }
+    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=4239b132', defis: 'langue-en-defis.js?v=45bd0376', entretien: 'langue-en-entretien.js?v=91e56a7f', essai: true }
   };
   var CLE = 'requete-langue';
 
@@ -435,6 +435,11 @@
   function lettres(s) { s = String(s).replace(/<[^>]*>/g, ''); return /[A-Za-zÀ-ÿ]{2}/.test(s) || /\d\s?€/.test(s) || /(^|[\s\d])[àÀ](?=[\s\d:\u00a0]|$)/.test(s); }
   function saute(el) { return !el || SAUTE[el.nodeName] || (el.hasAttribute && el.hasAttribute('data-notrad')) || el.isContentEditable === true; }
   function dansSaute(el) { for (var p = el; p && p.nodeType === 1; p = p.parentNode) if (saute(p)) return true; return false; }
+  /* 16 novembre (Elisa, sa capture : « Écris ce que tu veux retenir… » dans l'appli en anglais) : une zone de saisie posée seule
+     (le champ de la note, enfant direct de sa feuille) ou dont l'appli change le placeholder était sautée, comme son contenu.
+     Ce qu'elle dit d'elle-même se traduit, si rien autour ne l'interdit. */
+  function champ(el) { return !!el && el.nodeType === 1 && (el.nodeName === 'TEXTAREA' || el.nodeName === 'INPUT') && !el.hasAttribute('data-notrad'); }
+  function aSauter(el) { return champ(el) ? dansSaute(el.parentNode) : dansSaute(el); }
   function simple(el) {   // un morceau mis en forme, sans rôle propre : il se traduit avec sa phrase
     if (!FORME[el.nodeName] || el.id || el.hasAttribute('data-notrad') || el.hasAttribute('data-' + CODE)) return false;
     for (var i = 0; i < el.attributes.length; i++) if (/^on/.test(el.attributes[i].name)) return false;
@@ -597,7 +602,7 @@
       var ajouter = function (t, el) { if (el && el.nodeType === 1 && t.indexOf(el) < 0) t.push(el); };
       for (i = 0; i < liste.length; i++) {
         var m = liste[i];
-        if (m.type === 'attributes') { if (!dansSaute(m.target)) attributs(m.target); continue; }
+        if (m.type === 'attributes') { if (!aSauter(m.target)) attributs(m.target); continue; }
         if (m.type === 'characterData') { ajouter(phrases, m.target.parentNode); continue; }
         for (j = 0; j < m.addedNodes.length; j++) { var n = m.addedNodes[j];
           /* Un morceau mis en forme qui arrive dans une phrase : c'est la phrase entière qu'on regarde */
@@ -606,7 +611,7 @@
         }
         if (m.removedNodes.length) ajouter(phrases, m.target);
       }
-      for (i = 0; i < blocs.length; i++) if (blocs[i].isConnected !== false && !dansSaute(blocs[i])) passer(blocs[i]);
+      for (i = 0; i < blocs.length; i++) if (blocs[i].isConnected !== false && !aSauter(blocs[i])) passer(blocs[i]);
       for (i = 0; i < phrases.length; i++) {
         var p = phrases[i];
         if (p.isConnected === false || dansSaute(p)) continue;

@@ -126,3 +126,13 @@ test('fin de leçon en anglais : le mot de la note et les noms des stickers gagn
   for (const [k, v] of [['Pas terrible', 'Not great'], ['Bof', 'Meh'], ['Pas mal', 'Not bad'], ['Très bien', 'Very good'], ['Génial', 'Awesome']]) assert.equal(textes[k], v);
   assert.ok(app.includes("<em>${esc(items.map(s=>String((typeof natifT==='function'&&natifT(s.name))||s.name)).join(' · '))}</em>"));
 });
+
+/* 16 novembre, 4 h 15 (Elisa, sa capture en anglais : « Écris ce que tu veux retenir… » et « -- optionnel » dans la note) */
+test('moteur de traduction : une zone de saisie posée seule traduit ce qu’elle dit d’elle-même', () => {
+  const L = fs.readFileSync(path.join(ROOT, 'langues.js'), 'utf8');
+  assert.ok(L.includes("function aSauter(el) { return champ(el) ? dansSaute(el.parentNode) : dansSaute(el); }"));
+  assert.ok(L.includes("if (m.type === 'attributes') { if (!aSauter(m.target)) attributs(m.target); continue; }"), 'un placeholder changé par l’appli');
+  assert.ok(L.includes("if (blocs[i].isConnected !== false && !aSauter(blocs[i])) passer(blocs[i]);"), 'un champ ajouté seul');
+  assert.equal(textes['-- optionnel'], '-- optional');
+  assert.equal(textes['Écris ce que tu veux retenir…'], 'Write what you want to remember…');
+});
