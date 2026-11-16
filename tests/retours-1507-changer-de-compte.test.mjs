@@ -39,6 +39,12 @@ function iphone(S, salle) {
       }
       if (fn === 'jeu_pseudo_prendre') { const d = S.pseudos[b.p_cle]; if (d) return {ok: true, pseudo: d}; if (!b.p_pseudo) return {ok: false, raison: 'invalide'}; S.pseudos[b.p_cle] = b.p_pseudo; return {ok: true, pseudo: b.p_pseudo}; }
       if (fn === 'jeu_pseudo_liberer') { delete S.pseudos[b.p_cle]; return {ok: true}; }
+      if (fn === 'compte_joueur_fusionner') {   // 16 novembre, 6 h 19 : les points de l’appareil sans compte rejoignent le compte
+        if (S.comptes[S.qui] !== b.p_cle) throw {status: 403, code: '42501'};
+        if (Object.values(S.comptes).includes(b.p_ancienne)) return {ok: false, raison: 'compte'};
+        const pa = S.pseudos[b.p_ancienne]; if (pa) { if (!S.pseudos[b.p_cle]) S.pseudos[b.p_cle] = pa; delete S.pseudos[b.p_ancienne]; }
+        return {ok: true, pseudo: S.pseudos[b.p_cle] || null, pts: 0, parties: 0};
+      }
       if (fn === 'compte_stats_garder') {
         const c = S.stats[S.qui] || (S.stats[S.qui] = {}); c[b.p_appareil] = j(b.p_part);
         return {ok: true, appareils: j(c), hist: [], epoque: 0};
@@ -58,7 +64,7 @@ test('sans compte → compte X → un autre compte : le pseudo de X et sa clé r
   await connecter(S, I, 'u1');
   assert.equal(I.s().cle, KX); assert.equal(I.s().pseudo, '@compte_x'); assert.equal(I.s().cleCompte, 1);
   assert.equal(S.pseudos[G], undefined, 'le pseudo sans compte est libéré');
-  assert.equal(I.ctx.dits[0], 'Ton compte joue en @compte_x : cet iPhone aussi, à la place de @invite. Tes parties sans compte s’ajoutent à celles du compte.');
+  assert.equal(I.ctx.dits[0], 'Ton compte joue en @compte_x : cet iPhone aussi, à la place de @invite. Tes points et tes parties sans compte s’ajoutent à ceux du compte.');
   assert.equal(S.stats.u1.IPHONE0001.pts, 100, 'ses parties vont au compte');
   /* 2. déconnectée, puis un compte Y neuf : X garde tout, Y commence un joueur et choisit son pseudo */
   await connecter(S, I, 'u2');

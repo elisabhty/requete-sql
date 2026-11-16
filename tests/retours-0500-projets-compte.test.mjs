@@ -98,3 +98,20 @@ test('la Console avec ses propres projets, en anglais', () => {
   for (const k of cles) assert.ok(en.includes(JSON.stringify(k) + ':'), k);
   assert.ok(en.includes('"Supprimer la table {x1}": "Delete the {x1} table"'), 'plus précise que « Supprimer {x1} »');
 });
+
+/* 16 novembre, 6 h 19 (Elisa : « synchroniser les points avec le nouveau pseudo du compte » ; « ok, et il reste dans les classements,
+   remplacé par le pseudo totalement ») : sans compte puis connectée à un compte qui a déjà un joueur, les points de l’iPhone le
+   rejoignent (compte_joueur_fusionner, essayée sur une copie du schéma : points, semaine, défis joués, pseudo, signalements). */
+test('le joueur de l’iPhone sans compte rejoint celui du compte, ses points avec', () => {
+  const sql = fs.readFileSync(path.join(ROOT, 'supabase/migrations/20261116052517_compte_joueur_fusionner.sql'), 'utf8');
+  for (const k of ["if not exists(select 1 from requete_private.compte_joueur where user_id=v_uid and cle=p_cle) then",
+    "if exists(select 1 from requete_private.compte_joueur where cle=p_ancienne) then", 'on conflict (joueur,u) do nothing',
+    'pts=pts+v_pts::integer, parties=parties+v_n, best=greatest(best,ja.best)', 'delete from public.jeu_joueur where id=ja.id;',
+    'revoke all on function public.compte_joueur_fusionner(text,text) from public, anon;']) assert.ok(sql.includes(k), k);
+  assert.ok(!/insert into public\.jeu_signalement/.test(sql), 'les signalements suivent sans nouvelle alerte');
+  const r = fn('async function csJoueurReprendre(cle,ancienne,dUnCompte){');
+  assert.ok(r.includes("fusion=await clsRpc('compte_joueur_fusionner',{p_ancienne:ancienne,p_cle:cle},{compte:true});"));
+  assert.ok(r.includes("if(!(e&&(e.status===404||e.code==='PGRST202'))){CJ.fait='';return null;}"), 'sans réponse : rien n’est libéré, on recommence');
+  assert.ok(r.includes("else if(!dUnCompte&&!fusion){"), 'l’ancienne façon seulement sans la fonction');
+  assert.ok(en.includes('"Ton compte joue en {x1} : cet iPhone aussi, à la place de {x2}. Tes points et tes parties sans compte s’ajoutent à ceux du compte.":'));
+});

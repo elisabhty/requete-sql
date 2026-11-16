@@ -66,5 +66,5 @@ test('Mon compte devant le paywall, l’aide et la page Confidentialité disent 
   assert.ok(app.includes('<b>Supprimer mon compte</b> (en bas de Mon compte\\u00a0; sans compte, <b>Supprimer mes données</b>)'));
   assert.ok(conf.includes('Mon compte › «&nbsp;Supprimer mon compte&nbsp;» («&nbsp;Supprimer mes données&nbsp;» si tu ne t’es pas connecté·e) efface'));
   assert.ok(!/sans compte/i.test(conf.replace(/<!--[\s\S]*?-->/g, '').slice(conf.indexOf('<body'))), 'la page Confidentialité ne dit pas « sans compte »');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3102';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3103';"), 'le cache de l’appli change');
 });

@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=3bf2a9c9" data-defis></script>
+<script src="langues.js?v=a653af50" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -50718,7 +50718,18 @@ async function csJoueurReprendre(cle,ancienne,dUnCompte){
   try{const p=await clsRpc('jeu_pseudo_prendre',{p_cle:cle,p_pseudo:''});if(p&&p.ok&&p.pseudo)pseudo=psForme(p.pseudo);}catch(e){}
   /* Le joueur d’avant n’était qu’à cet appareil (jamais connecté) : libéré, son pseudo passe au compte s’il n’en a pas. Celui d’un
      autre compte reste à ce compte-là, intact. */
-  if(!dUnCompte){
+  /* 16 novembre, 6 h 19 (Elisa : « synchroniser les points avec le nouveau pseudo du compte » ; « ok, et il reste dans les classements,
+     remplacé par le pseudo totalement ») : le joueur de cet appareil rejoint celui du compte (compte_joueur_fusionner) : ses points, ses
+     parties (la semaine aussi), ses défis joués ; son pseudo quitte les classements, ou devient celui du compte s’il n’en avait pas.
+     Sans réponse du serveur, rien n’est libéré : on recommence à la synchro suivante (le joueur de l’appareil est gardé d’ici là). */
+  let fusion=null;
+  if(!dUnCompte&&ancienne&&ancienne!==cle){
+    try{fusion=await clsRpc('compte_joueur_fusionner',{p_ancienne:ancienne,p_cle:cle},{compte:true});}
+    catch(e){if(!(e&&(e.status===404||e.code==='PGRST202'))){CJ.fait='';return null;}fusion=null;}
+    if(fusion&&!fusion.ok&&fusion.raison!=='compte'){CJ.fait='';return null;}
+  }
+  if(fusion&&fusion.ok){if(fusion.pseudo)pseudo=psForme(fusion.pseudo);}
+  else if(!dUnCompte&&!fusion){   // serveur d’avant la fusion (sans compte_joueur_fusionner) : comme avant ; le joueur d’un autre compte, jamais libéré
     if(ancienne&&ancienne!==cle){try{await clsRpc('jeu_pseudo_liberer',{p_cle:ancienne});}catch(e){}}
     if(!pseudo&&ancien){try{const q=await clsRpc('jeu_pseudo_prendre',{p_cle:cle,p_pseudo:ancien});if(q&&q.ok&&q.pseudo)pseudo=psForme(q.pseudo);}catch(e){}}
   }
@@ -50732,6 +50743,7 @@ async function csJoueurReprendre(cle,ancienne,dUnCompte){
   if(typeof DEFIS!=='undefined'&&DEFIS.cls){DEFIS.cls.cle='';DEFIS.cls.rangs=null;}
   /* 15 h 07 : le message dit ce que devient le pseudo d’avant (« c’est comme si je perdais l’ancien pseudo ») */
   if(pseudo&&ancien&&pseudo!==ancien&&typeof lqSay==='function')lqSay(dUnCompte?`Ce compte joue en ${pseudo}. ${ancien} reste à l’autre compte.`
+    :fusion&&fusion.ok?`Ton compte joue en ${pseudo} : cet iPhone aussi, à la place de ${ancien}. Tes points et tes parties sans compte s’ajoutent à ceux du compte.`
     :`Ton compte joue en ${pseudo} : cet iPhone aussi, à la place de ${ancien}. Tes parties sans compte s’ajoutent à celles du compte.`);
   try{if(typeof renderCompte==='function')renderCompte();if(typeof activeTab!=='undefined'&&activeTab==='defis'&&typeof renderDefis==='function')renderDefis();}catch(e){}
   /* Un compte qui n’a pas encore de joueur (et ne reprend pas le pseudo d’un autre compte) choisit le sien, comme à l’inscription */
@@ -54365,7 +54377,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3102';
+  const SW_CACHE='requete-2026-11-15-module-v3103';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -6868,6 +6868,7 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Ta séance type : {1} activité · ≈ {2} min.": "Your typical session: {1} activity · ≈ {2} min.",
     "Ce compte joue en {x1}. {x2} reste à l’autre compte.": "This account plays as {x1}. {x2} stays with the other account.",
     "Ton compte joue en {x1} : cet iPhone aussi, à la place de {x2}. Tes parties sans compte s’ajoutent à celles du compte.": "Your account plays as {x1}: so does this iPhone, instead of {x2}. Your games without an account are added to the account’s.",
+    "Ton compte joue en {x1} : cet iPhone aussi, à la place de {x2}. Tes points et tes parties sans compte s’ajoutent à ceux du compte.": "Your account plays as {x1}: so does this iPhone, instead of {x2}. Your points and games without an account are added to the account’s.",
     "{1} étoile sur 5": "{1} star out of 5",
     "{1} étoiles sur 5": "{1} stars out of 5",
     "Témoignage audio {x1}, qui utilise Requête": "Audio testimonial from {x1}, who uses Requête",

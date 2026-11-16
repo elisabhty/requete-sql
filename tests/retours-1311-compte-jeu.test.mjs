@@ -39,6 +39,14 @@ function appareil(S, {cle = 'CLEAPPAREIL' + 'A'.repeat(20), pseudo = '', salle =
       }
       if (fn === 'jeu_pseudo_prendre') { const d = S.pseudos[b.p_cle]; if (d) return {ok: true, pseudo: d}; if (!b.p_pseudo) return {ok: false, raison: 'invalide'}; S.pseudos[b.p_cle] = b.p_pseudo; return {ok: true, pseudo: b.p_pseudo}; }
       if (fn === 'jeu_pseudo_liberer') { delete S.pseudos[b.p_cle]; return {ok: true}; }
+      /* 16 novembre, 6 h 19 : le joueur de l’appareil rejoint celui du compte (ses points avec) */
+      if (fn === 'compte_joueur_fusionner') {
+        assert.ok(o && o.compte, fn + ' avec le jeton du compte');
+        if (S.sansFusion) throw {status: 404, code: 'PGRST202'};
+        if (S.lien !== b.p_cle) throw {status: 403, code: '42501'};
+        const pa = S.pseudos[b.p_ancienne]; if (pa) { if (!S.pseudos[b.p_cle]) S.pseudos[b.p_cle] = pa; delete S.pseudos[b.p_ancienne]; }
+        (S.fusions = S.fusions || []).push(b.p_ancienne); return {ok: true, pseudo: S.pseudos[b.p_cle] || null, pts: 0, parties: 0};
+      }
       if (fn === 'compte_stats_garder') {
         if (b.p_epoque != null && b.p_epoque < S.stats.epoque) return {ok: true, efface: true, epoque: S.stats.epoque};
         S.stats.appareils[b.p_appareil] = JSON.parse(JSON.stringify(b.p_part));
@@ -66,7 +74,9 @@ test('le premier appareil connecté donne sa clé au compte ; un autre la repren
   assert.deepEqual(j(B.s().envoi), []); assert.equal(B.s().clsRattrape, 1);
   assert.equal(B.ctx.window.REQUETE_JEU_ID, null); assert.equal(B.ctx.CLS.data, null); assert.equal(B.ctx.DEFIS.cls.cle, '');
   /* 14 novembre, 15 h 07 : le message dit ce que devient le pseudo d’avant (retours-1507-changer-de-compte) */
-  assert.equal(B.ctx.dits[0], 'Ton compte joue en @lea : cet iPhone aussi, à la place de @lea_tmp. Tes parties sans compte s’ajoutent à celles du compte.');
+  assert.equal(B.ctx.dits[0], 'Ton compte joue en @lea : cet iPhone aussi, à la place de @lea_tmp. Tes points et tes parties sans compte s’ajoutent à ceux du compte.');
+  assert.deepEqual(S.fusions, ['CLEB' + 'B'.repeat(24)], 'ses points rejoignent le compte (16 novembre)');
+  assert.ok(!S.appels.includes('jeu_pseudo_liberer'), 'plus libéré à part : la fusion s’en charge');
   assert.equal(B.s().cleCompte, 1, 'la clé de cet appareil est maintenant celle d’un compte');
   assert.equal(r.pseudo, '@lea');
   /* une seule fois par compte et par lancement */
@@ -162,4 +172,21 @@ test('les textes : l’accueil ne promet plus sans compte ; la confidentialité 
   assert.ok(app.includes('Avec un compte&nbsp;: leçons, défis, notes, planning, ton pseudo, tes points et tes parties sont sauvegardés et te suivent sur tes autres appareils.'));
   const conf = readFileSync(new URL('../decouvrir/confidentialite.html', import.meta.url), 'utf8');
   assert.ok(conf.includes('l’identifiant de joueur tiré au hasard par ton appareil (celui qui porte ton pseudo et tes points au classement)') && conf.includes('Dernière mise à jour&nbsp;: 15 novembre 2026'));
+});
+
+/* 16 novembre, 6 h 19 : un serveur sans compte_joueur_fusionner (404) : comme avant (le pseudo de l’appareil libéré) ; sans réponse
+   du serveur, rien n’est libéré et la reprise attend la synchro suivante. */
+test('la fusion des points : sans la fonction, comme avant ; sans réponse, on recommence plus tard', async () => {
+  const S = serveur(); S.lien = 'CLECOMPTE' + 'C'.repeat(20); S.pseudos[S.lien] = '@lea'; S.sansFusion = true;
+  const B = appareil(S, {cle: 'CLEB' + 'B'.repeat(24), pseudo: '@lea_tmp'}); S.pseudos[B.s().cle] = '@lea_tmp';
+  await B.ctx.csJoueur('u1');
+  assert.equal(B.s().cle, S.lien); assert.equal(S.pseudos['CLEB' + 'B'.repeat(24)], undefined); assert.ok(S.appels.includes('jeu_pseudo_liberer'));
+  assert.equal(B.ctx.dits[0], 'Ton compte joue en @lea : cet iPhone aussi, à la place de @lea_tmp. Tes parties sans compte s’ajoutent à celles du compte.');
+  const S2 = serveur(); S2.lien = 'CLECOMPTE' + 'C'.repeat(20); S2.pseudos[S2.lien] = '@lea';
+  const C = appareil(S2, {cle: 'CLEC' + 'C'.repeat(24), pseudo: '@lea_tmp'}); S2.pseudos[C.s().cle] = '@lea_tmp';
+  const rpc = C.ctx.clsRpc; C.ctx.clsRpc = async (fn, b, o) => { if (fn === 'compte_joueur_fusionner') throw new TypeError('Load failed'); return rpc(fn, b, o); };
+  assert.equal(await C.ctx.csJoueur('u1'), null);
+  assert.equal(C.s().cle, 'CLEC' + 'C'.repeat(24), 'l’appareil garde son joueur'); assert.equal(S2.pseudos['CLEC' + 'C'.repeat(24)], '@lea_tmp', 'rien n’est libéré');
+  C.ctx.clsRpc = rpc; await C.ctx.csJoueur('u1');
+  assert.equal(C.s().cle, S2.lien, 'à la synchro suivante, la fusion se fait'); assert.deepEqual(S2.fusions, ['CLEC' + 'C'.repeat(24)]);
 });
