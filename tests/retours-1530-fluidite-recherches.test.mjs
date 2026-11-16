@@ -55,12 +55,12 @@ test('stickers : mesures groupées, un dessin déjà fait est recopié, un canva
   assert.ok(p.includes("if(etat!=='a'&&cv._stkCle===cle&&cv.width===n&&cv.height===n){stkFaits.set(cle,cv);return;}"), 'stkPaint qui repasse sur la page ne redessine rien');
   assert.ok(p.includes('try{ctx.drawImage(fait,0,0);cv._stkCle=cle;stkFaits.set(cle,cv);return;}catch(e){}'), 'la copie remplace l’ancien canvas dans la réserve : rien en double');
   assert.ok(p.includes('if(stkFaits.size>90)stkFaits.delete(stkFaits.keys().next().value);'), 'réserve bornée');
-  assert.ok(html.includes("if(typeof stkFaits!=='undefined')for(const k of [...stkFaits.keys()])if(k.startsWith(id+'|'))stkFaits.delete(k);"), 'une image 3D qui arrive : ses dessins sont refaits');
+  assert.ok(html.includes("if(typeof stkFaits!=='undefined')for(const c of [...stkFaits.keys()])if(c.startsWith(id+'|'))stkFaits.delete(c);"), 'une image 3D qui arrive : ses dessins sont refaits');
   /* Joué avec de faux canvas. */
   const mk = () => { const log = []; return {log, cv: {width: 108, height: 108, offsetWidth: 36, dataset: {stk: 'x'}, parentElement: {}, closest: () => null,
     getContext: () => ({clearRect() { log.push('efface'); }, drawImage(src) { log.push(src && src.dataset ? 'copie' : 'image'); }, save() {}, restore() {}, translate() {}})}}; };
   let pleins = 0;
-  const ctx = vm.createContext({window: {devicePixelRatio: 3}, getComputedStyle: () => ({width: '29.33px'}), STK_PAD: 3.3334, STK_3D: new Set(), stkImgs: {}, stkFontOk: true,
+  const ctx = vm.createContext({window: {devicePixelRatio: 3}, getComputedStyle: () => ({width: '29.33px'}), STK_PAD: 3.3334, STK_3D: new Set(), stkImgs: {}, stkEtat: () => 'v', stkFontOk: true,
     stkShadow() {}, stkDraw() { pleins++; }, stkMask: () => '', stkGlitter: () => '', stkFontWatch() {}, STK_HOLO: {}, Map, Math});
   vm.runInContext(p, ctx);
   const a = mk(), b = mk();

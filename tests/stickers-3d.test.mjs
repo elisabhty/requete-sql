@@ -30,8 +30,19 @@ test('les 35 images : WebP carrés de 768 px, fond transparent, légères', () =
     total += b.length;
   }
   assert.ok(total < 2.2 * 1024 * 1024, `en tout ${total} octets`);
-  assert.ok(html.includes('o.im.src=stkSrc(id);'), 'chargées à la demande');
-  assert.ok(html.includes('return `assets/stickers/${en?\'en/\':\'\'}${id}.webp?v=${STK_IMG_V}`;'), 'la version anglaise, s’il y en a une');
+  assert.ok(html.includes('o.im.src=stkSrc(id,petit);'), 'chargées à la demande');
+  assert.ok(html.includes('return `assets/stickers/${en?\'en/\':\'\'}${petit?\'384/\':\'\'}${id}.webp?v=${STK_IMG_V}`;'), 'la version anglaise, s’il y en a une ; la petite');
+  /* 16 novembre (« les stickers mettent beaucoup de temps à se charger ») : une version de 384 px pour la planche */
+  let petit = 0;
+  for (const id of ids) {
+    const b = fs.readFileSync(new URL(`../assets/stickers/384/${id}.webp`, import.meta.url));
+    assert.equal(b.toString('ascii', 12, 16), 'VP8X', `${id} (384) : avec couche alpha`);
+    assert.ok(b[20] & 0x10, `${id} (384) : avec transparence`);
+    assert.deepEqual([1 + b.readUIntLE(24, 3), 1 + b.readUIntLE(27, 3)], [384, 384], id);
+    petit += b.length;
+  }
+  assert.ok(petit < 1024 * 1024, `la planche en petit : ${petit} octets`);
+  assert.ok(html.includes("o.im.onload=()=>{if(typeof o.im.decode==='function')o.im.decode().then(ok,ok);else ok();};"), 'décodée hors du fil principal avant d’être dessinée');
   assert.ok(!sw.includes('assets/stickers/'), 'pas dans le précache : rangées par le service worker à la première vue');
 });
 
@@ -58,7 +69,7 @@ test('dessin : rien pendant le chargement, puis l’image 3D ; les silhouettes s
   w.ctx.c = w.mk();
   w.run("stkDraw(c,'premier',300,'art')");
   assert.equal(w.imgs.length, 1, 'chargement lancé');
-  assert.equal(w.imgs[0].src, 'assets/stickers/premier.webp?v=1');
+  assert.equal(w.imgs[0].src, 'assets/stickers/384/premier.webp?v=1', '300 pixels d’écran : la petite version');
   assert.ok(!w.calls.some(c => c[0] === 'drawImage' || c[0] === 'fill' || c[0] === 'stroke'), 'rien dessiné en attendant');
   w.imgs[0].onload();
   assert.ok(w.ctx.painted > 0, 'repeint à l’arrivée');
@@ -72,6 +83,8 @@ test('dessin : rien pendant le chargement, puis l’image 3D ; les silhouettes s
   w.run("stkDraw(c,'premier',300,'spot')");
   assert.ok(w.calls.some(c => c[0] === 'fill:#CBC2EC') && w.calls.some(c => c[0] === 'fill:#EEEAFB'), 'emplacement vide : découpe en creux');
   assert.equal(w.imgs.length, 1, 'une seule image par sticker');
+  w.run("stkDraw(c,'premier',600,'art')");
+  assert.equal(w.imgs.length, 2); assert.equal(w.imgs[1].src, 'assets/stickers/premier.webp?v=1', 'en grand : la grande');
 });
 
 test('secours : si l’image ne vient pas, le dessin à plat reprend (pour les 21 qui en ont un)', () => {
@@ -82,10 +95,17 @@ test('secours : si l’image ne vient pas, le dessin à plat reprend (pour les 2
   w.imgs[0].onerror();
   w.calls.length = 0;
   w.run("stkDraw(c,'serie7',300,'art')");
+  assert.ok(!w.calls.some(c => c[0] === 'stroke'), 'la petite manque : la grande est demandée');
+  assert.equal(w.imgs[1].src, 'assets/stickers/serie7.webp?v=1');
+  w.imgs[1].onerror();
+  w.calls.length = 0;
+  w.run("stkDraw(c,'serie7',300,'art')");
   assert.ok(w.calls.some(c => c[0] === 'stroke') && w.calls.some(c => c[0] === 'fill'), 'le dessin vectoriel');
   w.calls.length = 0;
   w.run("stkDraw(c,'champion',300,'art')");
-  w.imgs[1].onerror();
+  w.imgs[2].onerror();
+  w.run("stkDraw(c,'champion',300,'art')");
+  w.imgs[3].onerror();
   w.run("stkDraw(c,'champion',300,'art')");
   assert.ok(!w.calls.some(c => c[0] === 'drawImage' || c[0] === 'stroke'), 'né en 3D : pas de dessin à plat, rien plutôt qu’un trou mal dessiné');
 });

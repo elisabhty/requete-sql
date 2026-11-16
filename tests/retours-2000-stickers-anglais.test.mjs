@@ -30,8 +30,10 @@ test('les 16 stickers à texte ont leur version anglaise : WebP carré de 768 px
     assert.deepEqual([1 + b.readUIntLE(24, 3), 1 + b.readUIntLE(27, 3)], [768, 768], id);
     assert.ok(b.length < 120 * 1024, `${id} : ${b.length} octets`);
   }
-  assert.deepEqual(fs.readdirSync(new URL('../assets/stickers/en/', import.meta.url)).sort(), [...r.en].map(id => `${id}.webp`).sort(),
+  assert.deepEqual(fs.readdirSync(new URL('../assets/stickers/en/', import.meta.url)).filter(f => f.endsWith('.webp')).sort(), [...r.en].map(id => `${id}.webp`).sort(),
     'rien de plus dans le dossier');
+  /* 16 novembre : et leur petite version (384 px), pour la planche */
+  assert.deepEqual(fs.readdirSync(new URL('../assets/stickers/en/384/', import.meta.url)).sort(), [...r.en].map(id => `${id}.webp`).sort());
 });
 
 test('l’appli en anglais prend la version anglaise ; en français, ou sans texte, l’originale', () => {
@@ -41,4 +43,6 @@ test('l’appli en anglais prend la version anglaise ; en français, ou sans tex
   assert.equal(vm.runInContext("stkSrc('jointures')", en), 'assets/stickers/jointures.webp?v=1', 'pas de texte : l’originale');
   assert.equal(vm.runInContext("stkSrc('requete')", monde('fr')), 'assets/stickers/requete.webp?v=1');
   assert.equal(vm.runInContext("stkSrc('requete')", monde()), 'assets/stickers/requete.webp?v=1', 'sans moteur de langue : l’originale');
+  assert.equal(vm.runInContext("stkSrc('requete',true)", en), 'assets/stickers/en/384/requete.webp?v=1', '16 novembre : la petite version');
+  assert.equal(vm.runInContext("stkSrc('jointures',true)", en), 'assets/stickers/384/jointures.webp?v=1');
 });

@@ -61,3 +61,34 @@ test('anglais : les textes restés en français dans les parcours', () => {
     assert.ok(typeof textes[k] === 'string' && textes[k].length, k);
   assert.ok(app.includes("const date=parseD(iso).toLocaleDateString(typeof obLoc==='function'?obLoc():'fr-FR',{weekday:'short',day:'numeric',month:'short'});"));
 });
+
+/* 16 novembre, 0 h 53 (Elisa : « oui » à vider l’iPhone quand on passe à un autre compte) */
+test('un autre compte sur le même iPhone : l’appareil se vide du compte d’avant, un compte neuf repasse par les questions', () => {
+  const i = app.indexOf('function compteAutre(id){'), f = app.slice(i, app.indexOf('\n}\n', i));
+  const ls = new Map(), ctx = {localStorage: {getItem: k => ls.has(k) ? ls.get(k) : null, setItem: (k, v) => ls.set(k, String(v)), removeItem: k => ls.delete(k), get length() { return ls.size; }, key: n => [...ls.keys()][n]}};
+  vm.runInNewContext("const COMPTE_DERNIER='requete-compte-dernier';" + f + '\n}\nthis.compteAutre=compteAutre;', ctx);
+  assert.equal(ctx.compteAutre('u-1'), false, 'premier compte sur cet iPhone');
+  ls.set('requete-compte-premier:u-1', '1');
+  assert.equal(ctx.compteAutre('u-1'), false, 'connecté avant cette version : le même');
+  assert.equal(ctx.compteAutre('u-2'), true, 'connecté avant cette version : un autre');
+  ls.set('requete-compte-dernier', 'u-2');
+  assert.equal(ctx.compteAutre('u-2'), false); assert.equal(ctx.compteAutre('u-1'), true);
+  const v = app.slice(app.indexOf('function compteViderPourAutre(){'), app.indexOf('\n}\n', app.indexOf('function compteViderPourAutre(){')));
+  assert.ok(v.includes('const garde={onboarded:state.onboarded,preferences:state.preferences,salle:state.salle,parcoursPush:state.parcoursPush};') && v.includes('state=normalizeState(garde);'),
+    'seuls les réglages et le joueur restent');
+  const a = app.slice(app.indexOf('async function obStartAuth('), app.indexOf('\n}\n', app.indexOf('async function obStartAuth(')));
+  assert.ok(a.indexOf('const autre=') < a.indexOf("state.accountMode='connected';"), 'comparé avant de toucher à l’appareil');
+  assert.ok(a.includes("if(autre){compteViderPourAutre();try{localStorage.removeItem('requete-compte-premier:'+result.id);}catch(e){}}"), 'revenu : son planning revient');
+  assert.ok(a.includes("if(autre&&obEntry==='account'&&state.onboarded){") && a.includes("obGoto('questions');"), 'compte neuf : les questions');
+  const d = app.slice(app.indexOf('async function seDeconnecter(){'), app.indexOf('\n}\n', app.indexOf('async function seDeconnecter(){')));
+  assert.ok(d.indexOf('await Promise.race([csSync(),') > 0 && d.indexOf('await Promise.race([csSync(),') < d.indexOf('REQUETE_AUTH.signOut()'), 'la dernière synchro avant de partir');
+  assert.ok(app.includes('CS.user=u.id;CS.prog=M.createProgressionSync(o);CS.docs=M.createDocumentsSync(o);\n    try{localStorage.setItem(COMPTE_DERNIER,u.id);}catch(e){}'));
+});
+
+/* 16 novembre, 0 h 53 (Elisa : « les stickers mettent bcp de temps à se charger ») */
+test('stickers : petite version pour la planche, décodée à l’avance, préparée au calme', () => {
+  assert.ok(app.includes('const STK_PETIT=400;'));
+  assert.ok(app.includes("window.addEventListener('load',()=>setTimeout(()=>{try{if(state&&state.onboarded)stkPrecharger();}catch(e){}},4000));"));
+  assert.ok(app.includes("if(draft.practiceDone&&typeof stkImgO==='function')try{stkImgO('requete',false);stkImgO('niv1',false);}catch(e){}"), 'la page Niveau 1 de la fin de l’onboarding');
+  assert.ok(app.includes('if(mi>=0&&typeof stkImgO===\'function\'&&STK_MODULE_IDS[mi])stkImgO(STK_MODULE_IDS[mi],false);'), 'le sticker du module, dès la leçon ouverte');
+});

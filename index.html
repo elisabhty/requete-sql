@@ -31193,6 +31193,8 @@ let somScrollUntil=0; // fenêtre où les layouts SQL ne doivent pas écraser le
 /* Le bouton retour annonce l’écran d’où l’on vient, quel qu’il soit. */
 function lessonBackLabel(){return ({planning:'Planning',defis:'Défis',practice:'Pratiquer',library:'Bibliothèque',jeu:'Défis',compte:'Compte',notes:'Mes notes',collection:'Cartes mémo',stickers:'Stickers',console:'Console',entretien:'Entretien',sgbd:'Selon le SGBD'})[activeTab]||'Accueil';}
 function openLesson(id, restoreStep){
+  /* 16 novembre : le sticker du module, en grand sur le bilan qui termine le module, est préparé à l’ouverture de la leçon */
+  try{const mi=MODULES.findIndex(m=>m.lessons.some(l=>l.id===id));if(mi>=0&&typeof stkImgO==='function'&&STK_MODULE_IDS[mi])stkImgO(STK_MODULE_IDS[mi],false);}catch(e){}
   const l=allLessons.find(x=>x.id===id); if(!l)return;
   /* 13 novembre, 0 h 32 : le parcours se suit. Une leçon encore verrouillée ne s’ouvre pas, d’où qu’on vienne (le parcours, la
      recherche, le planning, une carte mémo, un lien) : on dit laquelle faire d’abord. Reprise au lancement : on reste sur l’onglet. */
@@ -42150,30 +42152,72 @@ const STK_IMG_V=1;
    L’appli en anglais la prend ; en français, ou pour un sticker sans texte, c’est l’originale. La langue ne change qu’au rechargement. */
 const STK_EN=new Set(['requete','defi1','defis10','lecons10','premier','difficile','amis5','serie3','serie7','serie14','serie30',
   'niv1','niv2','niv3','niv4','niv5']);
-function stkSrc(id){
+/* 16 novembre (Elisa : « les stickers mettent beaucoup de temps à se charger ») : la planche décodait et réduisait 35 images de
+   768 px (2,1 Mo) pour des cases de 300 pixels d’écran, presque 3 s sur un téléphone moyen. Les petits stickers (jusqu’à STK_PETIT
+   pixels d’écran : la planche, le tableau, le masque holographique) prennent leur version en 384 px (assets/stickers/384/, 0,9 Mo) ;
+   la page « Nouveau niveau » et la fiche gardent la grande. Chaque image est décodée hors du fil principal (decode) avant d’être
+   dessinée, et celles des stickers gagnés sont préparées quand l’appli ne fait rien (stkPrecharger) : la planche s’ouvre dessinée. */
+const STK_PETIT=400;
+function stkSrc(id,petit){
   let en=false;
   try{const L=typeof window!=='undefined'?window.REQUETE_LANGUE:null;en=!!L&&L.code==='en'&&STK_EN.has(id);}catch(e){}
-  return `assets/stickers/${en?'en/':''}${id}.webp?v=${STK_IMG_V}`;
+  return `assets/stickers/${en?'en/':''}${petit?'384/':''}${id}.webp?v=${STK_IMG_V}`;
 }
 const stkImgs={},stkSilCache=new Map();
 let stkRepaintT=0;
-function stkImg(id){
-  if(typeof Image==='undefined'||!STK_3D.has(id))return null;
-  let o=stkImgs[id];
+function stkImgO(id,petit){
+  const k=petit?id+'|p':id;
+  let o=stkImgs[k];
   if(!o){
-    o=stkImgs[id]={im:new Image(),ok:false,ko:false};
+    o=stkImgs[k]={im:new Image(),ok:false,ko:false};
     o.im.decoding='async';
-    o.im.onerror=()=>{o.ko=true;clearTimeout(stkRepaintT);stkRepaintT=setTimeout(()=>{try{stkPaint(document);}catch(e){}},50);};
-    o.im.onload=()=>{o.ok=true;delete stkMasks[id];for(const k of [...stkSilCache.keys()])if(k.startsWith(id+'|'))stkSilCache.delete(k);
-      if(typeof stkFaits!=='undefined')for(const k of [...stkFaits.keys()])if(k.startsWith(id+'|'))stkFaits.delete(k);
-      clearTimeout(stkRepaintT);stkRepaintT=setTimeout(()=>{try{stkPaint(document);}catch(e){}},50);};
-    o.im.src=stkSrc(id);
+    const repeindre=()=>{clearTimeout(stkRepaintT);stkRepaintT=setTimeout(()=>{try{stkPaint(document);}catch(e){}},50);};
+    const ko=()=>{if(o.ok||o.ko)return;o.ko=true;repeindre();};
+    const ok=()=>{if(o.ok)return;o.ok=true;o.ko=false;delete stkMasks[id];for(const c of [...stkSilCache.keys()])if(c.startsWith(id+'|'))stkSilCache.delete(c);
+      if(typeof stkFaits!=='undefined')for(const c of [...stkFaits.keys()])if(c.startsWith(id+'|'))stkFaits.delete(c);
+      repeindre();};
+    o.im.onerror=ko;
+    o.im.onload=()=>{if(typeof o.im.decode==='function')o.im.decode().then(ok,ok);else ok();};
+    o.im.src=stkSrc(id,petit);
   }
-  return o.ok?o.im:null;
+  return o;
 }
+/* L’image à dessiner pour cette taille (px : pixels d’écran) ; la petite absente (une mise à jour pas encore arrivée), la grande. */
+function stkImg(id,px){
+  if(typeof Image==='undefined'||!STK_3D.has(id))return null;
+  const petit=!(px>STK_PETIT),o=stkImgO(id,petit);
+  if(o.ok)return o.im;
+  if(petit&&o.ko){const G=stkImgO(id,false);return G.ok?G.im:null;}
+  return null;
+}
+/* 'v' : dessin à plat ; 'i' : l’image est là ; 'k' : elle ne viendra pas ; 'a' : elle arrive */
+function stkEtat(id,px){
+  if(!STK_3D.has(id))return 'v';
+  if(typeof Image==='undefined')return 'k';
+  const petit=!(px>STK_PETIT),o=stkImgO(id,petit);
+  if(o.ok)return 'i';
+  if(!o.ko)return 'a';
+  if(!petit)return 'k';
+  const G=stkImgO(id,false);
+  return G.ok?'i':G.ko?'k':'a';
+}
+/* Les stickers gagnés, préparés en petit quand l’appli est au calme (quelques secondes après l’ouverture, un par un) */
+let stkPrechargeFait=false;
+function stkPrecharger(){
+  if(stkPrechargeFait||typeof Image==='undefined')return;
+  stkPrechargeFait=true;
+  /* Les gagnés d’abord ; dans l’appli iPhone (des fichiers sur le téléphone, rien à télécharger), les autres aussi : la planche dessine
+     leurs silhouettes à partir des mêmes images. */
+  let ids=[];try{const L=stkList().filter(x=>STK_3D.has(x.id));ids=L.filter(x=>x.got).concat(typeof appliNative==='function'&&appliNative()?L.filter(x=>!x.got):[]).map(x=>x.id);}catch(e){return;}
+  const calme=f=>typeof requestIdleCallback==='function'?requestIdleCallback(f,{timeout:1500}):setTimeout(f,120);
+  const un=()=>{const id=ids.shift();if(!id)return;stkImgO(id,true);calme(un);};
+  calme(un);
+}
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function')
+  window.addEventListener('load',()=>setTimeout(()=>{try{if(state&&state.onboarded)stkPrecharger();}catch(e){}},4000));
 /* La silhouette d’un sticker 3D, d’une seule couleur, à la taille voulue (mise de côté : la planche en redessine beaucoup). */
 function stkSil(id,px,col){
-  const im=stkImg(id);if(!im)return null;
+  const im=stkImg(id,px);if(!im)return null;
   const k=id+'|'+px+'|'+col;let c=stkSilCache.get(k);
   if(!c){
     c=document.createElement('canvas');c.width=c.height=Math.max(1,px);
@@ -42184,7 +42228,7 @@ function stkSil(id,px,col){
   return c;
 }
 function stkDraw(ctx,id,px,mode,cutOnly){
-  const im=stkImg(id);
+  const im=stkImg(id,px);
   if(im){
     const n=Math.max(1,Math.round(px));
     if(mode==='lock'){const c=stkSil(id,n,'#DCD5F2');if(c)ctx.drawImage(c,0,0,px,px);}
@@ -42193,7 +42237,7 @@ function stkDraw(ctx,id,px,mode,cutOnly){
     else{ctx.save();ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(im,0,0,px,px);ctx.restore();}
     return;
   }
-  if(STK_3D.has(id)&&stkImgs[id]&&!stkImgs[id].ko)return;   // l’image 3D est en route : stkPaint repasse à son arrivée
+  if(stkEtat(id,px)==='a')return;   // l’image 3D est en route : stkPaint repasse à son arrivée
   const art=STK_ART[id];if(!art)return;
   ctx.save();ctx.scale(px/200,px/200);ctx.lineJoin='round';ctx.lineCap='round';
   const one=(col,b)=>{ctx.fillStyle=ctx.strokeStyle=col;stkLayers(ctx,art,true,b);};
@@ -42409,7 +42453,7 @@ function stkRarHtml(id,got,fiche){
 }
 const stkMasks={};
 function stkMask(id){
-  if(STK_3D.has(id)&&!stkImg(id)&&!(stkImgs[id]&&stkImgs[id].ko)&&typeof Image!=='undefined')return '';   // le masque suit la silhouette de l’image 3D : on attend qu’elle arrive
+  if(stkEtat(id,256)==='a')return '';   // le masque suit la silhouette de l’image 3D : on attend qu’elle arrive
   if(!stkMasks[id]){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');if(!x)return '';stkDraw(x,id,256,'lock');stkMasks[id]=c.toDataURL();}
   return stkMasks[id];
 }
@@ -42459,7 +42503,7 @@ function stkPaint(root){
     const px=Math.round(w*dpr),pad=Math.round(STK_PAD*dpr),n=px+2*pad;
     /* Les deux côtés : un canvas neuf mesure 300 × 150, et 300 tombe juste (100 px affichés sur un écran ×3). */
     const id=cv.dataset.stk;
-    const o=stkImgs[id],etat=!STK_3D.has(id)?'v':o&&o.ok?'i':o&&o.ko?'k':'a';
+    const etat=stkEtat(id,px);
     const cle=[id,mode,n,px,ombre?1:0,etat,stkFontOk?1:0].join('|'),fait=etat==='a'?null:stkFaits.get(cle);
     /* Ce canvas porte déjà ce dessin (stkPaint repasse sur toute la page quand une image ou la police arrive) : on n’y touche pas. */
     if(etat!=='a'&&cv._stkCle===cle&&cv.width===n&&cv.height===n){stkFaits.set(cle,cv);return;}
@@ -49633,6 +49677,8 @@ function obPracticeRun(){
   }
   const reduce=prefersReduceMotion();
   draft.practiceJust=draft.practiceDone;
+  /* 16 novembre : la page « Niveau 1 » de la fin de l’onboarding montre ces deux-là en grand : préparés dès maintenant */
+  if(draft.practiceDone&&typeof stkImgO==='function')try{stkImgO('requete',false);stkImgO('niv1',false);}catch(e){}
   if(typeof buzz==='function')buzz(draft.practiceDone?'success':'light');
   paintOb();
   /* 10 h 45 : la fête est sur la page de connexion. Le temps de voir le résultat se déplier (les lignes, « Paris » qui s’allume),
@@ -50324,6 +50370,28 @@ if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
    se connecte pour la première fois) ; puis ce qui est ici part. Une seule synchro à la fois ; relancée 5 s après un enregistrement,
    au lancement et au retour du réseau. Sans compte connecté, rien ne part. */
 const CS={user:null,prog:null,docs:null,cours:null,t:0,dedans:false};
+/* ---------- Un autre compte sur le même iPhone (16 novembre, Elisa : « oui ») ----------
+   Se déconnecter puis se connecter avec un AUTRE compte envoyait la progression et les notes du compte d’avant dans le nouveau, et
+   gardait le prénom. Maintenant l’appareil se vide d’abord de ce qui appartient au compte d’avant (tout est sur ce compte-là : la
+   déconnexion attend la dernière synchro), puis charge le nouveau ; un compte neuf repasse par les questions, pour son planning.
+   Restent sur l’appareil : ses réglages (langue, rappel, confort), l’abonnement (celui du compte Apple de l’iPhone) et les projets
+   enregistrés (des fichiers de cet iPhone, qui ne vont pas sur le compte). Le joueur (pseudo, points, parties) suit déjà le compte (csJoueur). */
+const COMPTE_DERNIER='requete-compte-dernier';
+function compteAutre(id){
+  if(!id)return false;
+  let avant='';try{avant=localStorage.getItem(COMPTE_DERNIER)||'';}catch(e){}
+  if(avant)return avant!==id;
+  /* Connecté avant cette version : les comptes déjà venus sur cet iPhone */
+  const vus=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||'';if(k.startsWith('requete-compte-premier:'))vus.push(k.slice(23));}}catch(e){}
+  return vus.length>0&&!vus.includes(id);
+}
+function compteViderPourAutre(){
+  const garde={onboarded:state.onboarded,preferences:state.preferences,salle:state.salle,parcoursPush:state.parcoursPush};
+  state=normalizeState(garde);
+  try{localStorage.removeItem('requete-nav-long-v1');}catch(e){}
+  CJ.fait='';
+  save();
+}
 const CS_VERROUS={};
 const CS_STORE={
   get:k=>{try{return Promise.resolve(JSON.parse(localStorage.getItem(k)||'null'));}catch(e){return Promise.resolve(null);}},
@@ -50341,6 +50409,7 @@ function csPret(){
     };
     const o={accountId:u.id,auth,url:JEU_SB,apikey:JEU_SB_KEY,store:CS_STORE,enabled:true};
     CS.user=u.id;CS.prog=M.createProgressionSync(o);CS.docs=M.createDocumentsSync(o);
+    try{localStorage.setItem(COMPTE_DERNIER,u.id);}catch(e){}
   }
   return CS;
 }
@@ -50796,6 +50865,10 @@ async function obStartAuth(provider,btn){
       if(typeof buzz==='function')buzz('light');
       return;
     }
+    const autre=typeof compteAutre==='function'&&compteAutre(result.id);
+    /* revenu après un autre compte : comme une première fois ici (son planning revient avec le reste) */
+    if(autre){compteViderPourAutre();try{localStorage.removeItem('requete-compte-premier:'+result.id);}catch(e){}}
+    try{if(result.id)localStorage.setItem(COMPTE_DERNIER,String(result.id));}catch(e){}
     state.accountMode='connected';
     if(typeof stat==='function')stat('connexion',null,{f:String(provider).slice(0,10)});
     state.accountProvider=provider;
@@ -50808,6 +50881,22 @@ async function obStartAuth(provider,btn){
     if(typeof csSync==='function')csSync({premier:true});   // 12 novembre : la progression rejoint le compte (ou en revient)
     draft.accountMode='connected';
     obAuthBusy=false;obAuthMessage='';
+    /* Un autre compte, depuis Mon compte : le sien arrive d’abord (6 s au plus) ; vide, c’est une nouvelle personne : ses questions. */
+    if(autre&&obEntry==='account'&&state.onboarded){
+      obAuthBusy=true;obAuthFait=true;obAuthMessage=obTypo('C’est bon ! On récupère ta progression…');paintOb();
+      let r=null;
+      try{r=await Promise.race([typeof csSync==='function'?csSync({premier:true}):null,new Promise(ok=>setTimeout(ok,6000))]);}catch(e){}
+      obAuthBusy=false;obAuthMessage='';
+      try{renderGreeting();renderHomeHero();renderModules();renderProgress();renderPlanning();renderNotes();renderCollection();renderCompte();}catch(e){}
+      if(!obCompteConnu(r)){
+        state.onboarded=false;save();
+        draft={niveau:'debutant',rythme:'regulier',freq:7,name:prenomCompte,goal:obVitrineGoal(),ageRange:'',job:'',source:'',referral:'',
+          practiceDone:false,practiceRows:[],accountMode:'connected'};
+        obEntry='welcome';
+        obGoto('questions');
+        return;
+      }
+    }
     /* 21 h 06 (« j’ai changé de compte et j’ai pas eu le paywall ») : connecté depuis l’appli, ou reconnecté après une déconnexion,
        sans abonnement actif sur cet iPhone : le paywall, sans refermer la page entre les deux.
        13 novembre, 2 h 41 (Elisa : « quand on se connecte sur l’appli on va toujours pas sur l’accueil » ; déjà le 30 octobre,
@@ -53564,6 +53653,8 @@ async function seDeconnecter(){
      « mettre ce GIF en disant “Tu nous quittes déjà ?” pour la déconnexion ». 12 images de 420 ms, en boucle dans la question ;
      mouvement réduit : son image la plus triste (chat-triste-fixe.webp). Après la déconnexion, il salue et s’en va, comme avant. */
   if(!await lqAsk({ico:'🥺',chat:typeof chatBonusHtml==='function'?chatBonusHtml('triste'):'',titre:'Tu nous quittes déjà\u00a0?',texte:'Ta progression reste sur ton compte : tu la retrouves en te reconnectant, ici ou sur un autre appareil.',oui:'Me déconnecter',non:'Rester connecté'}))return;
+  /* 16 novembre : ce qui n’est pas encore parti rejoint le compte avant de le quitter (4 s au plus) */
+  try{if(typeof csSync==='function'){clearTimeout(CS.t);await Promise.race([csSync(),new Promise(ok=>setTimeout(ok,4000))]);}}catch(e){}
   try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
   state.accountMode='guest';delete state.accountProvider;delete state.accountLabel;save();
   if(typeof closePlusDetails==='function')closePlusDetails();
@@ -53899,7 +53990,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3091';
+  const SW_CACHE='requete-2026-11-15-module-v3092';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
