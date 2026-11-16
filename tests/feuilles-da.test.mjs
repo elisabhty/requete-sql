@@ -96,7 +96,8 @@ test('les défis quittent le planning : nouveau parcours en leçons seules, un p
 test('la page d’un projet : carte violette, base en autocollant, pastille du type de projet ; exemples qui montrent leur SELECT', () => {
   const scr = cut('function renderConsoleScreen(){', 'function renderConsoleHome(){');
   assert.ok(scr.includes("row.classList.toggle('is-project',inWork)") && scr.includes("lqStkSvg('db')"));
-  assert.ok(scr.includes("sub.innerHTML=`<b>${isDemoDb(activeDbId)?'Base de démo':'Projet local'}</b>`;"), 'le nombre de tables est dans la barre Schéma (13 h 46)');
+  /* 16 novembre : « Sur ton compte » quand le projet suit le compte, sinon « Projet local » (prjEtiquette) */
+  assert.ok(scr.includes("sub.innerHTML=`<b>${isDemoDb(activeDbId)?'Base de démo':prjEtiquette(activeDbId)}</b>`;"), 'le nombre de tables est dans la barre Schéma (13 h 46)');
   const chips = cut('function renderConsoleChips(){', '/* Projet vide');
   assert.ok(chips.includes("l:'Aperçu de la table',q:`SELECT * FROM ${umlId(t)}\\nLIMIT 50;`") && chips.includes('<code><span>${highlight(line)}</span></code>'));
   const ctx = vm.createContext({ esc, escAttr: esc, highlight: s => `[${s}]` });

@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=f6fb969f" data-defis></script>
+<script src="langues.js?v=85536233" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -20949,6 +20949,7 @@ async function boot(){
     await loadCustomDbs();
     ensureDemoDbs();
     loadProjState();
+    PRJ.pret=true;   // les projets peuvent suivre le compte (prjSync)
     await bootPorte();
     renderModules();
     await bootPorte();
@@ -21979,6 +21980,7 @@ function elaguerCopies(id){
   for(const k of Object.keys(b))if(!ici.has(k))delete b[k];
 }
 async function persistCustomDbs(seul){
+  try{prjPlanifier();}catch(e){}   // les projets suivent le compte (16 novembre)
   const metas=dbCatalog.filter(d=>!isDemoDb(d.id)&&customDbs[d.id]);
   const exporter=(d,i)=>{const database=customDbs[d.id],bytes=database.export();attachDateFns(database);   // export() ferme puis rouvre la base : les fonctions ajoutées au moteur sont à reposer
     elaguerCopies(d.id);
@@ -22043,6 +22045,7 @@ function loadProjState(){
    projets raccourcissent de moitié (les exécutions les plus anciennes), jusqu’à trois fois, et l’enregistrement repart. Les
    brouillons, épingles et descriptions ne bougent pas. */
 function saveProjState(){
+  try{prjPlanifier();}catch(e){}
   for(let essai=0;essai<4;essai++){
     try{ localStorage.setItem(PROJ_KEY,JSON.stringify(projState)); return true; }
     catch(e){
@@ -22171,7 +22174,7 @@ function renderConsoleScreen(){
     if(inWork){
       const st=projectStats(activeDbId);
       /* Le nombre de tables est dans la barre Schéma, juste dessous (13 h 46) : ici, la nature de la base seule. */
-      sub.innerHTML=`<b>${isDemoDb(activeDbId)?'Base de démo':'Projet local'}</b>`;void st;
+      sub.innerHTML=`<b>${isDemoDb(activeDbId)?'Base de démo':prjEtiquette(activeDbId)}</b>`;void st;   // 16 novembre : « Sur ton compte » quand il le suit
     }else sub.textContent='Écris, teste et garde tes requêtes.';
   }
   if(pill){
@@ -22217,7 +22220,7 @@ function renderConsoleHome(){
     return `<div class="console-project-row">
       <button type="button" class="console-project-open" onclick="openConsoleProject('${d.id}')">
         <span class="console-project-icon">${CONSOLE_DB_SVG}</span>
-        <span class="console-project-copy"><b>${demo?esc(demoLabel(d.id)):esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b><small${demo||dbNote(d.id)?'':' class="is-muted"'}>${esc(demo?demoTagline(d.id):dbNote(d.id)||'Projet local · sans description')}</small><em>${esc(bits.join(' · '))}</em></span>
+        <span class="console-project-copy"><b>${demo?esc(demoLabel(d.id)):esc(d.name).replace(/([_.-])/g,'$1<wbr>')}</b><small${demo||dbNote(d.id)?'':' class="is-muted"'}>${esc(demo?demoTagline(d.id):dbNote(d.id)||{compte:'Sur ton compte · sans description',lourd:'Plus de 2 Mo : reste sur cet appareil'}[prjEtat(d.id)]||'Projet local · sans description')}</small><em>${esc(bits.join(' · '))}</em></span>
         <span class="console-project-chev" aria-hidden="true">${CONSOLE_CHEV_SVG}</span>
       </button>
       ${actions}
@@ -22728,7 +22731,7 @@ function deleteDb(id){
   if(isDemoDb(id)) return;
   const meta=dbCatalog.find(d=>d.id===id);
   if(!meta||!customDbs[id]) return;
-  lqAsk({ico:'🗑️',titre:`Supprimer « ${meta.name} » ?`,texte:'La base, ses tables, son brouillon et son historique seront supprimés de cet appareil.',oui:'Supprimer',non:'Garder',danger:true}).then(ok=>{if(ok)deleteDbNow(id);});
+  lqAsk({ico:'🗑️',titre:`Supprimer « ${meta.name} » ?`,texte:prjEtat(id)==='compte'?'La base, ses tables, son brouillon et son historique seront supprimés de cet appareil et de ton compte.':'La base, ses tables, son brouillon et son historique seront supprimés de cet appareil.',oui:'Supprimer',non:'Garder',danger:true}).then(ok=>{if(ok)deleteDbNow(id);});
 }
 function deleteDbNow(id){
   const meta=dbCatalog.find(d=>d.id===id);
@@ -22743,6 +22746,7 @@ function deleteDbNow(id){
 }
 function deleteDbFin(id){
   if(!customDbs[id]) return;
+  try{prjSupprime(id);}catch(e){}   // supprimé partout : il part aussi du compte
   try{ customDbs[id].close(); }catch(e){}
   delete customDbs[id];
   delete tableBaselines[id];
@@ -50399,8 +50403,8 @@ const CS_VIDEO_VERSION='moments-1';
    Se déconnecter puis se connecter avec un AUTRE compte envoyait la progression et les notes du compte d’avant dans le nouveau, et
    gardait le prénom. Maintenant l’appareil se vide d’abord de ce qui appartient au compte d’avant (tout est sur ce compte-là : la
    déconnexion attend la dernière synchro), puis charge le nouveau ; un compte neuf repasse par les questions, pour son planning.
-   Restent sur l’appareil : ses réglages (langue, rappel, confort), l’abonnement (celui du compte Apple de l’iPhone) et les projets
-   enregistrés (des fichiers de cet iPhone, qui ne vont pas sur le compte). Le joueur (pseudo, points, parties) suit déjà le compte (csJoueur). */
+   Restent sur l’appareil : ses réglages (langue, rappel, confort) et l’abonnement (celui du compte Apple de l’iPhone). Les projets
+   suivent le compte depuis le 16 novembre (prjViderPourAutre). Le joueur (pseudo, points, parties) suit déjà le compte (csJoueur). */
 const COMPTE_DERNIER='requete-compte-dernier';
 /* ---------- Le profil, les réglages et les étoiles suivent le compte (16 novembre, 4 h 33, Elisa : « les réglages, les réponses de
    l’onboarding, les étoiles, les réponses doivent suivre le compte ») ----------
@@ -50649,7 +50653,9 @@ function csSync(o){
     const M=window.REQUETE_MOTEURS;
     const rp=await csEnvoyer(cs.prog,x.prog,elts(p),M.mergeProgression);
     const rd=await csEnvoyer(cs.docs,x.docs,elts(d),(k,a,b)=>b);
-    return {progression:rp&&rp.pending,notes:rd&&rd.pending,distant:CS.distant};
+    /* 16 novembre, 5 h : les projets de la Console aussi (prjSync, au plus toutes les 30 s ; tout de suite à la connexion et au départ) */
+    let rj=null;try{rj=await prjSync({force:!!(o&&(o.premier||o.force))});}catch(e){}
+    return {progression:rp&&rp.pending,notes:rd&&rd.pending,distant:CS.distant,projets:rj};
   })().catch(e=>({erreur:e&&(e.code||e.message)||'sync',distant:CS.distant})).finally(()=>{CS.cours=null;});
   return CS.cours;
 }
@@ -50827,6 +50833,232 @@ function csNoteSupprimee(id){
   const cs=csPret();if(!cs||!/^[A-Za-z0-9_.-]{1,96}$/.test(String(id)))return;
   cs.docs.reset('note:'+id,'SUPPRIMER').catch(()=>{});
 }
+/* ---------- Les projets de la Console suivent le compte (16 novembre, 5 h, Elisa : « Ok go », pour les brancher, 2 Mo par base) ----------
+   Chaque projet part entier sur le compte (projets_element, préparé le 2 novembre) : son nom, sa base SQLite, son brouillon, sa
+   description et celles de ses tables, ses requêtes épinglées. Restent sur l’appareil : l’historique des exécutions et les copies de
+   départ des tables (refaites à l’arrivée, depuis la base reçue). Une base de plus de 2 Mo reste sur cet appareil (la Console le dit).
+   La synchro lit d’abord un sommaire (les numéros de version, sans les données) ; elle n’envoie et ne télécharge que ce qui a changé.
+   Changé des deux côtés entre deux synchros : la version du compte arrive, celle de cet appareil est gardée à côté, en copie.
+   Supprimer un projet le supprime partout. Un projet appartient au compte qui l’a envoyé le premier (PRJ_PROPRIO) : connecté à un autre
+   compte, l’appareil ne le lui envoie pas ; ceux qui sont bien sur le compte d’avant quittent l’appareil, comme la progression.
+   Le projet ouvert à l’écran n’est jamais remplacé en pleine saisie : sa nouvelle version arrive à la synchro d’après. */
+const PRJ={pret:false,cours:null,t:0,dernier:0,dedans:false,lourds:new Set(),chaine:Promise.resolve()};
+const PRJ_MAX=2097152,PRJ_PROPRIO='requete-projets-proprio';
+const prjCleLocale=uid=>'requete-projets-compte:'+uid;
+function prjLire(uid){
+  try{const s=JSON.parse(localStorage.getItem(prjCleLocale(uid))||'null');if(s&&typeof s==='object'&&s.el&&typeof s.el==='object')return s;}catch(e){}
+  return {epoch:null,el:{}};
+}
+function prjEcrire(uid,s){try{localStorage.setItem(prjCleLocale(uid),JSON.stringify(s));}catch(e){}}
+function prjProprios(){try{const p=JSON.parse(localStorage.getItem(PRJ_PROPRIO)||'{}');return p&&typeof p==='object'?p:{};}catch(e){return {};}}
+function prjProprio(id,uid){const p=prjProprios();if(uid)p[id]=uid;else delete p[id];try{localStorage.setItem(PRJ_PROPRIO,JSON.stringify(p));}catch(e){}}
+/* L’empreinte d’un projet (cyrb53) : savoir s’il a changé depuis la dernière synchro, sans garder sa copie */
+function prjEmpreinte(t){
+  let a=0xdeadbeef,b=0x41c6ce57;
+  for(let i=0;i<t.length;i++){const c=t.charCodeAt(i);a=Math.imul(a^c,2654435761);b=Math.imul(b^c,1597334677);}
+  a=Math.imul(a^(a>>>16),2246822507)^Math.imul(b^(b>>>13),3266489909);b=Math.imul(b^(b>>>16),2246822507)^Math.imul(a^(a>>>13),3266489909);
+  return (b>>>0).toString(36)+'.'+(a>>>0).toString(36)+'.'+t.length;
+}
+const prjSig=data=>prjEmpreinte(csStable(data));
+const prjCoupe=(s,max)=>{s=typeof s==='string'?s.replace(/\0/g,''):'';return s.length>max?Array.from(s).slice(0,max).join(''):s;};
+/* Ce qui part d’un projet, aux limites du compte (projets_valide) */
+function prjDonnees(id,octets){
+  const meta=dbCatalog.find(d=>d.id===id);if(!meta||!(octets instanceof Uint8Array))return null;
+  const w=projState[id]||{},tdesc={};
+  for(const [k,v] of Object.entries(w.tdesc&&typeof w.tdesc==='object'?w.tdesc:{}).slice(0,128))
+    if(k&&k.length<=128&&!k.includes('\0')&&typeof v==='string')tdesc[k]=prjCoupe(v,4000);
+  const pins=(Array.isArray(w.pins)?w.pins:[]).filter(q=>q&&typeof q.sql==='string'&&/\S/.test(q.sql)).slice(0,12)
+    .map(q=>{const ts=Math.round(+q.ts);return {sql:prjCoupe(q.sql,12000),ts:Number.isSafeInteger(ts)&&ts>=0&&ts<=4102444800000?ts:0};})
+    .filter(q=>/\S/.test(q.sql));
+  return {name:prjCoupe(String(meta.name||''),80).trim()||'Mon projet',scope:'complete',draft:prjCoupe(w.draft||'',12000),
+    desc:prjCoupe(w.desc||'',4000),tdesc,pins,hist:[],database:{b64:u8ToB64(octets)},baselines:{}};
+}
+/* Les bases telles qu’enregistrées sur l’appareil (IndexedDB, ou l’ancienne sauvegarde) : sans export(), qui ferme et rouvre la base */
+async function prjOctetsLocaux(){
+  const out={};
+  try{
+    const idb=await dbsIdb();
+    const list=await new Promise((ok,ko)=>{const q=idb.transaction(DBS_STORE,'readonly').objectStore(DBS_STORE).getAll();q.onsuccess=()=>ok(q.result||[]);q.onerror=()=>ko(q.error);});
+    list.forEach(r=>{if(r&&typeof r.id==='string'&&r.bytes)out[r.id]=r.bytes instanceof Uint8Array?r.bytes:new Uint8Array(r.bytes);});
+    return out;
+  }catch(e){}
+  try{(JSON.parse(localStorage.getItem(DBS_KEY)||'[]')||[]).forEach(r=>{if(r&&typeof r.id==='string'&&typeof r.b64==='string')out[r.id]=b64ToU8(r.b64);});}catch(e){}
+  return out;
+}
+function prjSigLocale(id){
+  const d=customDbs[id];if(!d)return '';
+  try{const b=d.export();attachDateFns(d);const x=prjDonnees(id,b);return x?prjSig(x):'';}catch(e){return '';}
+}
+async function prjAppel(jeton,chemin,corps){
+  const ctl=typeof AbortController==='function'?new AbortController():null,t=setTimeout(()=>{try{ctl&&ctl.abort();}catch(e){}},60000);
+  try{
+    const r=await fetch(JEU_SB+chemin,{method:corps?'POST':'GET',signal:ctl?ctl.signal:undefined,
+      headers:Object.assign({apikey:JEU_SB_KEY,Authorization:'Bearer '+jeton},corps?{'Content-Type':'application/json'}:{}),body:corps?JSON.stringify(corps):undefined});
+    const j=await r.json().catch(()=>null);
+    if(!r.ok)throw Object.assign(new Error((j&&(j.code||j.message))||'projets'),{code:j&&j.code,status:r.status});
+    return j;
+  }finally{clearTimeout(t);}
+}
+/* Un projet arrivé du compte : sa base remplace celle d’ici (ou en crée une) ; les copies de départ des tables d’ici sont gardées */
+async function prjRecevoir(id,data){
+  const octets=window.REQUETE_MOTEURS.decodeProjectDatabase('project:'+id,data);
+  const base=attachDateFns(octets&&octets.length?new SQL.Database(octets):new SQL.Database());
+  if(customDbs[id]){try{customDbs[id].close();}catch(e){}}
+  customDbs[id]=base;
+  const nom=String(data.name).slice(0,80),meta=dbCatalog.find(d=>d.id===id);
+  if(meta)meta.name=nom;else dbCatalog.push({id,name:nom});
+  const b=tableBaselines[id]||(tableBaselines[id]={});
+  try{listTables(base).forEach(t=>{if(!b[tableBaselineKey(t)])rememberTableBaseline(base,id,t);});}catch(e){}
+  elaguerCopies(id);
+  try{await copiesCompresser(id);}catch(e){}
+  const w=projOf(id);
+  w.draft=data.draft;w.desc=data.desc;w.tdesc=Object.assign({},data.tdesc);w.pins=data.pins.map(q=>({sql:q.sql,ts:q.ts}));
+  PRJ.dedans=true;try{saveProjState();}finally{PRJ.dedans=false;}
+}
+/* Changé ici et sur le compte : la version d’ici devient un projet à part (« … (copie) »), qui partira à son tour */
+function prjCopier(id,uid){
+  const meta=dbCatalog.find(d=>d.id===id);if(!meta||!customDbs[id])return null;
+  const nid='db_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  customDbs[nid]=customDbs[id];delete customDbs[id];
+  tableBaselines[nid]=tableBaselines[id]||{};delete tableBaselines[id];
+  projState[nid]=projState[id]||{draft:'',hist:[],pins:[]};delete projState[id];
+  dbCatalog.push({id:nid,name:prjCoupe(String(meta.name||'Mon projet'),31)+' '+natifT('(copie)')});
+  prjProprio(nid,uid);
+  return nid;
+}
+/* Retiré de l’appareil sans être retiré du compte (supprimé ailleurs, ou bien gardé par le compte d’avant) */
+function prjRetirerLocal(id){PRJ.dedans=true;try{deleteDbFin(id);}finally{PRJ.dedans=false;}}
+function prjOuvert(id){return typeof activeTab!=='undefined'&&activeTab==='console'&&consoleView==='work'&&activeDbId===id;}
+function prjSync(o){
+  const cs=csPret();
+  if(!cs||!PRJ.pret||typeof SQL==='undefined'||!SQL||!window.REQUETE_MOTEURS||typeof window.REQUETE_MOTEURS.validateProject!=='function')return Promise.resolve(null);
+  if(PRJ.cours)return PRJ.cours;
+  if(!(o&&o.force)&&Date.now()-PRJ.dernier<30000)return Promise.resolve(null);
+  const uid=cs.user,p=PRJ.chaine.then(()=>prjSyncFaire(uid));
+  PRJ.chaine=p.catch(()=>{});
+  PRJ.cours=p.catch(e=>({erreur:e&&(e.code||e.message)||'projets'})).finally(()=>{PRJ.cours=null;PRJ.dernier=Date.now();});
+  return PRJ.cours;
+}
+async function prjSyncFaire(uid){
+  const A=window.REQUETE_AUTH,M=window.REQUETE_MOTEURS;
+  const jeton=A&&typeof A.jeton==='function'?await A.jeton():null;if(!jeton)return null;
+  const encore=()=>CS.user===uid&&A.connecte&&A.connecte();   // un changement de compte en route arrête tout
+  const etat=await prjAppel(jeton,'/rest/v1/projets_etat?select=epoch');
+  const epoch=Array.isArray(etat)&&etat[0]&&Number.isSafeInteger(etat[0].epoch)?etat[0].epoch:0;
+  const lignes=await prjAppel(jeton,'/rest/v1/projets_element?select=cle,revision,generation,supprime,modifie_le');
+  if(!encore())return null;
+  const S=prjLire(uid);
+  if(S.epoch!==null&&S.epoch!==epoch)S.el={};   // le compte a tout effacé ailleurs : ce qui est ici repart
+  S.epoch=epoch;
+  const R={};
+  for(const l of Array.isArray(lignes)?lignes:[])if(l&&typeof l.cle==='string'&&/^project:db_[A-Za-z0-9_.-]{1,93}$/.test(l.cle))R[l.cle.slice(8)]=l;
+  const proprios=prjProprios(),locaux=await prjOctetsLocaux(),bilan={envoyes:0,recus:0,supprimes:0,copies:0};
+  const lourdsAvant=[...PRJ.lourds].sort().join();
+  const envoyer=async(id,data,rev,gen)=>{
+    const r=await prjAppel(jeton,'/rest/v1/rpc/projets_enregistrer',{p_epoch:epoch,p_cle:'project:'+id,p_revision:rev,p_generation:gen,p_data:data});
+    if(!r||!r.ok||!r.element)return false;
+    S.el[id]={rev:r.element.revision,gen:r.element.generation,sig:prjSig(data)};prjProprio(id,uid);bilan.envoyes++;return true;
+  };
+  const telecharger=async id=>{
+    const r=await prjAppel(jeton,'/rest/v1/projets_element?select=donnees,revision,generation,supprime&cle=eq.'+encodeURIComponent('project:'+id));
+    const l=Array.isArray(r)&&r[0];if(!l||l.supprime)return null;
+    return {data:M.validateProject('project:'+id,l.donnees),rev:l.revision,gen:l.generation};
+  };
+  const recu=async(id,d)=>{await prjRecevoir(id,d.data);S.el[id]={rev:d.rev,gen:d.gen,sig:prjSigLocale(id)||prjSig(d.data)};prjProprio(id,uid);bilan.recus++;};
+  for(const meta of dbCatalog.filter(d=>!isDemoDb(d.id)&&customDbs[d.id])){
+    if(!encore())break;
+    const id=meta.id;if(!/^db_[A-Za-z0-9_.-]{1,93}$/.test(id))continue;
+    if(proprios[id]&&proprios[id]!==uid)continue;   // le projet d’un autre compte reste ici, sans partir sur celui-ci
+    const oct=locaux[id];if(!oct)continue;          // pas encore enregistré sur l’appareil : à la prochaine
+    if(oct.length>PRJ_MAX){PRJ.lourds.add(id);continue;}
+    PRJ.lourds.delete(id);
+    let data;try{data=M.validateProject('project:'+id,prjDonnees(id,oct));}catch(e){continue;}
+    const sig=prjSig(data),m=S.el[id],l=R[id];
+    try{
+      if(!l){await envoyer(id,data,0,0);continue;}
+      if(l.supprime){
+        /* supprimé sur un autre appareil, et pas retouché ici depuis : il part d’ici aussi */
+        if(m&&!m.del&&m.sig===sig&&l.generation>m.gen){if(prjOuvert(id))continue;prjRetirerLocal(id);delete S.el[id];prjProprio(id,null);bilan.supprimes++;continue;}
+        await envoyer(id,data,l.revision,l.generation);continue;
+      }
+      if(m&&l.revision===m.rev&&l.generation===m.gen){if(m.sig!==sig)await envoyer(id,data,l.revision,l.generation);continue;}
+      if(prjOuvert(id))continue;
+      const d=await telecharger(id);if(!d)continue;
+      if(prjSig(d.data)===sig){S.el[id]={rev:d.rev,gen:d.gen,sig};prjProprio(id,uid);continue;}
+      if(!m||m.sig!==sig){prjCopier(id,uid);bilan.copies++;}
+      await recu(id,d);
+    }catch(e){if(e&&e.code==='54000')PRJ.lourds.add(id);}
+  }
+  for(const [id,l] of Object.entries(R)){
+    if(!encore())break;
+    if(customDbs[id]||l.supprime||isDemoDb(id))continue;
+    const m=S.el[id];
+    try{
+      /* supprimé ici : il part du compte, sauf s’il a été retouché ailleurs depuis */
+      if(m&&m.del&&!(l.revision!==m.rev&&Date.parse(l.modifie_le)>(m.delAt||0))){
+        const r=await prjAppel(jeton,'/rest/v1/rpc/projets_reinitialiser',{p_epoch:epoch,p_cle:'project:'+id,p_revision:l.revision,p_generation:l.generation});
+        if(r&&r.ok){delete S.el[id];bilan.supprimes++;}
+        continue;
+      }
+      const d=await telecharger(id);if(d)await recu(id,d);
+    }catch(e){}
+  }
+  for(const [id,m] of Object.entries(S.el))if(m&&m.del&&(!R[id]||R[id].supprime))delete S.el[id];
+  prjEcrire(uid,S);
+  if(bilan.recus||bilan.supprimes||bilan.copies){
+    PRJ.dedans=true;try{await persistCustomDbs();}finally{PRJ.dedans=false;}
+    if(bilan.copies)prjPlanifier();   // la copie part à son tour
+    try{if(typeof activeTab!=='undefined'&&activeTab==='console')renderConsoleScreen();}catch(e){}
+  }else if(bilan.envoyes||lourdsAvant!==[...PRJ.lourds].sort().join())prjEtiquettes();
+  return bilan;
+}
+/* « Sur ton compte », « Projet local » ou « plus de 2 Mo » (lourd) : ce que la Console dit d’un projet */
+function prjEtat(id){
+  const cs=csPret();if(!cs||isDemoDb(id))return 'local';
+  if(PRJ.lourds.has(id))return 'lourd';
+  const pr=prjProprios()[id],m=prjLire(cs.user).el[id];
+  return pr===cs.user&&m&&!m.del?'compte':'local';
+}
+/* En tête du projet, une étiquette courte (iPhone SE) ; la liste des projets dit pourquoi un projet trop lourd reste ici */
+function prjEtiquette(id){return prjEtat(id)==='compte'?'Sur ton compte':'Projet local';}
+function prjEtiquettes(){
+  try{
+    if(typeof activeTab==='undefined'||activeTab!=='console')return;
+    if(consoleView==='work'){const b=document.querySelector('#console-sub b');if(b&&!isDemoDb(activeDbId))b.textContent=prjEtiquette(activeDbId);}
+    else renderConsoleHome();
+  }catch(e){}
+}
+/* Après un changement dans un projet : la synchro des projets 15 s plus tard (pas pendant qu’elle-même enregistre) */
+function prjPlanifier(){
+  if(PRJ.dedans||!PRJ.pret||!csPret())return;
+  clearTimeout(PRJ.t);PRJ.t=setTimeout(()=>{prjSync({force:true});},15000);
+}
+/* Un projet supprimé ici : marqué pour le compte qui l’avait (même déconnecté), il en part à la prochaine synchro */
+function prjSupprime(id){
+  if(PRJ.dedans)return;
+  const pr=prjProprios()[id];prjProprio(id,null);PRJ.lourds.delete(id);
+  if(!pr)return;
+  const S=prjLire(pr);if(S.el[id]){S.el[id].del=true;S.el[id].delAt=Date.now();prjEcrire(pr,S);}
+  prjPlanifier();
+}
+/* Un autre compte se connecte : les projets bien gardés par le compte d’avant quittent l’appareil (ils reviendront avec lui) */
+function prjViderPourAutre(avant){
+  if(!avant)return Promise.resolve();
+  const p=PRJ.chaine.then(async()=>{
+    const S=prjLire(avant),pr=prjProprios(),oct=await prjOctetsLocaux();
+    PRJ.dedans=true;
+    try{
+      for(const meta of dbCatalog.filter(d=>!isDemoDb(d.id)&&customDbs[d.id])){
+        const id=meta.id,m=S.el[id];
+        if(pr[id]!==avant||!m||m.del||!oct[id])continue;
+        let sig='';try{const x=prjDonnees(id,oct[id]);sig=x?prjSig(x):'';}catch(e){continue;}
+        if(sig&&sig===m.sig)deleteDbFin(id);
+      }
+    }finally{PRJ.dedans=false;}
+  });
+  PRJ.chaine=p.catch(()=>{});
+  return p.catch(()=>{});
+}
 if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
   window.addEventListener('load',()=>setTimeout(()=>{csSync();},1500));
   window.addEventListener('online',()=>{csSync();});
@@ -50994,7 +51226,11 @@ async function obStartAuth(provider,btn){
     }
     const autre=typeof compteAutre==='function'&&compteAutre(result.id);
     /* revenu après un autre compte : comme une première fois ici (son planning revient avec le reste) */
-    if(autre){compteViderPourAutre();try{localStorage.removeItem('requete-compte-premier:'+result.id);}catch(e){}}
+    if(autre){
+      let avant='';try{avant=localStorage.getItem(COMPTE_DERNIER)||'';}catch(e){}
+      compteViderPourAutre();prjViderPourAutre(avant);
+      try{localStorage.removeItem('requete-compte-premier:'+result.id);}catch(e){}
+    }
     try{if(result.id)localStorage.setItem(COMPTE_DERNIER,String(result.id));}catch(e){}
     state.accountMode='connected';
     if(typeof stat==='function')stat('connexion',null,{f:String(provider).slice(0,10)});
@@ -53786,7 +54022,7 @@ async function seDeconnecter(){
      mouvement réduit : son image la plus triste (chat-triste-fixe.webp). Après la déconnexion, il salue et s’en va, comme avant. */
   if(!await lqAsk({ico:'🥺',chat:typeof chatBonusHtml==='function'?chatBonusHtml('triste'):'',titre:'Tu nous quittes déjà\u00a0?',texte:'Ta progression reste sur ton compte : tu la retrouves en te reconnectant, ici ou sur un autre appareil.',oui:'Me déconnecter',non:'Rester connecté'}))return;
   /* 16 novembre : ce qui n’est pas encore parti rejoint le compte avant de le quitter (4 s au plus) */
-  try{if(typeof csSync==='function'){clearTimeout(CS.t);await Promise.race([csSync(),new Promise(ok=>setTimeout(ok,4000))]);}}catch(e){}
+  try{if(typeof csSync==='function'){clearTimeout(CS.t);clearTimeout(PRJ.t);await Promise.race([csSync({force:true}),new Promise(ok=>setTimeout(ok,4000))]);}}catch(e){}
   try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
   state.accountMode='guest';delete state.accountProvider;delete state.accountLabel;save();
   if(typeof closePlusDetails==='function')closePlusDetails();
@@ -53839,7 +54075,7 @@ const DEL_SVG={
 function compteSupprimerHTML(p,compte){
   return `<p class="lq-del-h">Voici ce qui sera supprimé&nbsp;:</p>
     <ul class="lq-del">
-      <li><span class="lq-del-i">${DEL_SVG.nuage}</span><span><b>Sur Requête</b><small>${p?`Ton pseudo «&nbsp;${esc(p)}&nbsp;»`:'Ton pseudo'}, tes scores et ta place dans les classements, tes avis, ton vote et tes messages${compte?', et ton compte':''}.</small></span></li>
+      <li><span class="lq-del-i">${DEL_SVG.nuage}</span><span><b>Sur Requête</b><small>${p?`Ton pseudo «&nbsp;${esc(p)}&nbsp;»`:'Ton pseudo'}, tes scores et ta place dans les classements, tes avis, ton vote et tes messages${compte?', tes projets enregistrés et ton compte':''}.</small></span></li>
       <li><span class="lq-del-i">${DEL_SVG.tel}</span><span><b>Sur cet appareil</b><small>Tes leçons, tes défis, tes cartes mémo, tes notes, ton planning et tes projets enregistrés.</small></span></li>
     </ul>
     <p class="lq-del-warn"><span class="lq-del-wi">${DEL_SVG.alerte}</span><span><b>Cette action est irréversible.</b> Tes données ne pourront pas être récupérées.</span></p>${
@@ -53878,6 +54114,8 @@ async function compteSupprimer(){
   try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
   try{const LN=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications;if(LN)await LN.cancel({notifications:(typeof RAPPEL_IDS!=='undefined'?[...RAPPEL_IDS,RAPPEL_PLUS_TARD_ID]:[1,11,12,13,14,15,16,17]).map(id=>({id}))});}catch(e){}   // 16 novembre : les rappels programmés (100 et plus, « Plus tard ») partent aussi
   try{const C=typeof flammeDirectPont==='function'&&flammeDirectPont();if(C)await C.nativePromise('RequeteWidget','flammeArreter',{});}catch(e){}   // ta flamme en direct, programmée : partie aussi
+  /* 16 novembre : les projets enregistrés aussi (IndexedDB) ; la fenêtre le promettait, mais leurs bases survivaient au vidage */
+  try{const idb=await dbsIdb();await new Promise(ok=>{const tx=idb.transaction(DBS_STORE,'readwrite');tx.objectStore(DBS_STORE).clear();tx.oncomplete=ok;tx.onerror=ok;tx.onabort=ok;});}catch(e){}
   try{localStorage.clear();}catch(e){}
   try{sessionStorage.clear();}catch(e){}
   location.reload();
@@ -54122,7 +54360,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3097';
+  const SW_CACHE='requete-2026-11-15-module-v3098';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -54165,7 +54403,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 <script src="onboarding-focus.js"></script>
 <script src="multiplayer-security.js?v=12"></script>
 <script src="achat.js?v=7"></script>
-<script src="compte-moteurs.js?v=2"></script>
+<script src="compte-moteurs.js?v=3"></script>
 <script src="connexion.js?v=3"></script>
 </body>
 </html>

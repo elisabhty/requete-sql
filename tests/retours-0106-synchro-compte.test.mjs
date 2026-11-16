@@ -67,7 +67,7 @@ const plan = {niveau: 'debutant', rythme: 'regulier', freq: 7, per: 3, mix: true
 
 test('compte-moteurs.js est à jour avec account/*.mjs', () => {
   assert.equal(moteurs, assembler(), 'relancer node scripts/compte-moteurs.mjs');
-  assert.match(app, /<script src="compte-moteurs\.js\?v=2"><\/script>\n<script src="connexion\.js\?v=3"><\/script>/);
+  assert.match(app, /<script src="compte-moteurs\.js\?v=3"><\/script>\n<script src="connexion\.js\?v=3"><\/script>/);
 });
 
 test('sans compte connecté, rien ne part', async () => {
@@ -84,7 +84,7 @@ test('un iPhone envoie sa progression, un autre la retrouve en se connectant', a
     plan, notes: [{id: 'n1', txt: 'GROUP BY avant HAVING', sql: '', ctx: '', ts: 100, pin: true}, {id: 'vide', txt: '  ', sql: '', ts: 1}]
   }});
   const r = await A.ctx.csSync({premier: true});
-  assert.deepEqual(JSON.parse(JSON.stringify(r)), {progression: 0, notes: 0, distant: {plan: false, progres: false, notes: false}}, 'tout est parti (et le compte était vide avant, 12 novembre)');
+  assert.deepEqual(JSON.parse(JSON.stringify(r)), {progression: 0, notes: 0, distant: {plan: false, progres: false, notes: false}, projets: null}, 'tout est parti (et le compte était vide avant, 12 novembre)');
   const el = srv.comptes['u-1'].prog.el;
   /* 16 novembre : la leçon 1, seulement prévue ({level:0}), ne part plus (un compte neuf envoyait 71 fiches vides) */
   /* 16 novembre : les réglages et les réponses de l’accueil suivent aussi le compte (profil:main) */

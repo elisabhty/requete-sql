@@ -7,7 +7,7 @@ import {readFileSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 
 const racine = new URL('..', import.meta.url).pathname;
-const ORDRE = ['sync-engine', 'learning', 'progression', 'documents'];
+const ORDRE = ['sync-engine', 'learning', 'progression', 'documents', 'projects'];
 
 export function assembler() {
   const parties = ORDRE.map(nom => {
@@ -32,7 +32,8 @@ window.REQUETE_MOTEURS=Object.freeze({
   mergeProgression:M['progression'].mergeProgression,validateProgression:M['progression'].validateProgression,
   extractPlan:M['learning'].extractPlan,validatePlan:M['learning'].validatePlan,
   createDocumentsSync:M['documents'].createDocumentsSync,extractSavedNotes:M['documents'].extractSavedNotes,
-  notesFromSnapshot:M['documents'].notesFromSnapshot,validateDocument:M['documents'].validateDocument
+  notesFromSnapshot:M['documents'].notesFromSnapshot,validateDocument:M['documents'].validateDocument,
+  validateProject:M['projects'].validateProject,decodeProjectDatabase:M['projects'].decodeProjectDatabase
 });
 })();
 `;

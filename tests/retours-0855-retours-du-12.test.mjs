@@ -154,6 +154,6 @@ test('compte vide ou déjà rempli : csDistant le dit avant tout envoi ; déjà 
     { plan: false, progres: true, notes: false }, 'un planning vide ne compte pas ; une note effacée non plus');
   const sync = cut('function csSync(o){', '/* Après un enregistrement');
   assert.ok(sync.indexOf('CS.distant=csDistant(p,d);') < sync.indexOf('csEnvoyer('), 'lu avant que l’appareil n’envoie ce qu’il a');
-  assert.ok(sync.includes('return {progression:rp&&rp.pending,notes:rd&&rd.pending,distant:CS.distant};'));
+  assert.ok(sync.includes('return {progression:rp&&rp.pending,notes:rd&&rd.pending,distant:CS.distant,projets:rj};'));
   assert.ok(app.includes("const connecte=(draft.accountMode||state.accountMode)==='connected';if(obCompteVisible()&&!connecte)obGoto('account');else obApresCompte();"));
 });

@@ -50,7 +50,7 @@ test('réf. 2 et 3 : la suppression du compte dit ce qui part, en deux blocs, pu
   assert.ok(html.includes('<b>Sur cet appareil</b><small>Tes leçons, tes défis, tes cartes mémo, tes notes, ton planning et tes projets enregistrés.</small>'));
   assert.ok(html.includes('<p class="lq-del-warn"><span class="lq-del-wi"><svg') && html.includes('<span><b>Cette action est irréversible.</b> Tes données ne pourront pas être récupérées.</span></p>'));
   const avecCompte = vm.runInContext(cut('const DEL_SVG={', 'async function compteSupprimer(){') + ';compteSupprimerHTML("",true)', vm.createContext({ esc }));
-  assert.ok(avecCompte.includes('<small>Ton pseudo, tes scores et ta place dans les classements, tes avis, ton vote et tes messages, et ton compte.</small>'));
+  assert.ok(avecCompte.includes('<small>Ton pseudo, tes scores et ta place dans les classements, tes avis, ton vote et tes messages, tes projets enregistrés et ton compte.</small>'));
   const f = cut('async function compteSupprimer(){', '\n}\n');
   /* 14 novembre, 13 h 48 : sans compte, « Supprimer mes données » (retours-1346-mon-compte) */
   assert.ok(f.includes("titre:compte?'Supprimer ton compte ?':'Supprimer tes données ?',texte:compte?'Tu es sur le point de supprimer définitivement ton compte Requête et les données associées.':"));
@@ -221,5 +221,5 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 test('les versions', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=386">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=73">') && sw.includes("'./onboarding-vitrine.css?v=73',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-15-module-v3097' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-15-module-v3098' && app.includes(`const SW_CACHE='${cache}';`));
 });
