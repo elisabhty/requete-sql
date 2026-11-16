@@ -118,3 +118,11 @@ test('vidéos : la requête des deux pièges tient dans l’écran ; les boîtes
   const ver = fs.readFileSync(path.join(ROOT, 'tools/langue/verifier.mjs'), 'utf8');
   assert.ok(ver.includes("out.push('boîte-hors-scène|'"));
 });
+
+/* 16 novembre, 4 h 07 (Elisa, sa capture en anglais : « 🤩 Génial » sous les étoiles) */
+test('fin de leçon en anglais : le mot de la note et les noms des stickers gagnés sont traduits', () => {
+  assert.ok(app.includes("${n?avisMot(n):'Ton avis reste anonyme.'}") && app.includes('if(mot){ mot.textContent=avisMot(n);'));
+  assert.ok(!/AVIS_MOTS\[n\]/.test(app.replace("const m=AVIS_MOTS[n]||''", '')), 'plus de mot français brut');
+  for (const [k, v] of [['Pas terrible', 'Not great'], ['Bof', 'Meh'], ['Pas mal', 'Not bad'], ['Très bien', 'Very good'], ['Génial', 'Awesome']]) assert.equal(textes[k], v);
+  assert.ok(app.includes("<em>${esc(items.map(s=>String((typeof natifT==='function'&&natifT(s.name))||s.name)).join(' · '))}</em>"));
+});

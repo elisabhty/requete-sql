@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=30c65736" data-defis></script>
+<script src="langues.js?v=429b7f98" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -35068,6 +35068,13 @@ function renderBravoSlide(l){
    elle repart au retour du réseau ou à la prochaine ouverture. Des boutons radio, sous les étoiles : VoiceOver et les flèches du clavier
    les parcourent comme une seule question. */
 const AVIS_MOTS=['','😕 Pas terrible','😐 Bof','🙂 Pas mal','😀 Très bien','🤩 Génial'];
+/* 16 novembre (Elisa, sa capture en anglais : « 🤩 Génial ») : l’emoji à part, le mot traduit */
+function avisMot(n){
+  const m=AVIS_MOTS[n]||'',i=m.indexOf(' ');
+  if(i<0)return m;
+  const mot=m.slice(i+1);
+  return m.slice(0,i)+' '+String((typeof natifT==='function'&&natifT(mot))||mot);
+}
 function avisDe(id){ const a=typeof state!=='undefined'&&state&&state.avis&&state.avis[id]; return a&&a.n>=1&&a.n<=5?a:null; }
 function avisMerci(n){ return n>=4?'Merci\u00a0! On est ravis qu’elle t’ait plu.':'Merci\u00a0! Ton avis nous aide à améliorer les cours.'; }
 const AVIS_ETOILE='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.7l2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.27l-5.7 3 1.09-6.36-4.62-4.5 6.38-.93z"/></svg>';
@@ -35080,7 +35087,7 @@ function bravoAvisHtml(l){
     <p class="av-sub">${n?esc(avisMerci(n)):'Elle t’a plu&nbsp;? Touche une étoile.'}</p>
     <div class="av-carte">
     <div class="av-stars" role="radiogroup" aria-labelledby="av-h-${l.id}" onchange="avisNoter(event)">${[1,2,3,4,5].map(etoile).join('')}</div>
-    <p class="av-mot${n?'':' is-hint'}" aria-live="polite">${n?AVIS_MOTS[n]:'Ton avis reste anonyme.'}</p>
+    <p class="av-mot${n?'':' is-hint'}" aria-live="polite">${n?avisMot(n):'Ton avis reste anonyme.'}</p>
     ${avisCommentaireHtml(l.id,a)}
     </div>
   </section>`;
@@ -35144,7 +35151,7 @@ function avisPeindre(box,n,star){
     if(i<n){ void s.offsetWidth; s.classList.add('pop'); }
   });
   const mot=box.querySelector('.av-mot');
-  if(mot){ mot.textContent=AVIS_MOTS[n]; mot.classList.remove('in','is-hint'); void mot.offsetWidth; mot.classList.add('in'); }
+  if(mot){ mot.textContent=avisMot(n); mot.classList.remove('in','is-hint'); void mot.offsetWidth; mot.classList.add('in'); }
   const sub=box.querySelector('.av-sub');
   if(sub)sub.textContent=avisMerci(n);
   const com=box.querySelector('.av-com.is-cache');
@@ -42429,7 +42436,7 @@ function stkBravoHtml(){
   const mod=items.some(s=>s.kind==='module');
   return `<button type="button" class="bravo-stk${first?' is-new':''}" onclick="openStickers('${items[0].id}')">
     <span class="bravo-stk-art n${Math.min(items.length,3)}">${items.slice(0,3).map(s=>stkArtHtml(s.id,'art')).join('')}</span>
-    <span class="bravo-stk-copy"><small>${mod?'Module terminé':items.some(s=>s.kind==='niveau')?'Nouveau niveau':'Accomplissement'}</small><b>${items.length>1?`${items.length} nouveaux stickers`:'Nouveau sticker'}</b><em>${esc(items.map(s=>s.name).join(' · '))}</em></span>
+    <span class="bravo-stk-copy"><small>${mod?'Module terminé':items.some(s=>s.kind==='niveau')?'Nouveau niveau':'Accomplissement'}</small><b>${items.length>1?`${items.length} nouveaux stickers`:'Nouveau sticker'}</b><em>${esc(items.map(s=>String((typeof natifT==='function'&&natifT(s.name))||s.name)).join(' · '))}</em></span>
     ${DEF_CHEV_SVG}
   </button>`;
 }
@@ -54011,7 +54018,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3094';
+  const SW_CACHE='requete-2026-11-15-module-v3095';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
