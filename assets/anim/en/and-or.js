@@ -185,9 +185,7 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../vo
     ["v1llhu2i","ch05",28.93,33.66],
     ["vrnfrvf","ch06",0,5.26],
     ["v1u343q0","ch06",5.58,10.32],
-    ["v1h0tc4w","ch06",10.7,15.04],
-    ["v1uarxau","ch07",0.06,2.83],
-    ["v157lrmh","ch07",3.08,6.06]],
+    ["v1h0tc4w","ch06",10.7,15.04]],
   say: {"at1":["at1",0.06,4.78],"at2":["at2",0.05,3.971],"at3":["at3",0.05,5.21],"indice3":["indice3",0,6.269],"lienavant":["lienavant",0.01,5.42],"lienapres":["lienapres",0.04,3.19],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]},
   toi: {"at1":[0.96,1.09],"at2":[0.95,1.14],"at3":[0.96,1.16]}}});
 /* Fin de la voix off */

@@ -151,6 +151,9 @@ test('le compte garde aussi le profil, les réglages, les étoiles et les répon
   const p = app.slice(app.indexOf('function csProfilAppliquer(d){'), app.indexOf('\n}\n', app.indexOf('function csProfilAppliquer(d){')));
   assert.ok(p.includes("localStorage.setItem('requete-langue',G.langue)") && !p.includes('location.reload'), 'la langue au prochain lancement');
   assert.ok(!/localStorage\.setItem\('requete-rappel',/.test(p), 'allumer le rappel reste propre à chaque iPhone');
+  /* 6 h 01 (Elisa : « oui, faire suivre ») : le prénom aussi ; sans compte puis connectée à un compte rempli, celui du compte revient */
+  assert.ok(p.includes("if(typeof R.prenom==='string'&&R.prenom.trim())state.name=R.prenom.trim().slice(0,32);"), 'le prénom du compte');
+  assert.ok(app.includes("if(typeof state.name==='string'&&state.name.trim())reponses.prenom=state.name.trim().slice(0,32);"), 'le prénom part avec le profil');
   const v = app.slice(app.indexOf('function compteViderPourAutre(){'), app.indexOf('\n}\n', app.indexOf('function compteViderPourAutre(){')));
   assert.ok(v.includes('LV_POS.clear()') && v.includes('localStorage.removeItem(CS_PROFIL_SIG)'), 'un autre compte : rien de tout ça ne passe');
   const sql = fs.readFileSync(path.join(ROOT, 'supabase/migrations/20261116034905_profil_avis_suivent_le_compte.sql'), 'utf8');

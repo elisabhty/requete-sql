@@ -13,7 +13,7 @@ import test from 'node:test';
 const ROOT = path.resolve(import.meta.dirname, '..');
 const lire = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const app = lire('index.html');
-const cours = fs.readdirSync(path.join(ROOT, 'tools/voix/en')).filter(f => f.endsWith('.json')).map(f => f.replace(/\.json$/, '')).filter(c => c !== 'avis' && c !== 'video-site');
+const cours = fs.readdirSync(path.join(ROOT, 'tools/voix/en')).filter(f => f.endsWith('.json')).map(f => f.replace(/\.json$/, '')).filter(c => c !== 'avis' && c !== 'video-site' && !c.startsWith('complements-'));   // complements- : des phrases à part (16 novembre)
 
 test('les 71 vidéos parlent anglais : voix, fichiers, durée', () => {
   assert.equal(cours.length, 71);

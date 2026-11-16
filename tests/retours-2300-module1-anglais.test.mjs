@@ -295,7 +295,13 @@ test('la voix anglaise des modules 1 et 2 : chaque vidéo a la sienne, calée su
     const pg = lire(`assets/anim/${c}.html`), src = pg.slice(pg.indexOf('const CAPTIONS = ['), pg.indexOf('\n];', pg.indexOf('const CAPTIONS = [')) + 3);
     const caps = vm.runInNewContext(src.replace('const CAPTIONS =', 'CAPTIONS =') + ';CAPTIONS', {APP: true, CAPTIONS: null});
     const cles = new Set(caps.map(x => vkey(x[2])));
-    assert.ok(voix.caps.length >= caps.length - 2 && voix.caps.every(x => cles.has(x[0])), `${c} : ${voix.caps.length} phrases sur ${caps.length} légendes`);
+    /* 16 novembre, 6 h 01 (Elisa, réf. 1 : « elle dit produit en français ») : la fin (« Pour finir… », « Ajoute ce résumé… »),
+       dite en français, et la phrase périmée de AS (« then du produit causes an error ») sont muettes en attendant leur voix
+       anglaise (tools/voix/en/complements-16-novembre.json). */
+    const muettes = caps.filter(x => /Pour finir, voici|Ajoute ce résumé/.test(x[2])).length + (c === 'as' ? 1 : 0);
+    assert.ok(voix.caps.length >= caps.length - 2 - muettes && voix.caps.every(x => cles.has(x[0])), `${c} : ${voix.caps.length} phrases sur ${caps.length} légendes`);
+    const fr = JSON.parse(lire(`tools/voix/en/${c}.json`)).elements.filter(e => /Pour finir|résumé à tes notes/.test(e.texte || '')).flatMap(e => e.cles || []);
+    assert.ok(!voix.caps.some(x => fr.includes(x[0])), `${c} : pas de fin dite en français`);
     for (const f of new Set([voix.intro[0], ...voix.caps.map(x => x[1]), ...Object.values(voix.say).map(x => x[0])]))
       assert.ok(fs.statSync(path.join(ROOT, `assets/voix/en/${c}/${f}.mp3`)).size > 5000, `${c}/${f}.mp3`);
     for (const k of ['bienvu', 'rattrape', 'presque', 'finbravo', 'fineffort', 'at1']) assert.ok(voix.say[k], `${c} : ${k}`);

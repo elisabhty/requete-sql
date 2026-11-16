@@ -6575,6 +6575,10 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Table « {x1} » réinitialisée : données du cours rétablies": "“{x1}” table reset: lesson data restored",
     "Table « {x1} » réinitialisée : état initial du fichier rétabli": "“{x1}” table reset: the file’s initial state restored",
     "Projet « {x1} » supprimé": "“{x1}” project deleted",
+    /* 16 novembre, 6 h 01 (Elisa, réf. 1 : « elle dit produit en français ») : la fin des 71 vidéos (« Pour finir… », « Ajoute ce
+       résumé… ») n’était traduite que dans « Les bases de données relationnelles » ; ici, pour toutes. */
+    "Pour finir, voici les <1>trois idées à retenir</1>.": "Finally, here are the <1>three ideas to remember</1>.",
+    "<1>Ajoute ce résumé à tes notes</1> pour le retrouver facilement.": "<1>Add this summary to your notes</1> to find it easily.",
     /* 16 novembre, 5 h 37 (Elisa : « C’est traduit ? Tout ce qu’on a fait aujourd’hui ») : la Console avec tes propres projets */
     "{1} projet": "{1} project",
     "{1} projets": "{1} projects",

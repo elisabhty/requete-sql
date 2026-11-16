@@ -126,15 +126,12 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.ajouter('en', {voix: {dir: '../vo
     ["v45l4be","ch02",6.2,10.77],
     ["v1bdhwfq","ch02",11.05,15.01],
     ["vlouk8v","ch02",15.35,20.114],
-    ["v127lkdf","ch03",0.02,6.43],
     ["v5buxyx","ch03",6.73,11.77],
     ["v170o5qn","ch03",12.12,17.006],
     ["v132u07u","ch04",0.01,4.14],
     ["v9jyki8","ch04",4.47,8.87],
     ["vgj2a96","ch04",9.27,12.83],
-    ["v67kh1k","ch04",13.08,17.48],
-    ["v1uarxau","ch05",0.02,2.83],
-    ["v157lrmh","ch05",3.11,6.06]],
+    ["v67kh1k","ch04",13.08,17.48]],
   say: {"at1":["at1",0.07,3.22],"at2":["at2",0.07,5.564],"at3":["at3",0.06,6.609],"indice1":["indice1",0.05,4.833],"indice2":["indice2",0,3.74],"indice3":["indice3",0.05,6.81],"touche1":["touche1",0.03,1.83],"lienavant":["lienavant",0.04,4.48],"lienapres":["lienapres",0.04,4.56],"bienvu":["bienvu",0,1.27],"rattrape":["rattrape",0,1.38],"presque":["presque",0.05,3.866],"finbravo":["finbravo",0.04,2.6],"fineffort":["fineffort",0.04,4.2]},
   toi: {"at1":[0.98,1.16],"at2":[0.94,1.09],"at3":[0.94,1.08]}}});
 /* Fin de la voix off */
