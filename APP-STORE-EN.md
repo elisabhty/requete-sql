@@ -4,8 +4,8 @@
 haut à droite de la fiche). Les chiffres sont ceux de l’appli : 71 cours, 15 modules, 477 cas pratiques sur 15 bases, 142 questions
 d’entretien, 72 cartes mémo. Pas de prix dans le texte : Apple affiche lui-même celui des abonnements.
 
-Fait le 16 novembre : l’anglais n’est plus « en essai » (langues.js), il s’ouvre à tous avec la sortie sur l’App Store. Reste à
-faire : les captures d’écran en anglais (sans elles, l’App Store montre les françaises aux anglophones).
+Fait le 16 novembre : l’anglais n’est plus « en essai » (langues.js), il s’ouvre à tous avec la sortie sur l’App Store. Les
+captures d’écran en anglais sont prêtes (même série que les françaises, voir APP-STORE-FR.md), à valider avant l’envoi.
 
 ---
 
@@ -27,11 +27,11 @@ Autres possibles : « Interactive SQL lessons » ; « Learn SQL step by step ».
 
     Learn SQL by actually writing it. Requête takes you from your very first SELECT to window functions, step by step, on a real database that runs right on your iPhone.
 
-    SQL is the #1 skill in data analyst job postings. Whether you’re switching to a data career, preparing for an interview or sharpening your skills at work, Requête builds a path around your goal, your level and the time you have.
+    Whether you’re switching to a data career, preparing for an interview or sharpening your skills at work, Requête builds a path around your goal, your level and the time you have.
 
     LEARN WITH INTERACTIVE VIDEO
-    • 71 short lessons (about 3 minutes each) across 15 modules
-    • Each lesson pauses on “Your turn” moments: you write the query, the database answers
+    • 71 short lessons, most of them 2 to 5 minutes long, across 15 modules
+    • Each video pauses on “Your turn” moments to check you’ve got it, then you write your own queries in the exercises
     • From SELECT, WHERE and ORDER BY to joins, GROUP BY, subqueries, CTEs, window functions, transactions, views, indexes and triggers
     • You play a data analyst at NutriBoost, an online store, and solve real business questions with its customers, products and orders
 

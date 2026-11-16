@@ -5141,6 +5141,9 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "{1} ligne gardée sur {2}": "{1} row kept out of {2}",
     "{1} groupes gardés sur {2}": "{1} groups kept out of {2}",
     "{1} groupe gardé sur {2}": "{1} group kept out of {2}",
+    /* L’exécution pas à pas, étape GROUP BY : le compte des groupes, suivi de leurs valeurs (16 novembre, captures App Store) */
+    "{1} groupes :": "{1} groups:",
+    "{1} groupe :": "{1} group:",
     "Les lignes qui ont la même valeur de <1/> forment un groupe. Ici, <2>{1} groupes</2> : une couleur par groupe.": "Rows with the same value of <1/> form a group. Here, <2>{1} groups</2>: one color per group.",
     "Chaque groupe gardé donne une seule ligne du résultat, et le calcul <1/> porte sur les lignes de ce groupe.": "Each group kept gives a single row of the result, and the calculation <1/> is done on the rows of that group.",
     "Sans <1/>, toutes les lignes forment un seul groupe : le calcul <2/> donne une seule ligne de résultat.": "Without <1/>, all the rows form a single group: the calculation <2/> gives a single result row.",
