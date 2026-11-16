@@ -97,7 +97,7 @@ test('iPhone : le pont demande l’autorisation et rend le jeton reçu par l’A
   /* L’AppDelegate, branché par scripts/ios-widget.mjs */
   assert.ok(widget.includes('func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {\n        NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)'));
   assert.ok(widget.includes("if (a.includes('didRegisterForRemoteNotificationsWithDeviceToken')) return;"), 'une seule fois');
-  assert.ok(widget.includes('brancherScene(); brancherPush(); };'));
+  assert.ok(widget.includes('brancherScene(); brancherPush(); langues(); icones(); };'));   // 16 novembre : l’anglais et les icônes (retours-0704)
   assert.ok(lire('resources/ios/widget/App/App.entitlements').includes('<key>aps-environment</key>'), 'le droit des push, déjà là (la salle dans l’île)');
 });
 

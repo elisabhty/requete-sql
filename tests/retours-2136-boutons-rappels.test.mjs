@@ -46,7 +46,7 @@ test('« Voir mon planning » ouvre Planning ; « Plus tard » relance le même 
   ctx.rappelBouton('planning', { id: 104 });
   assert.deepEqual(journal.ouverts, ['fr.requete.app.planning']);
   const r = fn('raccourciOuvrir');
-  assert.ok(r.includes("planning=type.endsWith('.planning')") && r.includes("else if(planning)switchTab('planning');"), 'le chemin des raccourcis (onboarding, paywall, séance en cours)');
+  assert.ok(r.includes("planning=!vers&&type.endsWith('.planning')") && r.includes("else if(planning)switchTab('planning');"), 'le chemin des raccourcis (onboarding, paywall, séance en cours)');
   const h = (H, M) => { const d = new Date(2026, 10, 15, H, M, 0, 0); return d; };
   assert.equal(ctx.rappelPlusTardQuand(h(19, 0)).getHours(), 20);
   assert.equal(ctx.rappelPlusTardQuand(h(21, 30)).getMinutes(), 30, '22 h 30 pile, encore');

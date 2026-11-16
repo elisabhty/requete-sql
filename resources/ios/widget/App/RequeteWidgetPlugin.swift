@@ -164,6 +164,103 @@ enum RequetePush {
     }
 }
 
+/// Une notification push touchée (16 novembre, Elisa : « ok », les notifications qui ouvrent le bon écran) : Capacitor la passe au
+/// pont (pushNotificationHandler, RequeteWidgetPlugin.load). Son lien devient un raccourci, comme celui d’un widget : « lien »
+/// (requete://seance, requete://parcours.python, requete://onglet.planning, ou une invitation https://requeteapp.com/?partie=…),
+/// sinon « parcours » (l’annonce d’un parcours, supabase/functions/parcours-annoncer). Le serveur choisit l’écran sans nouvelle
+/// version de l’app ; la page ignore ce qu’elle ne connaît pas (index.html, raccourciOuvrir).
+enum RequetePushLien {
+    static func lien(_ info: [AnyHashable: Any]) -> URL? {
+        if let texte = info["lien"] as? String, let url = URL(string: texte) {
+            let schema: String = (url.scheme ?? "").lowercased()
+            if schema == "requete" || schema == "https" {
+                return url
+            }
+        }
+        if let id = info["parcours"] as? String, id.range(of: "^[a-z]{1,20}$", options: .regularExpression) != nil {
+            var c = URLComponents()
+            c.scheme = "requete"
+            c.host = "parcours." + id
+            return c.url
+        }
+        return nil
+    }
+
+    static func ouvrir(_ info: [AnyHashable: Any]) {
+        guard let url = lien(info) else { return }
+        DispatchQueue.main.async { RequeteRaccourci.ouvrir(url) }
+    }
+}
+
+/// Les images des widgets envoyées par l’app (16 novembre : de nouvelles poses de Requête, un décor de saison, sans nouvelle
+/// version) : rangées dans le groupe d’apps (dossier Images, un PNG par nom d’image du catalogue). Le widget prend celle-ci avant
+/// celle de son catalogue (RequeteWidget.swift, ImageApp) ; effacée, il revient à la sienne. 700 points de côté au plus.
+enum RequeteImagesWidget {
+    static let cote: CGFloat = 700
+
+    static func dossier() -> URL? {
+        guard let groupe = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.fr.requete.app") else { return nil }
+        return groupe.appendingPathComponent("Images", isDirectory: true)
+    }
+
+    static func nomValide(_ nom: String) -> Bool {
+        return nom.range(of: "^[A-Za-z0-9_-]{1,40}$", options: .regularExpression) != nil
+    }
+
+    static func ecrire(_ nom: String, _ base64: String) -> Bool {
+        guard nomValide(nom), let dos = dossier() else { return false }
+        guard let brut = Data(base64Encoded: base64, options: .ignoreUnknownCharacters), let image = UIImage(data: brut) else { return false }
+        let taille: CGSize = image.size
+        let plus: CGFloat = max(taille.width, taille.height)
+        var finale: UIImage = image
+        if plus > cote {
+            let echelle: CGFloat = cote / plus
+            let nouvelle = CGSize(width: floor(taille.width * echelle), height: floor(taille.height * echelle))
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 1
+            finale = UIGraphicsImageRenderer(size: nouvelle, format: format).image { _ in
+                image.draw(in: CGRect(origin: .zero, size: nouvelle))
+            }
+        }
+        guard let png = finale.pngData() else { return false }
+        try? FileManager.default.createDirectory(at: dos, withIntermediateDirectories: true)
+        do {
+            try png.write(to: dos.appendingPathComponent(nom + ".png"), options: .atomic)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    static func effacer(_ nom: String) {
+        guard nomValide(nom), let dos = dossier() else { return }
+        try? FileManager.default.removeItem(at: dos.appendingPathComponent(nom + ".png"))
+    }
+
+    static func liste() -> [String] {
+        guard let dos = dossier() else { return [] }
+        let fichiers: [String] = (try? FileManager.default.contentsOfDirectory(atPath: dos.path)) ?? []
+        return fichiers.filter { $0.hasSuffix(".png") }.map { String($0.dropLast(4)) }.sorted()
+    }
+
+    static func toutEffacer() {
+        for nom in liste() {
+            effacer(nom)
+        }
+    }
+}
+
+/// Les icônes de l’app au choix (16 novembre) : celles du catalogue de l’app (resources/ios/icones, copiées par
+/// scripts/ios-widget.mjs ; Xcode les déclare toutes, ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS). Une icône s’ajoute avec
+/// une version de l’app ; la page choisit, depuis un geste de la personne, celles qu’elle propose et quand.
+enum RequeteIcone {
+    static func liste() -> [String] {
+        guard let icones = Bundle.main.object(forInfoDictionaryKey: "CFBundleIcons") as? [String: Any] else { return [] }
+        guard let autres = icones["CFBundleAlternateIcons"] as? [String: Any] else { return [] }
+        return autres.keys.sorted()
+    }
+}
+
 @objc(RequeteWidgetPlugin)
 public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "RequeteWidgetPlugin"
@@ -192,7 +289,11 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "abonnementGerer", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "noter", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "widgetsPoses", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "fichierFini", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "fichierFini", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "partagerFichiers", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "widgetImages", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "icones", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "iconeChoisir", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -202,6 +303,8 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         NotificationCenter.default.addObserver(self, selector: #selector(fichierRecu), name: RequeteFichier.annonce, object: nil)
         RequeteFichier.nettoyer()
         fichierRecu()
+        // Une notification push touchée : Capacitor la passe ici (RequetePushLien) ; l’app ouverte, elle s’affiche quand même.
+        bridge?.notificationRouter.pushNotificationHandler = self
         // Une leçon restée dans la Dynamic Island (l’app fermée en pleine leçon) : la page s’ouvre, plus rien n’est en cours. La carte
         // d’une leçon réussie (la flamme dorée, un quart d’heure sur l’écran verrouillé) reste jusqu’au bout.
         if #available(iOS 16.2, *) {
@@ -599,6 +702,104 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
                 pop.permittedArrowDirections = []
             }
             vc.present(feuille, animated: true)
+        }
+    }
+
+    /// De vrais fichiers à partager (16 novembre) : { fichiers: [{ nom, base64 }] }, dix au plus, 50 Mo en tout (une base SQLite,
+    /// un CSV, une image). Écrits dans un dossier temporaire à part, puis la feuille de partage d’iOS (Enregistrer dans Fichiers,
+    /// AirDrop, Mail, Photos pour une image). Répond { ok, type } : ok est faux si la personne a fermé la feuille sans rien faire.
+    @objc func partagerFichiers(_ call: CAPPluginCall) {
+        let brutes: [JSObject] = call.getArray("fichiers", JSObject.self) ?? []
+        let fm = FileManager.default
+        let dos: URL = fm.temporaryDirectory.appendingPathComponent("Partage-" + UUID().uuidString, isDirectory: true)
+        try? fm.createDirectory(at: dos, withIntermediateDirectories: true)
+        var urls: [URL] = []
+        var total: Int = 0
+        for r in brutes.prefix(10) {
+            guard let base64 = r["base64"] as? String, let donnees = Data(base64Encoded: base64, options: .ignoreUnknownCharacters) else { continue }
+            total += donnees.count
+            if total > 50_000_000 { break }
+            var nom: String = (r["nom"] as? String) ?? "fichier"
+            nom = nom.replacingOccurrences(of: "/", with: "-").replacingOccurrences(of: ":", with: "-")
+            if nom.isEmpty || nom.hasPrefix(".") { nom = "fichier" + nom }
+            let url = dos.appendingPathComponent(String(nom.prefix(120)))
+            if (try? donnees.write(to: url, options: .atomic)) != nil {
+                urls.append(url)
+            }
+        }
+        guard !urls.isEmpty else {
+            call.reject("Rien à partager")
+            return
+        }
+        DispatchQueue.main.async {
+            guard let vc = self.bridge?.viewController else {
+                call.reject("Aucune fenêtre pour partager")
+                return
+            }
+            let feuille = UIActivityViewController(activityItems: urls, applicationActivities: nil)
+            feuille.completionWithItemsHandler = { type, fait, _, _ in
+                call.resolve(["ok": fait, "type": type?.rawValue ?? ""])
+            }
+            if let pop = feuille.popoverPresentationController {
+                pop.sourceView = vc.view
+                pop.sourceRect = CGRect(x: vc.view.bounds.midX, y: vc.view.bounds.maxY - 80, width: 1, height: 1)
+                pop.permittedArrowDirections = []
+            }
+            vc.present(feuille, animated: true)
+        }
+    }
+
+    /// Les images des widgets (RequeteImagesWidget) : { images: [{ nom, base64 }], effacer: [nom], tout: bool } (tout : on efface
+    /// d’abord toutes celles envoyées avant). Les widgets sont redessinés. Répond { ok, images } : les noms rangés après coup.
+    @objc func widgetImages(_ call: CAPPluginCall) {
+        if call.getBool("tout") ?? false {
+            RequeteImagesWidget.toutEffacer()
+        }
+        for nom in call.getArray("effacer", String.self) ?? [] {
+            RequeteImagesWidget.effacer(nom)
+        }
+        var ok: Bool = true
+        for r in (call.getArray("images", JSObject.self) ?? []).prefix(40) {
+            guard let nom = r["nom"] as? String, let base64 = r["base64"] as? String else {
+                ok = false
+                continue
+            }
+            if !RequeteImagesWidget.ecrire(nom, base64) {
+                ok = false
+            }
+        }
+        WidgetCenter.shared.reloadAllTimelines()
+        call.resolve(["ok": ok, "images": RequeteImagesWidget.liste()])
+    }
+
+    /// Les icônes de l’app (RequeteIcone) : { possible, actuelle, liste }. actuelle est vide pour l’icône de base.
+    @objc func icones(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            let possible: Bool = UIApplication.shared.supportsAlternateIcons
+            let actuelle: String = UIApplication.shared.alternateIconName ?? ""
+            call.resolve(["possible": possible, "actuelle": actuelle, "liste": RequeteIcone.liste()])
+        }
+    }
+
+    /// Changer d’icône, après un geste de la personne : { nom } (vide : l’icône de base). iOS montre son message « Vous avez
+    /// changé l’icône ». Répond { ok, actuelle }.
+    @objc func iconeChoisir(_ call: CAPPluginCall) {
+        let nom: String = call.getString("nom") ?? ""
+        if !nom.isEmpty && !RequeteIcone.liste().contains(nom) {
+            call.reject("Icône inconnue")
+            return
+        }
+        DispatchQueue.main.async {
+            guard UIApplication.shared.supportsAlternateIcons else {
+                call.resolve(["ok": false, "actuelle": ""])
+                return
+            }
+            let voulue: String? = nom.isEmpty ? nil : nom
+            UIApplication.shared.setAlternateIconName(voulue) { erreur in
+                DispatchQueue.main.async {
+                    call.resolve(["ok": erreur == nil, "actuelle": UIApplication.shared.alternateIconName ?? ""])
+                }
+            }
         }
     }
 
@@ -1222,5 +1423,18 @@ extension UIColor {
         let vert: CGFloat = CGFloat((v >> 8) & 0xFF) / 255
         let bleu: CGFloat = CGFloat(v & 0xFF) / 255
         self.init(red: rouge, green: vert, blue: bleu, alpha: 1)
+    }
+}
+
+/// Les notifications push (RequetePushLien) : l’app ouverte, la notification s’affiche quand même (en bannière, avec son son) ;
+/// touchée, son écran s’ouvre. Les notifications locales (les rappels) restent à leur extension de Capacitor.
+extension RequeteWidgetPlugin: NotificationHandlerProtocol {
+    public func willPresent(notification: UNNotification) -> UNNotificationPresentationOptions {
+        return [.banner, .list, .sound]
+    }
+
+    public func didReceive(response: UNNotificationResponse) {
+        guard response.actionIdentifier == UNNotificationDefaultActionIdentifier else { return }
+        RequetePushLien.ouvrir(response.notification.request.content.userInfo)
     }
 }

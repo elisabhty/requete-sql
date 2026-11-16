@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=7dfc1576" data-defis></script>
+<script src="langues.js?v=93f68109" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -49409,6 +49409,34 @@ function ilePont(){
   const C=typeof window!=='undefined'?window.Capacitor:null;
   return C&&C.isNativePlatform&&C.isNativePlatform()&&typeof C.nativePromise==='function'&&(!C.isPluginAvailable||C.isPluginAvailable('RequeteWidget'))?C:null;
 }
+/* 16 novembre (ce qu’on prépare pour ne plus repasser chez Apple) : deux ponts de l’app iPhone que la page pilote seule.
+   - Les images des widgets (RequeteImagesWidget) : [{ nom, url }], nom étant celui d’une image du catalogue du widget (« Mascotte »,
+     « ChatQuestion », « FeuVif »…) ; l’image envoyée la remplace sur l’écran d’accueil (nouvelle pose de Requête, décor de saison).
+     { tout: true } efface d’abord les précédentes ; widgetImagesEnvoyer([], { tout: true }) rend les images d’origine.
+   - Les icônes de l’app (RequeteIcone) : iconesNatif() dit lesquelles sont dans cette version, iconeChoisir(nom), après un geste
+     de la personne, change l’icône (vide : celle de base). Une version de l’app d’avant répond null. */
+async function widgetImagesEnvoyer(liste,o){
+  const C=ilePont();
+  if(!C)return null;
+  try{
+    const images=[];
+    for(const x of (liste||[]).slice(0,40)){
+      const r=await fetch(x.url);if(!r.ok)continue;
+      images.push({nom:x.nom,base64:await blobBase64(await r.blob())});
+    }
+    return await C.nativePromise('RequeteWidget','widgetImages',{images,tout:!!(o&&o.tout),effacer:(o&&o.effacer)||[]});
+  }catch(e){return null;}
+}
+async function iconesNatif(){
+  const C=ilePont();
+  if(!C)return null;
+  try{const r=await C.nativePromise('RequeteWidget','icones',{});return r&&Array.isArray(r.liste)?r:null;}catch(e){return null;}
+}
+async function iconeChoisir(nom){
+  const C=ilePont();
+  if(!C)return null;
+  try{return await C.nativePromise('RequeteWidget','iconeChoisir',{nom:nom||''});}catch(e){return null;}
+}
 function ileAppel(m,data){ const C=ilePont(); if(!C)return; try{ Promise.resolve(C.nativePromise('RequeteWidget',m,data)).catch(()=>{}); }catch(e){} }
 function ileProgression(){ const V=LV&&LV.video,d=V&&V.duration||0; return d?Math.max(0,Math.min(1,(V.currentTime||0)/d)):0; }
 function ileAllumee(){ try{ return !!jourActif(dstr(auj())); }catch(e){ return false; } }
@@ -49576,6 +49604,8 @@ async function fichierRecuTraiter(){
 }
 /* 11 h 08 (réf. 3, « le lien ne fonctionne pas vers les défis ») : touché pendant l’onboarding (ou en pleine séance), le raccourci ne
    faisait rien, sans un mot. L’onboarding d’abord, toujours, mais il le dit maintenant dans un bandeau, et en séance, une bulle. */
+/* Les onglets qu’un lien de notification peut ouvrir (« requete://onglet.planning »), ceux de switchTab. */
+const RACC_ONGLETS=['learn','defis','planning','notes','collection','console','entretien','sgbd','stickers','compte','parcours','library','practice'];
 function raccourciOuvrir(type){
   type=String(type||'');
   /* 13 novembre, 19 h 52, statistiques : quel raccourci sert (l’icône, l’île, le widget, l’invitation), sans le code d’une salle */
@@ -49599,9 +49629,14 @@ function raccourciOuvrir(type){
   /* Les boutons de la salle dans l’île (7 novembre) : Partager, Lancer, Rejouer agissent sur la salle ouverte (ileSalleAction). */
   const salle=/\.salle-(partager|lancer|rejouer)$/.exec(type);
   if(salle){if(typeof ileSalleAction==='function')ileSalleAction(salle[1]);return;}
-  const requete=type.endsWith('.requete'),adieu=type.endsWith('.adieu'),avis=type.endsWith('.avis'),seance=type.endsWith('.seance'),cartes=type.endsWith('.cartes'),planning=type.endsWith('.planning');
-  if(!requete&&!adieu&&!avis&&!seance&&!cartes&&!planning)return;
-  if(!state.onboarded){obBandeau(requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':seance?'Termine ton parcours de bienvenue : ta flamme t’attend juste après !':cartes?'Termine ton parcours de bienvenue : tes cartes mémo t’attendent juste après !':planning?'Termine ton parcours de bienvenue : ton planning t’attend juste après !':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
+  /* Une notification push touchée (16 novembre, RequetePushLien) : son lien choisit l’écran, sans nouvelle version de l’app.
+     « parcours.python » ouvre la page d’un parcours (l’annonce de son ouverture), « onglet.planning » un onglet de l’appli. */
+  const vers=/\.(parcours|onglet)\.([a-z]{1,20})$/.exec(type);
+  const parcoursId=vers&&vers[1]==='parcours'?vers[2]:null;
+  const onglet=vers&&vers[1]==='onglet'&&RACC_ONGLETS.includes(vers[2])?vers[2]:null;
+  const requete=!vers&&type.endsWith('.requete'),adieu=!vers&&type.endsWith('.adieu'),avis=!vers&&type.endsWith('.avis'),seance=!vers&&type.endsWith('.seance'),cartes=!vers&&type.endsWith('.cartes'),planning=!vers&&type.endsWith('.planning');
+  if(!requete&&!adieu&&!avis&&!seance&&!cartes&&!planning&&!parcoursId&&!onglet)return;
+  if(!state.onboarded){obBandeau((parcoursId||onglet)?'Termine ton parcours de bienvenue : tout le reste t’attend juste après !':requete?'Termine ton parcours de bienvenue : les défis t’attendent juste après !':avis?'Termine ton parcours de bienvenue : tu pourras nous écrire juste après, dans Mon compte.':seance?'Termine ton parcours de bienvenue : ta flamme t’attend juste après !':cartes?'Termine ton parcours de bienvenue : tes cartes mémo t’attendent juste après !':planning?'Termine ton parcours de bienvenue : ton planning t’attend juste après !':'Ouf, pas de DELETE ! Termine ton parcours de bienvenue.');return;}
   /* 14 novembre, 12 h 27 (l’audit avant la mise en production) : sans abonnement, le paywall garde l’appli ; un raccourci (widget,
      île, icône) n’ouvre plus de leçon ni d’onglet dessous. */
   if(typeof obGardeBloque==='function'&&obGardeBloque())return;
@@ -49610,6 +49645,7 @@ function raccourciOuvrir(type){
     else if(seance&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la\u00a0: ta flamme s’allume à la fin.','info');
     else if(cartes&&typeof toast==='function')toast('Tu es déjà en séance','Tes cartes mémo t’attendent juste après.','info');
     else if(planning&&typeof toast==='function')toast('Tu es déjà en séance','Ton planning t’attend juste après.','info');
+    else if((parcoursId||onglet)&&typeof toast==='function')toast('Tu es déjà en séance','Termine-la, puis tu pourras y aller.','info');
     return;
   }
   if(seance){
@@ -49620,6 +49656,8 @@ function raccourciOuvrir(type){
     switchTab('learn');
     if(id!=null)setTimeout(()=>{try{openItem(id,0);}catch(e){}},350);
   }
+  else if(parcoursId){if(typeof openParcours==='function')openParcours(parcoursId);}   // la page du parcours, ou la liste s’il est ouvert
+  else if(onglet)switchTab(onglet);
   else if(cartes)switchTab('collection');   // l’album des cartes mémo (le widget La carte mémo, tout à jour)
   else if(planning)switchTab('planning');   // « Voir mon planning », le bouton des rappels (15 novembre, 21 h 36)
   else if(requete)switchTab('defis');
@@ -53995,7 +54033,24 @@ function replayOnboarding(){
 }
 /* Enregistrer un fichier : sur téléphone (ou dans l’app), la feuille de partage — Photos, Fichiers, imprimer… ;
    ailleurs, un téléchargement. Renvoie 'share', 'download', ou null si la personne a renoncé. */
+/* 16 novembre (les vrais fichiers à partager) : dans l’app iPhone, le fichier lui-même part par la feuille de partage d’iOS
+   (pont RequeteWidget.partagerFichiers : Enregistrer dans Fichiers, Photos pour une image, AirDrop, Mail…). Une version de l’app
+   d’avant ne connaît pas ce pont : on passe alors au chemin d’avant (navigator.share, ou un téléchargement). */
+function blobBase64(blob){
+  return new Promise((ok,ko)=>{const r=new FileReader();r.onload=()=>{const t=String(r.result||''),i=t.indexOf(',');ok(i>=0?t.slice(i+1):'');};r.onerror=()=>ko(r.error);r.readAsDataURL(blob);});
+}
+async function saveFileNatif(blob,fileName){
+  const C=typeof ilePont==='function'?ilePont():null;
+  if(!C)return undefined;
+  try{
+    const base64=await blobBase64(blob);
+    const r=await C.nativePromise('RequeteWidget','partagerFichiers',{fichiers:[{nom:fileName,base64}]});
+    return r&&r.ok?'share':null;
+  }catch(e){return undefined;}
+}
 async function saveFile(blob,fileName,title){
+  const natif=await saveFileNatif(blob,fileName);
+  if(natif!==undefined)return natif;
   const touch=document.documentElement.classList.contains('is-native')||!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
   if(touch&&typeof File==='function'&&navigator.canShare&&navigator.share){
     try{
@@ -54426,7 +54481,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3104';
+  const SW_CACHE='requete-2026-11-15-module-v3105';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

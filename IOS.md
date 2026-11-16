@@ -822,7 +822,7 @@ son accord, vérifiée par un essai annulé : rien n’est resté dans la base) 
 1. **Identifiant de l’app** : `appId` dans `capacitor.config.json` (`fr.requete.app` par défaut).
    Il doit correspondre à celui créé sur App Store Connect et ne changera plus ensuite.
 2. **Info.plist** (`ios/App/App/Info.plist`, réglé le 3 novembre sur le Mac d’Elisa) : « Portrait » seulement sur iPhone,
-   l’appli en français (`CFBundleDevelopmentRegion` = `fr`, `CFBundleLocalizations` = `fr`, pour que les menus d’iOS dans
+   l’appli en français (`CFBundleDevelopmentRegion` = `fr`, `CFBundleLocalizations` = `fr` puis `en` depuis le 16 novembre, pour que les menus d’iOS dans
    l’appli soient en français) et `ITSAppUsesNonExemptEncryption` = `NO` (pas de question sur le chiffrement à chaque envoi).
 3. **Icône et lancement** : `resources/icon-only.png` (1024 × 1024, sans transparence) et `resources/splash.png`
    (2732 × 2732, l’image de référence). Remplace-les si le logo change, puis relance `npm run ios:assets`.
@@ -1087,3 +1087,34 @@ Console, sur « Importer une table », comme « Importer un fichier ».
 
 Pour l’essayer après `npm run ios` (ou TestFlight) : dans Mail ou Fichiers, un CSV › Partager › Requête. Sans la nouvelle app
 (une version d’avant), rien ne change : Requête n’apparaît pas dans la liste.
+
+## Préparé dans la coque pour ne plus repasser chez Apple (16 novembre, 7 h 04)
+
+Elisa : « Qu’est-ce qu’on peut préparer pour pas qu’on ait à faire de nouvelles soumissions à Apple ? », puis « ok » pour ces
+cinq ponts. Ils arrivent avec la prochaine version envoyée à Apple ; ensuite, la page (mise à jour à distance) les pilote seule.
+Une version d’avant ne les connaît pas : la page le voit et fait comme avant.
+
+1. **L’anglais de l’app iPhone** (scripts/ios-widget.mjs, étape 2 quater) : `en.lproj/InfoPlist.strings` et `fr.lproj/InfoPlist.strings`
+   (resources/ios/widget/App) pour les phrases qu’iOS montre lui-même (appareil photo, photothèque de « Contacte-nous ») ; le projet
+   Xcode reçoit une fois le groupe « InfoPlist.strings » et la région fr (copie : `project.pbxproj.avant-langues`) ; `CFBundleLocalizations`
+   passe à fr et en (l’anglais s’ajoute au français réglé à la main le 3 novembre). Sur un iPhone en anglais, iOS parle anglais autour
+   de l’app, et l’App Store affiche les deux langues.
+2. **Une notification push touchée ouvre le bon écran** (`RequetePushLien`, le pont est le `pushNotificationHandler` de Capacitor) :
+   la charge envoyée par le serveur porte `lien` (`requete://seance`, `requete://cartes`, `requete://planning`, `requete://requete`,
+   `requete://parcours.python`, `requete://onglet.compte`, ou une invitation `https://requeteapp.com/?partie=…`), ou `parcours`
+   (l’annonce d’un parcours, déjà envoyée par parcours-annoncer). La page choisit l’écran (index.html, `raccourciOuvrir`,
+   `RACC_ONGLETS`), après l’onboarding, le paywall et la séance en cours. L’app ouverte, la notification s’affiche quand même.
+3. **De vrais fichiers à partager** (`partagerFichiers` : `{ fichiers: [{ nom, base64 }] }`, dix au plus, 50 Mo) : la feuille de
+   partage d’iOS (Fichiers, Photos pour une image, AirDrop, Mail). `saveFile` (index.html) passe par lui dans l’app : les stickers,
+   et demain une base SQLite exportée de la Console.
+4. **Les images des widgets venues de l’app** (`widgetImages` : `{ images: [{ nom, base64 }], effacer, tout }`) : rangées dans le
+   groupe d’apps (dossier Images, 700 points de côté au plus), elles remplacent l’image du catalogue du même nom sur l’écran
+   d’accueil (RequeteWidget.swift, `ImageApp` : « Mascotte », « ChatQuestion », « FeuVif », les pièces…). La page :
+   `widgetImagesEnvoyer([{ nom, url }], { tout })` ; `widgetImagesEnvoyer([], { tout: true })` rend celles d’origine. Les Live
+   Activities gardent les leurs (une image trop grande ne s’y affiche pas).
+5. **Les icônes au choix** (`icones`, `iconeChoisir`) : chaque `NomDeLIcone.appiconset` de resources/ios/icones est recopié dans le
+   catalogue de l’app, et Xcode les déclare toutes (`ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS`, étape 2 quinquies). Elles
+   doivent être là avant l’envoi à Apple ; ensuite, la page peut en proposer une (une icône de Noël en décembre), toujours au geste
+   de la personne (iOS affiche son message « Vous avez changé l’icône »). Page : `iconesNatif()`, `iconeChoisir(nom)`.
+
+Pour vérifier que tout compile : `npm run ios:verif` (le journal : ios/verif-swift.log).

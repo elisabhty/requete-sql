@@ -101,7 +101,7 @@ test('la journée de la pièce : le ciel suit l’heure, le feu la séance, le c
 
 test('la pièce : les objets gagnés, le liège et l’écran du très grand, aux places de la planche', () => {
   const pv = entre(swift, 'struct PieceVue: View {', '\nstruct ChemineeVue: View {');
-  for (const k of ['if entree.stickers >= 1 {\n                Image("Autocollant")', 'if entree.stickers >= 2 {\n                EtoileAutocollant()',
+  for (const k of ['if entree.stickers >= 1 {\n                ImageApp.image("Autocollant")', 'if entree.stickers >= 2 {\n                EtoileAutocollant()',
     'if entree.stickers >= 3 {\n                etiquetteSQL(k)', 'if entree.trophees > 0 {\n                objet("Trophee", ag.trophee, p, k)',
     'objet("Plante", ag.plante, p, k)', 'if entree.diplomes > 0 {\n                objet("Diplome", ag.diplome, p, k)',
     'if ag.tresGrand {\n                liege(ag, p)\n                ecran(ag, p)', 'if !entree.carte.isEmpty {\n                carteMemo(k)',
@@ -130,7 +130,7 @@ test('la pièce : les objets gagnés, le liège et l’écran du très grand, au
 });
 
 test('les images du widget : chacune a son catalogue et ses fichiers, et reste sous la surface que WidgetKit accepte', () => {
-  const noms = new Set([...swift.matchAll(/(?:Image|objet)\("([A-Za-z]+)"/g)].map(m => m[1]));
+  const noms = new Set([...swift.matchAll(/(?:Image|ImageApp\.image|objet)\("([A-Za-z]+)"/g)].map(m => m[1]));
   for (const m of swift.matchAll(/"((?:Chat|Feu)[A-Z][A-Za-z]+)"/g)) noms.add(m[1]);
   for (const l of ['Matin', 'Jour', 'Soir', 'Nuit']) for (const f of ['PieceGrand', 'PieceTresGrand']) noms.add(f + l);
   for (const n of ['Trophee', 'Plante', 'Diplome', 'Autocollant', 'ChatNoir', 'FeuFroid', 'FeuBraises', 'FeuVif', 'ChatReveil', 'ChatOrdi', 'ChatAllumette', 'ChatDodo', 'ChatBravo', 'ChatSalut'])

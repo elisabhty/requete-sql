@@ -6,7 +6,7 @@
 // ios:add et ios:testflight, après « cap sync ». Relancé, il met les fichiers à jour et ne touche plus au projet.
 // Rien n’est changé si le projet ne ressemble pas à celui de Capacitor : un avertissement le dit, et la fabrication de l’app
 // continue sans widget (l’onboarding ne le propose alors pas : il n’apparaît qu’avec le pont natif).
-import {cpSync, existsSync, readFileSync, writeFileSync, copyFileSync, readdirSync, rmSync} from 'node:fs';
+import {cpSync, existsSync, readFileSync, writeFileSync, copyFileSync, readdirSync, rmSync, mkdirSync} from 'node:fs';
 import {join} from 'node:path';
 
 const racine = new URL('..', import.meta.url).pathname;
@@ -165,7 +165,80 @@ const brancherPush = () => {
   if (fin > 0 && /class AppDelegate\b/.test(a) && a.includes('import Capacitor')) writeFileSync(appDel, a.slice(0, fin) + '\n' + PUSH + a.slice(fin));
   else console.warn('⚠️  AppDelegate.swift inattendu : le jeton de push n’y est pas branché (l’alerte des parcours restera un message dans l’appli).');
 };
-const brancher = () => { if (sb.includes(sbAvant)) writeFileSync(story, sb.replace(sbAvant, sbApres)); brancherScene(); brancherPush(); };
+/* 2 quater. L’anglais de l’app iPhone (16 novembre, Elisa : « ok », ce qu’on peut préparer pour ne plus repasser chez Apple) :
+   les phrases qu’iOS montre lui-même (l’appareil photo et la photothèque de « Contacte-nous ») ont leur version anglaise
+   (en.lproj/InfoPlist.strings, à côté de la française), et l’app se déclare en français et en anglais (CFBundleLocalizations) : sur
+   un iPhone en anglais, iOS parle anglais autour d’elle (feuille de partage, choix des photos), et l’App Store affiche les deux
+   langues. Les fichiers sont recopiés à chaque fois ; le projet Xcode reçoit une fois le groupe « InfoPlist.strings » (fr, en),
+   dans les ressources de la cible App, et la région fr (copie de l’ancien projet : project.pbxproj.avant-langues). */
+const langues = () => {
+  for (const l of ['fr', 'en']) {
+    mkdirSync(join(ios, 'App', l + '.lproj'), {recursive: true});
+    copyFileSync(join(src, 'App', l + '.lproj', 'InfoPlist.strings'), join(ios, 'App', l + '.lproj', 'InfoPlist.strings'));
+  }
+  if (existsSync(infoApp)) {
+    const t = readFileSync(infoApp, 'utf8'), k = t.lastIndexOf('</dict>');
+    const loc = t.match(/<key>CFBundleLocalizations<\/key>\s*<array>([\s\S]*?)<\/array>/);
+    if (loc && loc[1].includes('<string>en</string>')) {}
+    else if (loc) {   // le français seul, réglé à la main le 3 novembre (IOS.md) : l’anglais s’ajoute à la liste
+      const fin = loc.index + loc[0].lastIndexOf('</array>');
+      writeFileSync(infoApp, t.slice(0, fin).replace(/\s*$/, '\n') + '\t\t<string>en</string>\n\t' + t.slice(fin));
+    }
+    else {   // à côté de la langue de développement si elle est là, sinon à la fin du dictionnaire principal
+      const bloc = '\t<key>CFBundleLocalizations</key>\n\t<array>\n\t\t<string>fr</string>\n\t\t<string>en</string>\n\t</array>\n';
+      const dev = t.match(/\t<key>CFBundleDevelopmentRegion<\/key>\n\t<string>[^<]*<\/string>\n/);
+      if (dev) writeFileSync(infoApp, t.slice(0, dev.index + dev[0].length) + bloc + t.slice(dev.index + dev[0].length));
+      else if (k > 0 && t.indexOf('</plist>', k) > k) writeFileSync(infoApp, t.slice(0, k) + bloc + t.slice(k));
+    }
+  }
+  let q = readFileSync(projet, 'utf8');
+  if (q.includes('/* InfoPlist.strings in Resources */')) return;
+  const avertir = m => console.warn(`⚠️  Anglais de l’app non ajouté au projet Xcode : ${m}`);
+  const L = 'A7E1D00000000000000001';   // identifiants de cette étape (24 chiffres hexadécimaux en tout)
+  const I = {groupe: L + '01', bf: L + '02', fr: L + '03', en: L + '04'};
+  if (Object.values(I).some(x => q.includes(x))) return avertir('identifiants déjà pris.');
+  const cible = q.match(/\t\t([0-9A-F]{24}) \/\* App \*\/ = \{\n\t\t\tisa = PBXNativeTarget;[\s\S]*?\n\t\t\};\n/);
+  const res = cible && cible[0].match(/\n\t\t\t\t([0-9A-F]{24}) \/\* Resources \*\/,/);
+  const grp = q.match(/\t\t([0-9A-F]{24}) \/\* App \*\/ = \{\n\t\t\tisa = PBXGroup;/);
+  const marques = ['/* End PBXBuildFile section */', '/* End PBXFileReference section */', '/* End PBXVariantGroup section */'];
+  if (!res || !grp || marques.some(m => !q.includes(m)) || !/knownRegions = \(\n/.test(q)) return avertir('repères introuvables.');
+  const liste = (debut, ajout) => {   // ajoute une ligne à la liste « … = ( … ); » de l’objet qui commence à debut
+    const i = q.indexOf(debut), k = i < 0 ? -1 : q.indexOf('\t\t\t);', i);
+    if (i < 0 || k < 0 || q.indexOf('\n\t\t};', i) < k) return false;
+    q = q.slice(0, k) + ajout + q.slice(k);
+    return true;
+  };
+  q = q.replace(marques[0], `\t\t${I.bf} /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = ${I.groupe} /* InfoPlist.strings */; };\n` + marques[0]);
+  q = q.replace(marques[1], ['fr', 'en'].map(l => `\t\t${I[l]} /* ${l} */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ${l}; path = ${l}.lproj/InfoPlist.strings; sourceTree = "<group>"; };\n`).join('') + marques[1]);
+  q = q.replace(marques[2], `\t\t${I.groupe} /* InfoPlist.strings */ = {\n\t\t\tisa = PBXVariantGroup;\n\t\t\tchildren = (\n\t\t\t\t${I.fr} /* fr */,\n\t\t\t\t${I.en} /* en */,\n\t\t\t);\n\t\t\tname = InfoPlist.strings;\n\t\t\tsourceTree = "<group>";\n\t\t};\n` + marques[2]);
+  if (!liste(`\t\t${grp[1]} /* App */ = {\n\t\t\tisa = PBXGroup;`, `\t\t\t\t${I.groupe} /* InfoPlist.strings */,\n`)) return avertir('groupe App illisible.');
+  if (!liste(`\t\t${res[1]} /* Resources */ = {`, `\t\t\t\t${I.bf} /* InfoPlist.strings in Resources */,\n`)) return avertir('ressources de la cible App illisibles.');
+  const reg = q.match(/knownRegions = \(\n([\s\S]*?)\t\t\t\);/);
+  if (reg && !/\bfr,/.test(reg[1])) q = q.replace(/knownRegions = \(\n/, 'knownRegions = (\n\t\t\t\tfr,\n');
+  const compte = c => q.split(c).length - 1;
+  if (compte('{') !== compte('}') || compte('(') !== compte(')')) return avertir('le projet modifié serait mal formé ; rien n’a été changé.');
+  const copie = projet + '.avant-langues';
+  if (!existsSync(copie)) copyFileSync(projet, copie);
+  writeFileSync(projet, q);
+  console.log('Anglais de l’app : InfoPlist.strings (fr, en) ajouté au projet Xcode (copie de l’ancien projet : project.pbxproj.avant-langues).');
+};
+/* 2 quinquies. Les icônes de l’app au choix (16 novembre) : chaque jeu d’icônes de resources/ios/icones (NomDeLIcone.appiconset)
+   est recopié dans le catalogue de l’app, et Xcode les déclare toutes à côté de l’icône de base
+   (ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS, ajouté une fois aux réglages de la cible App). L’app passe de l’une à l’autre
+   sans nouvelle version (RequeteWidgetPlugin.swift, RequeteIcone, iconeChoisir). */
+const icones = () => {
+  const dos = join(racine, 'resources/ios/icones'), cat = join(ios, 'App', 'Assets.xcassets');
+  if (existsSync(dos) && existsSync(cat)) {
+    for (const d of readdirSync(dos).filter(n => n.endsWith('.appiconset') && n !== 'AppIcon.appiconset')) cpSync(join(dos, d), join(cat, d), {recursive: true});
+  }
+  const q = readFileSync(projet, 'utf8');
+  if (q.includes('ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS')) return;
+  const r = q.replace(/\n(\t+)ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;/g, (m, t) => `${m}\n${t}ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;`);
+  if (r === q) return console.warn('⚠️  Icônes au choix : ASSETCATALOG_COMPILER_APPICON_NAME introuvable dans le projet Xcode (voir IOS.md).');
+  writeFileSync(projet, r);
+  console.log('Icônes au choix : toutes les icônes du catalogue de l’app sont déclarées (ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS).');
+};
+const brancher = () => { if (sb.includes(sbAvant)) writeFileSync(story, sb.replace(sbAvant, sbApres)); brancherScene(); brancherPush(); langues(); icones(); };
 
 /* 3. Le projet Xcode, une seule fois. */
 let p = readFileSync(projet, 'utf8');

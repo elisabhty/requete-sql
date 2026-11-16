@@ -2876,6 +2876,8 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Termine-la : ta flamme s’allume à la fin.": "Finish it: your flame lights up at the end.",
     "Tes cartes mémo t’attendent juste après.": "Your flashcards are waiting right after.",
     "Ton planning t’attend juste après.": "Your schedule is waiting right after.",
+    "Termine ton parcours de bienvenue : tout le reste t’attend juste après !": "Finish your welcome path: everything else is waiting right after!",
+    "Termine-la, puis tu pourras y aller.": "Finish it, then you can go there.",
     "Voir mon planning": "See my schedule",
     "Exécution…": "Running…",
     "Parcours prêt": "Path ready",

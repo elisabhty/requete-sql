@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import UIKit
 import ActivityKit
 import AppIntents
 
@@ -70,6 +71,25 @@ func traduit(_ texte: String) -> String {
 /// Elisa, 4 novembre, 12 h 14 : « un chat qui change dans la journée : une bulle le matin, la flamme le soir, un saut de joie quand
 /// la séance du jour est faite, avec une transition à chaque changement ». Le moment se lit à l’heure de l’entrée ; le fournisseur en
 /// pose une à minuit, 5 h, midi et 18 h, et l’app recharge le widget en partant, après une séance : c’est le saut de joie.
+/// Les images envoyées par l’app (16 novembre ; RequeteWidgetPlugin.swift, RequeteImagesWidget) : rangées dans le groupe d’apps
+/// (dossier Images, « Mascotte.png »), elles passent avant celles du catalogue du widget. Une nouvelle pose de Requête ou un décor
+/// de saison arrive ainsi sans nouvelle version. Absente ou illisible : l’image du catalogue. Les Live Activities gardent la leur.
+enum ImageApp {
+    static func image(_ nom: String) -> Image {
+        if let ui = charger(nom) {
+            return Image(uiImage: ui)
+        }
+        return Image(nom)
+    }
+
+    static func charger(_ nom: String) -> UIImage? {
+        guard let dossier = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupe) else { return nil }
+        let url: URL = dossier.appendingPathComponent("Images", isDirectory: true).appendingPathComponent(nom + ".png")
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return UIImage(contentsOfFile: url.path)
+    }
+}
+
 enum Humeur: String {
     case matin     // de 5 h à midi : « Une petite requête ? » dans une bulle (« Jour de repos ! » un jour de repos du planning)
     case journee   // de midi à 18 h, et la nuit : le chat qui dépasse du bas, comme avant
@@ -336,7 +356,7 @@ struct SerieVue: View {
 
     private func chatVue(_ w: CGFloat, _ h: CGFloat) -> some View {
         let centre: CGFloat = h * (hauteurChat + decalChat)
-        return Image("Mascotte")
+        return ImageApp.image("Mascotte")
             .resizable()
             .scaledToFit()
             .frame(width: w * 0.66)
@@ -1183,7 +1203,7 @@ struct PieceVue: View {
         let cx: CGFloat = taille.width / 2
         let cy: CGFloat = taille.height / 2
         return ZStack(alignment: .topLeading) {
-            Image(nom)
+            ImageApp.image(nom)
                 .resizable()
                 .frame(width: largeur, height: hauteur)
                 .position(x: cx, y: cy)
@@ -1218,7 +1238,7 @@ struct PieceVue: View {
         let reprise: Animation = .spring(response: 0.5, dampingFraction: 0.5)
         return ZStack(alignment: .topLeading) {
             lueur(largeur)
-            Image(feu.image)
+            ImageApp.image(feu.image)
                 .resizable()
                 .frame(width: cote, height: cote)
                 .scaleEffect(souffle, anchor: .bottom)
@@ -1291,7 +1311,7 @@ struct PieceVue: View {
         let chute: CGFloat = 3 * k
         return ZStack(alignment: .topLeading) {
             if entree.stickers >= 1 {
-                Image("Autocollant")
+                ImageApp.image("Autocollant")
                     .resizable()
                     .rotationEffect(.degrees(-8))
                     .shadow(color: ombreObjet, radius: flou, x: 0, y: chute)
@@ -1321,7 +1341,7 @@ struct PieceVue: View {
     private func objet(_ nom: String, _ r: CGRect, _ p: PlanPiece, _ k: CGFloat) -> some View {
         let flou: CGFloat = 1.5 * k
         let chute: CGFloat = 2 * k
-        return Image(nom)
+        return ImageApp.image(nom)
             .resizable()
             .shadow(color: ombreObjet, radius: flou, x: 0, y: chute)
             .dansPiece(r, p)
@@ -1492,7 +1512,7 @@ struct ChemineeVue: View {
         // La petite scène du retour (13 novembre, 8 h 01) : le chat se tasse, fait un petit bond, puis se pose.
         let bond: CGFloat = ChemineeVue.bond(entree.temps) * u
         return ZStack(alignment: .topLeading) {
-            Image(nomChat)
+            ImageApp.image(nomChat)
                 .resizable()
                 .scaledToFit()
                 .frame(height: hautChat)
@@ -2230,7 +2250,7 @@ struct PocheVue: View {
         let nom: String = PocheRangement.chat(entree.etat)
         let hauteur: CGFloat = min(PocheRangement.hauteurChat(entree.etat) / 170 * m.hauteur, m.hauteur - 8 * m.u)
         let marge: CGFloat = 6 * m.u
-        return Image(nom)
+        return ImageApp.image(nom)
             .resizable()
             .scaledToFit()
             .frame(maxWidth: m.chat, maxHeight: hauteur, alignment: .bottom)
@@ -2557,7 +2577,7 @@ struct PocheVue: View {
         let droite: CGFloat = 16 * u
         let hauteurChat: CGFloat = 130 * v
         return ZStack(alignment: .leading) {
-            Image("ChatQuestion")
+            ImageApp.image("ChatQuestion")
                 .resizable()
                 .scaledToFit()
                 .frame(height: hauteurChat)
