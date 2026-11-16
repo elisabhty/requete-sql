@@ -107,3 +107,14 @@ test('2e iPhone : la page du rappel seule après la connexion, puis la suite', (
   assert.equal(textes['Un petit <1>rappel</1><2/>chaque jour ?'], 'A little <1>reminder</1><2/>every day?');
   assert.ok(app.includes("if(typeof obLangue==='function'&&obLangue()&&typeof rappelHeureLoc==='function')return rappelHeureLoc(h||'19:00',1);"), '« Remind me at 7 PM »');
 });
+
+/* 16 novembre, 2 h 17 (Elisa, sa capture sur l’iPhone 15 : « SELECT first_name, last_name, email » sort de l’écran, « Fais attention à
+   ce genre de chose ») : en anglais, la requête des deux pièges est plus petite ; et la vérification des vidéos regarde aussi les boîtes. */
+test('vidéos : la requête des deux pièges tient dans l’écran ; les boîtes qui sortent de la scène sont relevées', () => {
+  const v = fs.readFileSync(path.join(ROOT, 'assets/anim/bases-relationnelles.html'), 'utf8');
+  assert.ok(v.includes('html[lang="en"] #qdemo .codepill{font-size:44px;padding:0 34px}'));
+  /* 35 caractères de JetBrains Mono (0,6 em) à 44 px, plus le rembourrage : moins que les 1 080 px de la scène, avec de la marge */
+  assert.ok(35 * 0.6 * 44 + 2 * 34 < 1080 - 2 * 40);
+  const ver = fs.readFileSync(path.join(ROOT, 'tools/langue/verifier.mjs'), 'utf8');
+  assert.ok(ver.includes("out.push('boîte-hors-scène|'"));
+});

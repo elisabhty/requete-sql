@@ -7,6 +7,7 @@
    --francais : les débordements aussi dans la vidéo française. --pas=0.7 : l'écart entre deux images.
    node tools/langue/verifier.mjs --langue en projet-vue projet-index [--francais]
    Sortie : la liste par vidéo, et tools/langue/travail/<langue>/verification.json.
+   - les boîtes peintes (fond, cadre, ombre) qui sortent de la scène (16 novembre : coupées au bord de l'écran d'un iPhone 15).
    Faux positifs connus (voulus) : un tableau qui défile exprès (bases-relationnelles), des pages qui glissent (limit-offset), un
    commentaire tronqué par « … » (projet-ondelete), un tampon posé à cheval sur sa carte (where). */
 import fs from 'node:fs';
@@ -46,6 +47,21 @@ const regarder = ([T, mots, sql, cible]) => {
     if (!def) { const k = e.closest('.card'); if (k) { const K = k.getBoundingClientRect(); if (K.width > 4 && (r.right > K.right + 1.5 || r.left < K.left - 1.5)) def = 'hors-carte'; } }
     if (!def && ((r.right > S.right + 2 && r.left < S.right - 8) || (r.left < S.left - 2 && r.right > S.left + 8))) def = 'hors-scène';
     if (def) out.push(def + '|' + nom + '|' + txt);
+  }
+  /* 16 novembre (Elisa, sa capture sur l'iPhone 15 : « SELECT first_name, last_name, email » coupé au bord) : une boîte peinte (fond,
+     cadre, ombre) qui sort de la scène, même quand son texte y tient encore. Sur un iPhone 15, la scène fait la largeur de l'écran. */
+  for (const e of stage.querySelectorAll('*')) {
+    if (e.closest('#header, #cap, #chapter, #progress, .blob, .mb, .mb-veil, .pont-pill, .caret') || (e instanceof SVGElement && e.tagName !== 'svg')) continue;
+    const r = e.getBoundingClientRect(); if (r.width < 4 || r.height < 4 || r.width > S.width * 1.2) continue;
+    if (r.left > S.left - 2 && r.right < S.right + 2) continue;
+    if (!vis(e)) continue;
+    const cs = getComputedStyle(e);
+    if (cs.backgroundColor === 'rgba(0, 0, 0, 0)' && cs.backgroundImage === 'none' && !(parseFloat(cs.borderLeftWidth) > 0) && cs.boxShadow === 'none') continue;
+    let coupe = false;
+    for (let q = e.parentElement; q && q !== stage; q = q.parentElement) { const qs = getComputedStyle(q); if (qs.overflowX !== 'visible') { const Q = q.getBoundingClientRect(); if (Q.left > S.left - 2 && Q.right < S.right + 2) { coupe = true; break; } } }
+    if (coupe) continue;
+    const box = e.closest('[id]');
+    out.push('boîte-hors-scène|' + (box ? '#' + box.id : '') + ' .' + String(e.className && e.className.baseVal !== undefined ? e.className.baseVal : e.className || e.tagName).split(' ')[0] + '|' + (e.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 70));
   }
   /* Le code : ses lignes sont découpées en caractères pour la frappe ; on lit la ligne entière */
   if (cible !== 'fr') stage.querySelectorAll('.ln').forEach(e => {
