@@ -82,8 +82,8 @@ test('supprimer : partout, même hors connexion ; un autre compte : ceux du comp
 
 test('ce que la Console en dit, en français et en anglais', () => {
   assert.ok(fn('function prjEtiquette(id){').includes("prjEtat(id)==='compte'?'Sur ton compte':'Projet local'"), 'en tête : court (iPhone SE)');
-  assert.ok(app.includes("{compte:'Sur ton compte · sans description',lourd:'Plus de 2 Mo : reste sur cet appareil'}[prjEtat(d.id)]||'Projet local · sans description'"));
-  for (const k of ['Sur ton compte', 'Sur ton compte · sans description', 'Plus de 2 Mo : reste sur cet appareil', '(copie)',
+  assert.ok(app.includes("{compte:'Sur ton compte · sans description',lourd:'Plus de 2 Mo : pas sur ton compte'}[prjEtat(d.id)]||'Projet local · sans description'"));
+  for (const k of ['Sur ton compte', 'Sur ton compte · sans description', 'Plus de 2 Mo : pas sur ton compte', '(copie)',
     'La base, ses tables, son brouillon et son historique seront supprimés de cet appareil et de ton compte.',
     'Ton pseudo, tes scores et ta place dans les classements, tes avis, ton vote et tes messages, tes projets enregistrés et ton compte.']) assert.ok(en.includes(JSON.stringify(k) + ':'), k);
   const moteurs = fs.readFileSync(path.join(ROOT, 'compte-moteurs.js'), 'utf8');

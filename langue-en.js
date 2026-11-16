@@ -7005,7 +7005,7 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Projet local · sans description": "Local project · no description",
     "Sur ton compte": "On your account",
     "Sur ton compte · sans description": "On your account · no description",
-    "Plus de 2 Mo : reste sur cet appareil": "Over 2 MB: stays on this device",
+    "Plus de 2 Mo : pas sur ton compte": "Over 2 MB: not on your account",
     "(copie)": "(copy)",
     "Projet renommé : {x1}": "Project renamed: {x1}",
     "Renommer": "Rename",
