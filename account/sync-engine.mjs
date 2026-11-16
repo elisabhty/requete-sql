@@ -60,7 +60,11 @@ export function createPrivateSync({accountId,auth,url,apikey,store,fetcher=globa
           if(remote&&!remote.deleted&&same(merge(pending.key,remote.data,pending.data),remote.data)){
             s.pending=s.pending.filter(p=>p!==pending);await save(s);break; // Lost acknowledgement: already saved.
           }
-          const result=await rpc(token,rpcPrefix+'enregistrer',params(s,pending.key,pending.data,pending.revision,pending.generation));
+          /* 16 novembre : une donnée que le compte refuse (22023 : « invalide ») ne bloque plus toutes celles d’après : elle est
+             mise de côté (conflit « invalid ») et les autres partent. */
+          let result;
+          try{result=await rpc(token,rpcPrefix+'enregistrer',params(s,pending.key,pending.data,pending.revision,pending.generation));}
+          catch(err){if(err&&err.code==='22023'){s.pending=s.pending.filter(p=>p!==pending);await save(s);conflicts.push({key:pending.key,reason:'invalid'});break;}throw err;}
           if(result.ok){s.elements[pending.key]=result.element;s.pending=s.pending.filter(p=>p!==pending);await save(s);break;}
           if(result.element)s.elements[pending.key]=result.element;
           const monotonic=isMonotonic(pending);

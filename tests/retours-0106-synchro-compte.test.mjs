@@ -67,7 +67,7 @@ const plan = {niveau: 'debutant', rythme: 'regulier', freq: 7, per: 3, mix: true
 
 test('compte-moteurs.js est à jour avec account/*.mjs', () => {
   assert.equal(moteurs, assembler(), 'relancer node scripts/compte-moteurs.mjs');
-  assert.match(app, /<script src="compte-moteurs\.js\?v=1"><\/script>\n<script src="connexion\.js\?v=3"><\/script>/);
+  assert.match(app, /<script src="compte-moteurs\.js\?v=2"><\/script>\n<script src="connexion\.js\?v=3"><\/script>/);
 });
 
 test('sans compte connecté, rien ne part', async () => {
@@ -87,7 +87,9 @@ test('un iPhone envoie sa progression, un autre la retrouve en se connectant', a
   assert.deepEqual(JSON.parse(JSON.stringify(r)), {progression: 0, notes: 0, distant: {plan: false, progres: false, notes: false}}, 'tout est parti (et le compte était vide avant, 12 novembre)');
   const el = srv.comptes['u-1'].prog.el;
   /* 16 novembre : la leçon 1, seulement prévue ({level:0}), ne part plus (un compte neuf envoyait 71 fiches vides) */
-  assert.deepEqual(Object.keys(el).sort(), ['activity:2026-11-11', 'challenge:f1', 'interview:q7', 'lesson:0', 'planning:main']);
+  /* 16 novembre : les réglages et les réponses de l’accueil suivent aussi le compte (profil:main) */
+  assert.deepEqual(Object.keys(el).sort(), ['activity:2026-11-11', 'challenge:f1', 'interview:q7', 'lesson:0', 'planning:main', 'profil:main']);
+  assert.ok(Number.isSafeInteger(el['profil:main'].data.maj) && el['profil:main'].data.reglages, 'le profil part avec sa date et les réglages');
   assert.deepEqual(J(el['lesson:0'].data), {done: true, at: 1762900000123, due: 1763000000000, level: 2, etapes: {exo: 1, q1: 1}});
   assert.equal(el['planning:main'].data.sessions.length, 2);
   assert.deepEqual(Object.keys(srv.comptes['u-1'].docs.el), ['note:n1'], 'la note vide ne part pas');

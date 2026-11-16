@@ -136,3 +136,24 @@ test('moteur de traduction : une zone de saisie posée seule traduit ce qu’ell
   assert.equal(textes['-- optionnel'], '-- optional');
   assert.equal(textes['Écris ce que tu veux retenir…'], 'Write what you want to remember…');
 });
+
+/* 16 novembre, 4 h 33 (Elisa : « Les réglages, les réponses de l’onboarding, les étoiles, les réponses doivent suivre le compte ») */
+test('le compte garde aussi le profil, les réglages, les étoiles et les réponses des vidéos', () => {
+  const x = app.slice(app.indexOf('function csExtraire(){'), app.indexOf('\n}\n', app.indexOf('function csExtraire(){')));
+  assert.ok(x.includes('videoAnswers,videoPositions,contentVersion:CS_VIDEO_VERSION'), 'les vidéos');
+  assert.ok(x.includes("out.prog.push({key:'profil:main',data:d})") && x.includes("out.prog.push({key:'avis:'+id,data:d})"), 'le profil, les étoiles');
+  const a = app.slice(app.indexOf('function csAppliquer(prog,docs,premier){'), app.indexOf('\n}\n', app.indexOf('function csAppliquer(prog,docs,premier){')));
+  for (const k of ["kind==='profil'&&id==='main'", "kind==='avis'", "kind==='video'&&d.contentVersion===CS_VIDEO_VERSION"]) assert.ok(a.includes(k), k);
+  assert.ok(a.includes('if(Number.isSafeInteger(d.maj)&&d.maj>ici)'), 'le plus récent l’emporte');
+  assert.ok(a.includes("A[id]=Object.assign({n:d.n,le:d.le||Date.now(),envoye:true}"), 'une note revenue n’est pas renvoyée aux statistiques');
+  const p = app.slice(app.indexOf('function csProfilAppliquer(d){'), app.indexOf('\n}\n', app.indexOf('function csProfilAppliquer(d){')));
+  assert.ok(p.includes("localStorage.setItem('requete-langue',G.langue)") && !p.includes('location.reload'), 'la langue au prochain lancement');
+  assert.ok(!/localStorage\.setItem\('requete-rappel',/.test(p), 'allumer le rappel reste propre à chaque iPhone');
+  const v = app.slice(app.indexOf('function compteViderPourAutre(){'), app.indexOf('\n}\n', app.indexOf('function compteViderPourAutre(){')));
+  assert.ok(v.includes('LV_POS.clear()') && v.includes('localStorage.removeItem(CS_PROFIL_SIG)'), 'un autre compte : rien de tout ça ne passe');
+  const sql = fs.readFileSync(path.join(ROOT, 'supabase/migrations/20261116034905_profil_avis_suivent_le_compte.sql'), 'utf8');
+  assert.ok(sql.includes("check(cle in ('planning:main','profil:main') or cle ~ '^(lesson|challenge|video|interview|activity|avis):[A-Za-z0-9_.-]{1,96}$')"));
+  assert.ok(sql.includes("if p_cle='profil:main' then return requete_private.profil_compte_valide(p_data); end if;"));
+  const moteur = fs.readFileSync(path.join(ROOT, 'compte-moteurs.js'), 'utf8');
+  assert.ok(moteur.includes("if(err&&err.code==='22023'){s.pending=s.pending.filter(p=>p!==pending)"), 'un refus ne bloque plus la file');
+});

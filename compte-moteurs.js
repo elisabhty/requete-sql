@@ -66,7 +66,11 @@ function createPrivateSync({accountId,auth,url,apikey,store,fetcher=globalThis.f
           if(remote&&!remote.deleted&&same(merge(pending.key,remote.data,pending.data),remote.data)){
             s.pending=s.pending.filter(p=>p!==pending);await save(s);break; // Lost acknowledgement: already saved.
           }
-          const result=await rpc(token,rpcPrefix+'enregistrer',params(s,pending.key,pending.data,pending.revision,pending.generation));
+          /* 16 novembre : une donnée que le compte refuse (22023 : « invalide ») ne bloque plus toutes celles d’après : elle est
+             mise de côté (conflit « invalid ») et les autres partent. */
+          let result;
+          try{result=await rpc(token,rpcPrefix+'enregistrer',params(s,pending.key,pending.data,pending.revision,pending.generation));}
+          catch(err){if(err&&err.code==='22023'){s.pending=s.pending.filter(p=>p!==pending);await save(s);conflicts.push({key:pending.key,reason:'invalid'});break;}throw err;}
           if(result.ok){s.elements[pending.key]=result.element;s.pending=s.pending.filter(p=>p!==pending);await save(s);break;}
           if(result.element)s.elements[pending.key]=result.element;
           const monotonic=isMonotonic(pending);
@@ -170,8 +174,28 @@ const clone=value=>JSON.parse(JSON.stringify(value));
 const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x);
 const own=(x,k)=>Object.prototype.hasOwnProperty.call(x,k);
 function fail(code){throw Object.assign(new Error(code),{code});}
+/* 16 novembre (Elisa : « les réglages, les réponses de l’onboarding, les étoiles doivent suivre le compte ») :
+   profil:main : les réponses de l’onboarding, l’engagement et les réglages, avec l’heure du dernier changement (maj) ;
+   avis:<leçon> : la note d’une leçon (1 à 5), quand (le), et son commentaire (c, 500 caractères au plus). */
+const SIMPLE=v=>v===null||['string','boolean','number'].includes(typeof v);
+function validateProfil(data){
+  if(!object(data)||!own(data,'maj')||new TextEncoder().encode(JSON.stringify(data)).length>8192)fail('invalid_progression');
+  for(const [k,v] of Object.entries(data)){
+    if(k==='maj'){if(!Number.isSafeInteger(v)||v<0)fail('invalid_progression');continue;}
+    if(!['reponses','reglages','pacte'].includes(k)||!object(v))fail('invalid_progression');
+    for(const [k2,v2] of Object.entries(v))if(!/^[A-Za-z][A-Za-z0-9_]{0,31}$/.test(k2)||!SIMPLE(v2)||(typeof v2==='number'&&!Number.isFinite(v2))||(typeof v2==='string'&&v2.length>200))fail('invalid_progression');
+  }
+  return clone(data);
+}
+function validateAvis(data){
+  if(!object(data)||!Number.isInteger(data.n)||data.n<1||data.n>5||!Number.isSafeInteger(data.le)||data.le<0)fail('invalid_progression');
+  for(const [k,v] of Object.entries(data))if(!['n','le','c'].includes(k)||(k==='c'&&(typeof v!=='string'||v.length>500)))fail('invalid_progression');
+  return clone(data);
+}
 function validateProgression(key,data){
   if(key==='planning:main')return validatePlan(data);
+  if(key==='profil:main')return validateProfil(data);
+  if(/^avis:[A-Za-z0-9_.-]{1,96}$/.test(key))return validateAvis(data);
   if(!/^(lesson|challenge|video|interview|activity):[A-Za-z0-9_.-]{1,96}$/.test(key)||!object(data)||new TextEncoder().encode(JSON.stringify(data)).length>32768)fail('invalid_progression');
   const kind=key.split(':')[0],allowed={lesson:['done','etapes','at','due','level'],challenge:['done'],video:['position','answers','contentVersion'],interview:['mark'],activity:['active']}[kind];
   for(const [k,v] of Object.entries(data)){
@@ -245,7 +269,7 @@ function createProgressionSync(options={}){
   checkResolution:(key,remote,pending)=>{if(key.startsWith('video:')&&remote&&!remote.deleted&&remote.data.contentVersion!==pending.data.contentVersion)fail('content_version_conflict');}
  });
 }
-return {validateProgression,mergeProgression,extractProgression,createProgressionSync};
+return {validateProfil,validateAvis,validateProgression,mergeProgression,extractProgression,createProgressionSync};
 })();
 M['documents']=(function(){
 const {createPrivateSync}=M['sync-engine'];

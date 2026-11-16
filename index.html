@@ -50393,6 +50393,8 @@ if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
    se connecte pour la première fois) ; puis ce qui est ici part. Une seule synchro à la fois ; relancée 5 s après un enregistrement,
    au lancement et au retour du réseau. Sans compte connecté, rien ne part. */
 const CS={user:null,prog:null,docs:null,cours:null,t:0,dedans:false};
+/* La version des moments des vidéos (leurs numéros) : à changer si les moments d’une vidéo sont renumérotés */
+const CS_VIDEO_VERSION='moments-1';
 /* ---------- Un autre compte sur le même iPhone (16 novembre, Elisa : « oui ») ----------
    Se déconnecter puis se connecter avec un AUTRE compte envoyait la progression et les notes du compte d’avant dans le nouveau, et
    gardait le prénom. Maintenant l’appareil se vide d’abord de ce qui appartient au compte d’avant (tout est sur ce compte-là : la
@@ -50400,6 +50402,57 @@ const CS={user:null,prog:null,docs:null,cours:null,t:0,dedans:false};
    Restent sur l’appareil : ses réglages (langue, rappel, confort), l’abonnement (celui du compte Apple de l’iPhone) et les projets
    enregistrés (des fichiers de cet iPhone, qui ne vont pas sur le compte). Le joueur (pseudo, points, parties) suit déjà le compte (csJoueur). */
 const COMPTE_DERNIER='requete-compte-dernier';
+/* ---------- Le profil, les réglages et les étoiles suivent le compte (16 novembre, 4 h 33, Elisa : « les réglages, les réponses de
+   l’onboarding, les étoiles, les réponses doivent suivre le compte ») ----------
+   profil:main : les réponses de l’onboarding (objectif, âge, genre, métier, source, niveau, pays), l’engagement, le jour d’inscription,
+   et les réglages (taille du texte, animations, langue, heure du rappel), avec l’heure du dernier changement fait sur un appareil :
+   le plus récent l’emporte. La langue prend effet au prochain lancement (pas de rechargement en pleine séance) ; le rappel garde son
+   heure, mais l’allumer reste propre à chaque iPhone (l’autorisation des notifications aussi).
+   avis:<leçon> : la note d’une leçon, son commentaire ; la plus récente l’emporte. */
+const CS_PROFIL_ACTIF=true;   // le compte les accepte depuis la migration 20261116034905_profil_avis_suivent_le_compte
+const CS_PROFIL_SIG='requete-profil-sig',CS_PROFIL_MAJ='requete-profil-maj';
+const CS_REPONSES=['goal','ageRange','genre','job','source','referral','niveau','pays'];
+function csProfilLocal(){
+  const P=state.profile||{},reponses={},reglages={};
+  for(const k of CS_REPONSES)if(typeof P[k]==='string'&&P[k])reponses[k]=P[k].slice(0,200);
+  if(typeof P.paysAuto==='boolean')reponses.paysAuto=P.paysAuto;
+  if(typeof state.inscritLe==='string'&&state.inscritLe)reponses.inscritLe=state.inscritLe.slice(0,40);
+  const pr=state.preferences||{};reglages.grandTexte=pr.largeText===true;reglages.moinsAnim=pr.reduceMotion===true;
+  try{const l=localStorage.getItem('requete-langue');if(l&&/^[a-z]{2}$/.test(l))reglages.langue=l;}catch(e){}
+  try{reglages.rappelHeure=rappelHeure();}catch(e){}
+  const out={reponses,reglages},pa=P.pacte;
+  if(pa&&typeof pa==='object'&&Number.isFinite(pa.at))out.pacte={at:Math.round(pa.at),sig:String(pa.sig||'empreinte').slice(0,200)};
+  return out;
+}
+/* L’heure du dernier changement d’ici : elle avance quand ce que l’appareil dit de lui change */
+function csProfilMaj(cur){
+  const sig=csStable(cur);let maj=0,avant='';
+  try{avant=localStorage.getItem(CS_PROFIL_SIG)||'';maj=+localStorage.getItem(CS_PROFIL_MAJ)||0;}catch(e){}
+  if(sig!==avant||!maj){maj=Date.now();try{localStorage.setItem(CS_PROFIL_SIG,sig);localStorage.setItem(CS_PROFIL_MAJ,String(maj));}catch(e){}}
+  return maj;
+}
+function csProfilAppliquer(d){
+  const R=d.reponses&&typeof d.reponses==='object'?d.reponses:{},P=Object.assign({},state.profile||{});
+  for(const k of CS_REPONSES){
+    if(typeof R[k]==='string'&&R[k]){if(k!=='pays'||(typeof PAYS_CODES==='undefined'||PAYS_CODES.includes(R[k])))P[k]=R[k];}
+    else if(!['pays','niveau'].includes(k))P[k]='';
+  }
+  if(typeof R.paysAuto==='boolean')P.paysAuto=R.paysAuto;
+  if(d.pacte&&typeof d.pacte==='object'&&Number.isFinite(d.pacte.at))P.pacte={at:d.pacte.at,sig:String(d.pacte.sig||'empreinte')};else delete P.pacte;
+  state.profile=P;
+  if(typeof R.inscritLe==='string'&&R.inscritLe&&(!state.inscritLe||R.inscritLe<state.inscritLe))state.inscritLe=R.inscritLe;
+  const G=d.reglages&&typeof d.reglages==='object'?d.reglages:{};
+  state.preferences=Object.assign({},state.preferences||{},{largeText:G.grandTexte===true,reduceMotion:G.moinsAnim===true});
+  try{applyReadingPreferences();}catch(e){}
+  try{
+    if(typeof G.langue==='string'&&/^[a-z]{2}$/.test(G.langue))localStorage.setItem('requete-langue',G.langue);
+    if(typeof G.rappelHeure==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(G.rappelHeure)&&G.rappelHeure!==rappelHeure()){
+      localStorage.setItem('requete-rappel-heure',G.rappelHeure);
+      if(localStorage.getItem('requete-rappel')==='1'&&typeof rappelNativeSync==='function')rappelNativeSync(true);
+    }
+  }catch(e){}
+  try{localStorage.setItem(CS_PROFIL_SIG,csStable(csProfilLocal()));localStorage.setItem(CS_PROFIL_MAJ,String(d.maj));}catch(e){}
+}
 function compteAutre(id){
   if(!id)return false;
   let avant='';try{avant=localStorage.getItem(COMPTE_DERNIER)||'';}catch(e){}
@@ -50412,6 +50465,9 @@ function compteViderPourAutre(){
   const garde={onboarded:state.onboarded,preferences:state.preferences,salle:state.salle,parcoursPush:state.parcoursPush};
   state=normalizeState(garde);
   try{localStorage.removeItem('requete-nav-long-v1');}catch(e){}
+  /* les réponses et positions des vidéos (suivent le compte depuis le 16 novembre, 4 h 33) */
+  try{if(typeof LV_ANS!=='undefined'){for(const k of Object.keys(LV_ANS))delete LV_ANS[k];lvAnsSave();}if(typeof LV_POS!=='undefined'){LV_POS.clear();lvPosSave();}}catch(e){}
+  try{localStorage.removeItem(CS_PROFIL_SIG);localStorage.removeItem(CS_PROFIL_MAJ);}catch(e){}
   CJ.fait='';
   save();
 }
@@ -50455,8 +50511,34 @@ function csExtraire(){
   const actDays=Object.fromEntries(Object.entries(state.actDays||{}).filter(([d,n])=>/^\d{4}-\d{2}-\d{2}$/.test(d)&&n>0));
   const entretien=Object.fromEntries(Object.entries(state.entretien||{}).filter(([k,v])=>/^[A-Za-z0-9_.-]{1,96}$/.test(k)&&(v==='ok'||v==='review')));
   const defis=Object.fromEntries(Object.entries(state.defis||{}).filter(([k,v])=>v&&/^[A-Za-z0-9_.-]{1,96}$/.test(k)));
-  try{out.prog=M.extractProgression({lessons,defis,entretien,actDays},{lessonIds,challengeIds:CHALLENGES.map(c=>c.id).filter(id=>defis[id])});}catch(e){out.prog=[];}
+  /* 16 novembre, 4 h 33 (Elisa : « les réponses doivent suivre le compte ») : les réponses aux moments des vidéos et l’endroit où
+     on s’est arrêté, par leçon (video:<id>, déjà prévu sur le compte). Seules les réponses bien formées partent. */
+  const videoAnswers={},videoPositions={};
+  try{
+    const ids=new Set(lessonIds.map(String));
+    for(const [id,o] of Object.entries(typeof LV_ANS!=='undefined'&&LV_ANS?LV_ANS:{})){
+      if(!ids.has(String(id))||!o||typeof o!=='object')continue;
+      const a={};
+      for(const [k,v] of Object.entries(o)){
+        if(!v||typeof v!=='object')continue;
+        if(/^p\d{1,3}$/.test(k)&&(v.first===0||v.first===1)&&Number.isInteger(v.err)&&v.err>=0&&v.err<=9999)a[k]={first:v.first,err:v.err};
+        else if(/^\d{1,3}$/.test(k)&&Number.isInteger(v.k)&&v.k>=0&&v.k<=999&&typeof v.q==='string')a[k]={k:v.k,q:v.q.slice(0,2000)};
+      }
+      if(Object.keys(a).length)videoAnswers[id]=a;
+    }
+    if(typeof LV_POS!=='undefined')for(const [id,t] of LV_POS)if(ids.has(String(id))&&t>=1)videoPositions[id]=Math.min(86400,Math.round(t));
+  }catch(e){}
+  try{out.prog=M.extractProgression({lessons,defis,entretien,actDays},{lessonIds,challengeIds:CHALLENGES.map(c=>c.id).filter(id=>defis[id]),videoAnswers,videoPositions,contentVersion:CS_VIDEO_VERSION});}catch(e){out.prog=[];}
   try{const tz=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'UTC',p=M.extractPlan(state,{lessonIds,timeZone:tz});if(p&&p.sessions.length)out.prog.push({key:'planning:main',data:p});}catch(e){}
+  if(CS_PROFIL_ACTIF){
+    try{const cur=csProfilLocal(),d=Object.assign({maj:csProfilMaj(cur)},cur);M.validateProgression('profil:main',d);out.prog.push({key:'profil:main',data:d});}catch(e){}
+    for(const [id,a] of Object.entries(state.avis||{})){
+      if(!/^[A-Za-z0-9_.-]{1,96}$/.test(id)||!a||!(a.n>=1&&a.n<=5))continue;
+      const d={n:Math.round(a.n),le:Number.isSafeInteger(a.le)&&a.le>0?a.le:1};
+      if(typeof a.c==='string'&&a.c.trim())d.c=a.c.slice(0,500);
+      try{M.validateProgression('avis:'+id,d);out.prog.push({key:'avis:'+id,data:d});}catch(e){}
+    }
+  }
   try{out.docs=M.extractSavedNotes((state.notes||[]).filter(n=>n&&/^[A-Za-z0-9_.-]{1,96}$/.test(String(n.id))&&(String(n.txt||'').trim()||String(n.sql||'').trim()))
     .map(n=>({id:String(n.id),txt:String(n.txt||'').slice(0,20000),sql:String(n.sql||'').slice(0,12000),ctx:String(n.ctx||'').slice(0,300),ts:Number.isSafeInteger(n.ts)&&n.ts>=0?n.ts:Date.now(),pin:!!n.pin})));}catch(e){out.docs=[];}
   return out;
@@ -50489,6 +50571,28 @@ function csAppliquer(prog,docs,premier){
     }else if(kind==='challenge'){if(d.done&&!(state.defis||(state.defis={}))[id]){state.defis[id]=true;change=true;}}
     else if(kind==='interview'){const E=state.entretien||(state.entretien={});if(!E[id]&&(d.mark==='ok'||d.mark==='review')){E[id]=d.mark;change=true;}}
     else if(kind==='activity'){const A=state.actDays||(state.actDays={});if(!(A[id]>0)){A[id]=1;change=true;}}
+    else if(kind==='profil'&&id==='main'&&CS_PROFIL_ACTIF){
+      let ici=0;try{ici=+localStorage.getItem(CS_PROFIL_MAJ)||0;}catch(e){}
+      if(Number.isSafeInteger(d.maj)&&d.maj>ici){try{csProfilAppliquer(d);change=true;}catch(err){}}
+    }
+    else if(kind==='avis'&&CS_PROFIL_ACTIF){
+      if(!(d.n>=1&&d.n<=5))continue;
+      const A=state.avis||(state.avis={}),l=A[id];
+      if(!l||(d.le||0)>(l.le||0)){A[id]=Object.assign({n:d.n,le:d.le||Date.now(),envoye:true},typeof d.c==='string'&&d.c?{c:d.c}:{});change=true;}
+    }
+    else if(kind==='video'&&d.contentVersion===CS_VIDEO_VERSION){
+      /* Les réponses du compte s’ajoutent ; celles de cet appareil restent (la première tentative compte). L’endroit où on s’était
+         arrêté revient s’il n’y en a pas ici. */
+      const k=/^\d+$/.test(id)?+id:id;if(!allLessons.some(l=>l.id===k))continue;
+      try{
+        if(d.answers&&typeof d.answers==='object'&&typeof LV_ANS!=='undefined'){
+          const o=LV_ANS[k]||{};let m=false;
+          for(const [q,v] of Object.entries(d.answers))if(!o[q]&&v&&typeof v==='object'){o[q]=v;m=true;}
+          if(m){LV_ANS[k]=o;lvAnsSave();change=true;}
+        }
+        if(Number.isFinite(d.position)&&d.position>=1&&typeof LV_POS!=='undefined'&&!LV_POS.has(k)&&!(L[k]&&L[k].done)){LV_POS.set(k,d.position);lvPosSave();}
+      }catch(err){}
+    }
     else if(kind==='planning'&&id==='main'&&premier&&Array.isArray(d.sessions)&&d.sessions.length){
       state.plan={niveau:d.niveau,rythme:d.rythme,freq:d.freq,per:d.per,mix:d.mix,sessions:d.sessions.map(x=>({d:x.d,lessons:x.lessons.slice()})),archive:(d.archive||[]).slice(),equilibre:1};change=true;
     }
@@ -54018,7 +54122,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3096';
+  const SW_CACHE='requete-2026-11-15-module-v3097';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -54061,7 +54165,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 <script src="onboarding-focus.js"></script>
 <script src="multiplayer-security.js?v=12"></script>
 <script src="achat.js?v=7"></script>
-<script src="compte-moteurs.js?v=1"></script>
+<script src="compte-moteurs.js?v=2"></script>
 <script src="connexion.js?v=3"></script>
 </body>
 </html>

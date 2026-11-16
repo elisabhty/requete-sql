@@ -135,3 +135,29 @@ test('une révision échouée conserve ensemble niveau zéro et prochaine éché
  await b.sync.resolve('lesson:0','local');await b.sync.flush();
  assert.equal(api.state('A').elements['lesson:0'].data.level,0);assert.equal(api.state('A').elements['lesson:0'].data.due,100);
 });
+
+/* 16 novembre, 4 h 33 (Elisa : « les réglages, les réponses de l’onboarding, les étoiles doivent suivre le compte ») */
+test('profil:main et avis:<leçon> : bien formés, ils passent ; le reste est refusé',()=>{
+ const p={maj:1794700000000,reponses:{goal:'interview',genre:'f',paysAuto:false},reglages:{grandTexte:true,langue:'en',rappelHeure:'08:30'},pacte:{at:1794700000000,sig:'empreinte'}};
+ assert.deepEqual(validateProgression('profil:main',p),p);
+ for(const bad of [{reponses:{}},{maj:1,autre:{}},{maj:1,reponses:{goal:{x:1}}},{maj:1,reponses:{goal:'x'.repeat(201)}},{maj:1,reponses:{'1a':'x'}}])
+  assert.throws(()=>validateProgression('profil:main',bad),/invalid_progression/);
+ assert.deepEqual(validateProgression('avis:12',{n:5,le:1,c:'Top'}),{n:5,le:1,c:'Top'});
+ for(const bad of [{n:0,le:1},{n:6,le:1},{n:3},{n:3,le:1,c:'x'.repeat(501)},{n:3,le:1,envoye:true}])
+  assert.throws(()=>validateProgression('avis:12',bad),/invalid_progression/);
+});
+
+test('une donnée que le compte refuse (22023) est mise de côté : celles d’après partent quand même',async()=>{
+ const api=cloud(),A=device(api);
+ const fetcher=api.fetcher;
+ api.fetcher=async(url,opts)=>{const args=JSON.parse(opts.body);if(args.p_cle==='avis:1')return new Response(JSON.stringify({code:'22023',message:'Progression invalide'}),{status:400});return fetcher(url,opts);};
+ A.options.fetcher=api.fetcher;
+ const sync=createProgressionSync(A.options);
+ await sync.pull();
+ await sync.enqueue('avis:1',{n:4,le:1});
+ await sync.enqueue('lesson:2',{done:true});
+ const r=await sync.flush();
+ assert.equal(r.pending,0);
+ assert.deepEqual(r.conflicts,[{key:'avis:1',reason:'invalid'}]);
+ assert.equal(api.state('A').elements['lesson:2'].data.done,true);
+});
