@@ -295,9 +295,9 @@ test('la voix anglaise des modules 1 et 2 : chaque vidéo a la sienne, calée su
     const pg = lire(`assets/anim/${c}.html`), src = pg.slice(pg.indexOf('const CAPTIONS = ['), pg.indexOf('\n];', pg.indexOf('const CAPTIONS = [')) + 3);
     const caps = vm.runInNewContext(src.replace('const CAPTIONS =', 'CAPTIONS =') + ';CAPTIONS', {APP: true, CAPTIONS: null});
     const cles = new Set(caps.map(x => vkey(x[2])));
-    /* 16 novembre, 6 h 01 (Elisa, réf. 1 : « elle dit produit en français ») : la fin (« Pour finir… », « Ajoute ce résumé… »),
-       dite en français, et la phrase périmée de AS (« then du produit causes an error ») sont muettes en attendant leur voix
-       anglaise (tools/voix/en/complements-16-novembre.json). */
+    /* 16 novembre, 6 h 01 (Elisa, réf. 1 : « elle dit produit en français ») : la phrase périmée de AS (« then du produit causes an
+       error ») est muette en attendant sa voix anglaise (tools/voix/en/complements-16-novembre.json) ; la fin (« Pour finir… »,
+       « Ajoute ce résumé… »), dite en français dans onze voix, est retirée : les vidéos de l’appli s’arrêtent avant elle (core.js). */
     const muettes = caps.filter(x => /Pour finir, voici|Ajoute ce résumé/.test(x[2])).length + (c === 'as' ? 1 : 0);
     assert.ok(voix.caps.length >= caps.length - 2 - muettes && voix.caps.every(x => cles.has(x[0])), `${c} : ${voix.caps.length} phrases sur ${caps.length} légendes`);
     const fr = JSON.parse(lire(`tools/voix/en/${c}.json`)).elements.filter(e => /Pour finir|résumé à tes notes/.test(e.texte || '')).flatMap(e => e.cles || []);
