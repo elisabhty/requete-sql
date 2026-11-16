@@ -39,5 +39,5 @@ test('étape 1 → étape 2 tout seul : après la cinquième, la première ; une
 
 test('la nouvelle version arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=387">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3099';") && app.includes("const SW_CACHE='requete-2026-11-15-module-v3099';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-15-module-v3100';") && app.includes("const SW_CACHE='requete-2026-11-15-module-v3100';"));
 });

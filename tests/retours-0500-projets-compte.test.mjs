@@ -89,3 +89,12 @@ test('ce que la Console en dit, en français et en anglais', () => {
   const moteurs = fs.readFileSync(path.join(ROOT, 'compte-moteurs.js'), 'utf8');
   assert.ok(moteurs.includes("validateProject:M['projects'].validateProject,decodeProjectDatabase:M['projects'].decodeProjectDatabase"));
 });
+
+/* 16 novembre, 5 h 37 (Elisa : « C’est traduit ? Tout ce qu’on a fait aujourd’hui ») : en anglais, la Console avec ses propres projets
+   disait encore « 3 projets », « Delete la table commandes » (lu à voix haute), « Supprimer « Shop » ? », « Jointure clients → commandes ». */
+test('la Console avec ses propres projets, en anglais', () => {
+  const cles = ['{1} projet', '{1} projets', 'Renommer {x1}', 'Supprimer {x1}', 'Supprimer la table {x1}', 'Supprimer « {x1} » ?', 'Aperçu de la table : {x1}',
+    'Jointure {x1} → {x2}', 'Jointure {x1} → {x2} : {x3}', 'Table {x1}, {1} lignes, {2} colonnes', 'Table {x1}, {1} ligne, {2} colonne'];
+  for (const k of cles) assert.ok(en.includes(JSON.stringify(k) + ':'), k);
+  assert.ok(en.includes('"Supprimer la table {x1}": "Delete the {x1} table"'), 'plus précise que « Supprimer {x1} »');
+});
