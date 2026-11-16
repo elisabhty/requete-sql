@@ -21,10 +21,12 @@ test('Mon compte : « Sur ton iPhone », les deux widgets (plus d’« Évaluer 
   const a = g.indexOf("openPlusDetails('plus-widget-accueil')"), v = g.indexOf("openPlusDetails('plus-widget-verrou')");
   assert.ok(a > 0 && v > a && !g.includes('noterAppli()'), 'accueil puis verrouillé, sans « Évaluer »');
   assert.ok(g.includes("${lqStkSvg('widgets')}") && g.includes("${lqStkSvg('verrou')}"), 'des autocollants, comme les autres lignes');
-  assert.ok(compte.includes('const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());') && compte.includes('const surIphone=widgetsVus;'), 'l’app, ou Safari sur iPhone');
+  assert.ok(compte.includes('const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());') && compte.includes('const surIphone=widgetsVus||iconesIci();'), 'l’app, ou Safari sur iPhone (16 novembre : et l’icône de l’app, retours-0738)');
   assert.ok(compte.includes('${surIphone?`<div class="account-settings-group">'), 'pas de groupe sur un ordinateur');
   const assistance = compte.slice(compte.indexOf('Compte et assistance</p>'));
-  assert.ok(!assistance.slice(0, assistance.indexOf('</section>')).includes('noterAppli()'), '« Évaluer l’application » a quitté « Compte et assistance »');
+  /* 16 novembre, 7 h 38 (Elisa : « Il manque un bouton noter l’application ») : « Noter l’application » revient, dans « Compte et
+     assistance » (retours-0738), pas dans « Sur ton iPhone » */
+  assert.ok(assistance.slice(0, assistance.indexOf('Sur ton iPhone</p>')).includes('onclick="noterAppli()"'), '« Noter l’application » dans « Compte et assistance »');
   for (const k of ['accueil', 'verrou'])
     assert.ok(compte.includes(`<details class="plus-details plus-widget" id="plus-widget-${k}" ontoggle="wtuToggle(this)">`), k + ' : une feuille qui lance et arrête son tutoriel');
   assert.ok(compte.includes('${widgetsVus?`<details class="plus-details plus-widget" id="plus-widget-accueil"'), 'les feuilles, avec leurs lignes');

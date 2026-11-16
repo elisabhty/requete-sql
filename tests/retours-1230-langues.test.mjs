@@ -172,7 +172,7 @@ test('index.html : langues.js juste après maj.js, le prénom confié au moteur,
   assert.ok(i > 0 && j > i && j < app.indexOf('<script src="vendor/sqljs/sql-wasm.js"></script>'));
   assert.ok(sw.includes(`'./langues.js?v=${VER('langues.js')}',`) && sw.includes(`'./langue-en.js?v=${VER('langue-en.js')}',`));
   assert.ok(app.includes("window.REQUETE_LANGUE.valeur('prenom',()=>state.name||(typeof draft!=='undefined'&&draft&&draft.name)||'')"), 'pendant l’onboarding, le prénom tapé');
-  assert.ok(app.includes('    ${langueReglageHTML()}\n    <details class="plus-details" id="plus-contact">'), 'le réglage « Langue », dans Mon compte, avant « Contacte-nous »');
+  assert.ok(app.includes('    ${langueReglageHTML()}\n    ${iconeReglageHTML()}\n    <details class="plus-details" id="plus-contact">'), 'le réglage « Langue », dans Mon compte, avant « Contacte-nous »');
   /* 13 novembre, 15 h 17 : « mets la langue en bas du pays » */
   const reglages = app.slice(app.indexOf('aria-labelledby="acct-settings-t"'));
   assert.ok(reglages.indexOf('${langueLigneHTML(CHEV)}') > reglages.indexOf('onclick="paysChanger()"') && reglages.indexOf('${langueLigneHTML(CHEV)}') < reglages.indexOf('<b>Parcours et rythme</b>'), 'sa ligne dans les réglages, sous « Pays » (le drapeau est dans la feuille du pays depuis le 15 novembre)');

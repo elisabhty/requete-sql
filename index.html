@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=93f68109" data-defis></script>
+<script src="langues.js?v=17ef5e8c" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -7503,6 +7503,19 @@ html[data-motion="reduce"] .lv,html[data-motion="reduce"] .lv-end,html[data-moti
 #plus-langue .lg-choix.is-change .lg-c.on .lg-ok::before,#onboarding .ob-langue-choix.is-change .ob-langue-c.on .lg-ok::before{content:"";width:13px;height:13px;border-radius:50%;
   border:2.5px solid currentColor;border-top-color:transparent;animation:lgTourne .7s linear infinite}
 #plus-langue .lg-note{margin:10px 2px 0;font-size:13px;line-height:1.4;color:var(--ink-3,#6B6690)}
+/* 16 novembre : l’icône de l’app au choix (iconeReglageHTML) */
+html.lq #scr-compte .plus-row-icon.is-icone,#scr-compte .plus-row-icon.is-icone{background:none!important;overflow:hidden;padding:0}
+#scr-compte .plus-row-icon.is-icone img{width:100%;height:100%;display:block;border-radius:inherit;box-shadow:0 2px 6px rgba(27,22,64,.18)}
+#plus-icone .ic-feuille{padding:6px 18px 18px}
+#plus-icone .ic-choix{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#plus-icone .ic-c{all:unset;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px 4px 10px;border-radius:18px;
+  background:rgba(110,80,246,.07);color:var(--ink,#1B1640);font:inherit;font-size:13.5px;font-weight:700;text-align:center;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:background .2s,box-shadow .2s,transform .15s}
+#plus-icone .ic-c:active{transform:scale(.96)}
+#plus-icone .ic-c:focus-visible{outline:3px solid var(--violet,#6E50F6);outline-offset:2px}
+#plus-icone .ic-c img{width:64px;height:64px;border-radius:15px;box-shadow:0 3px 10px rgba(27,22,64,.2)}
+#plus-icone .ic-c.on{background:#fff;box-shadow:inset 0 0 0 2px var(--violet,#6E50F6);font-weight:800}
+#plus-icone .ic-note{margin:12px 2px 0;font-size:13px;line-height:1.4;color:var(--ink-3,#6B6690)}
 #onboarding .ob-langue{margin:14px auto 0;max-width:340px;text-align:center}
 #onboarding .ob-langue-t{margin:0 0 9px;color:rgba(255,255,255,.8);font:800 12.5px/1.2 var(--v-ui,inherit);letter-spacing:.08em;text-transform:uppercase}
 #onboarding .ob-langue-choix{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;border-radius:19px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.24)}
@@ -48680,11 +48693,46 @@ function widgetMaj(){
     const t=auj(),jour=dstr(t),fait=jourActif(jour),serie=streakJours(),start=debutPlan();
     let d=fait?addJ(t,1):t;
     for(let i=0;i<30&&jourRepos(dstr(d),start);i++)d=addJ(d,1);
+    widgetSaisonMaj();
     const data={langue:natifLangue(),serie,jour,fait,limite:dstr(d),...widgetCheminee(),poche:JSON.stringify(widgetPoche()),semaine:JSON.stringify(widgetSemaine())},k=JSON.stringify(data);
     if(k===widgetDernier)return;
     widgetDernier=k;
     Promise.resolve(C.nativePromise('RequeteWidget','maj',data)).catch(()=>{widgetDernier='';});
   }catch(e){}
+}
+/* 16 novembre, 7 h 38 (Elisa : « pareil pour le chat dans plusieurs thèmes ») : Requête en tenue de saison sur le widget de la série
+   (assets/saisons, faits avec ElevenLabs) : bonnet de Noël du 1er au 26 décembre, chapeau de fête jusqu’au 3 janvier, cœur du 7 au
+   14 février, oreilles de lapin la semaine de Pâques, chapeau de paille en juillet et août, chapeau de sorcière du 20 au 31 octobre.
+   L’image remplace « Mascotte » du widget (pont widgetImages) ; hors saison, le widget reprend la sienne. Envoyée une fois par
+   changement de saison ; une version de l’app d’avant (sans ce pont) n’y voit rien, et l’envoi sera retenté. */
+function paquesDe(an){   // le dimanche de Pâques (calendrier grégorien, méthode de Meeus)
+  const a=an%19,b=Math.floor(an/100),c=an%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30;
+  const i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),n=h+l-7*m+114;
+  return new Date(an,Math.floor(n/31)-1,n%31+1);
+}
+function saisonDu(d){
+  const m=d.getMonth()+1,j=d.getDate();
+  if(m===12&&j<=26)return 'noel';
+  if((m===12&&j>=27)||(m===1&&j<=3))return 'nouvel-an';
+  if(m===2&&j>=7&&j<=14)return 'saint-valentin';
+  const ecart=Math.round((new Date(d.getFullYear(),m-1,j)-paquesDe(d.getFullYear()))/864e5);
+  if(ecart>=-7&&ecart<=1)return 'paques';
+  if(m===10&&j>=20)return 'halloween';
+  if(m===7||m===8)return 'ete';
+  return '';
+}
+const WIDGET_SAISON_K='rq-widget-saison';
+let widgetSaisonEnCours=false;
+async function widgetSaisonMaj(){
+  if(widgetSaisonEnCours||typeof ilePont!=='function'||!ilePont())return;
+  const s=saisonDu(new Date()),voulu=s||'aucune';
+  let deja='';try{deja=localStorage.getItem(WIDGET_SAISON_K)||'';}catch(e){}
+  if(deja===voulu)return;
+  widgetSaisonEnCours=true;
+  try{
+    const r=await widgetImagesEnvoyer(s?[{nom:'Mascotte',url:`assets/saisons/chat-${s}.webp`}]:[],{tout:true});
+    if(r&&r.ok){try{localStorage.setItem(WIDGET_SAISON_K,voulu);}catch(e){}}
+  }finally{widgetSaisonEnCours=false;}
 }
 /* La pièce du widget La cheminée : les stickers gagnés (au mur, trois au plus), les défis réussis (le trophée), les modules finis
    (le diplôme), la prochaine activité (son titre, le mot-clé de sa carte mémo, un défi ou non : l’écran de l’ordinateur) et le mot-clé
@@ -53327,7 +53375,8 @@ function renderCompte(){
   /* 10 h 40 (« tu n’as pas mis le bouton widget et évaluer l’application ») : sur un iPhone, le groupe se voit aussi dans Safari ; les
      feuilles des widgets y disent qu’ils viennent avec l’app. 11 h 12 : jamais « bientôt », le texte est celui de l’app publiée. */
   const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());   // une app sans le widget : pas de mode d’emploi qui n’y marcherait pas
-  const surIphone=widgetsVus;   // 11 novembre, 12 h 25 : plus d’« Évaluer l’application », le groupe n’a que les widgets
+  if(!ICN.charge&&typeof ilePont==='function'&&ilePont())iconesCharger();   // 16 novembre : l’icône de l’app au choix
+  const surIphone=widgetsVus||iconesIci();   // 11 novembre, 12 h 25 : plus d’« Évaluer l’application » ici ; 16 novembre : l’icône
   /* 7 novembre (« Ta flamme en direct ») : son interrupteur, dans l’app iPhone qui a le pont (elle y est programmée) */
   const profile=state.profile||{};
   const profileGoalO=OB_GOALS.find(g=>g[0]===profile.goal)||null,profileGoal=(profileGoalO||[])[1]||'';
@@ -53454,6 +53503,8 @@ function renderCompte(){
           <a class="acct-faq" href="${escAttr(siteUrl('decouvrir/#faq'))}" target="_blank" rel="noopener"><span class="acct-faq-t"><b>Questions fréquentes</b><small>Toutes les réponses, sur le site de Requête.</small></span><span class="acct-faq-ill" aria-hidden="true">${lqStkSvg('faq')}</span></a>
           <button class="acct-faq acct-contact" type="button" onclick="openPlusDetails('plus-contact')"><span class="acct-faq-t"><b>Contacte-nous</b><small>Un bug, une idée, une question</small></span><span class="acct-faq-ill" aria-hidden="true">${lqStkSvg(ACCT_STK.contact)}</span></button>
           <div class="account-settings-list">
+            ${/* 16 novembre, 7 h 38 (Elisa : « Il manque un bouton noter l’application vers Apple Store dans compte ») : la page
+                 « Écrire un avis » de l’App Store (noterAppli) ; retirée le 11 novembre, elle revient à sa demande. */''}<button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg('etoile')}</span><span><b>Noter l’application</b><small>Ton avis sur l’App Store aide d’autres à nous trouver</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-data')"><span class="plus-row-icon privacy is-stk">${lqStkSvg(ACCT_STK.privacy)}</span><span><b>Tes données, tes choix</b><small>Ce qui est gardé, copie, effacement</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="acctConfidParties()"><span class="plus-row-icon privacy is-stk">${lqStkSvg('user')}</span><span><b>Confidentialité des parties</b><small>Ce que les autres joueurs voient de toi</small></span><span class="account-setting-end">${CHEV}</span></button>
           </div>
@@ -53470,6 +53521,7 @@ function renderCompte(){
         ${surIphone?`<div class="account-settings-group">
           <p class="account-settings-group-title">Sur ton iPhone</p>
           <div class="account-settings-list">
+            ${iconeLigneHTML(CHEV)}
             ${widgetsVus?`<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-widget-accueil')"><span class="plus-row-icon is-stk">${lqStkSvg('widgets')}</span><span><b>${WTU.accueil.titre}</b><small>${WTU.accueil.sous}</small></span><span class="account-setting-end">${CHEV}</span></button>
             <button class="account-setting-row" type="button" onclick="openPlusDetails('plus-widget-verrou')"><span class="plus-row-icon is-stk">${lqStkSvg('verrou')}</span><span><b>${WTU.verrou.titre}</b><small>${WTU.verrou.sous}</small></span><span class="account-setting-end">${CHEV}</span></button>`:''}
             ${widgetsIci?`<button class="account-setting-row acct-flamme-direct" type="button" role="switch" aria-checked="${flammeDirectOn()}" onclick="flammeDirectBasculer()"><span class="plus-row-icon is-stk">${lqStkSvg('flame')}</span><span><b>Ta flamme en direct</b><small>${flammeDirectResume()}</small></span><span class="account-setting-end"><span class="acc-toggle${flammeDirectOn()?' on':''}" aria-hidden="true"><i></i></span></span></button>`:''}
@@ -53539,6 +53591,7 @@ function renderCompte(){
       </div>
     </details>
     ${langueReglageHTML()}
+    ${iconeReglageHTML()}
     <details class="plus-details" id="plus-contact">
       <summary><span>Contacte-nous</span><small>Un bug, une idée, une question : on lit tout.</small><i aria-hidden="true">×</i></summary>
       <div class="plus-details-body ct-body" id="ct-body">${ctHTML()}</div>
@@ -53613,6 +53666,51 @@ function obBjParler(){
 /* 15 novembre, 20 h 49 (Elisa : « pouvoir changer la langue dans compte (après afficher le drapeau) ») : la ligne Langue, juste
    après « Afficher mon drapeau », montre le drapeau de la langue ; la feuille propose chaque langue, écrite dans sa langue, avec son
    drapeau. L’anglais de Requête suit les usages américains (dollars, États) : le drapeau des États-Unis. */
+/* 16 novembre, 7 h 38 (Elisa : les icônes de saison, « 1 essai chacun ») : l’icône de l’app au choix, dans Mon compte (Sur ton
+   iPhone). Les icônes sont dans l’app (resources/ios/icones, IOS.md) : la liste vient d’elle (pont icones), seules celles qu’elle a
+   sont proposées, et rien ne s’affiche dans une version d’avant. Le changement vient toujours d’un geste de la personne ; iOS le
+   confirme par son propre message. */
+const ICONES=[{id:'',cle:'base',nom:'Classique'},{id:'IconeNoel',cle:'noel',nom:'Noël'},{id:'IconeNouvelAn',cle:'nouvel-an',nom:'Nouvel An'},
+  {id:'IconeSaintValentin',cle:'saint-valentin',nom:'Saint-Valentin'},{id:'IconePaques',cle:'paques',nom:'Pâques'},{id:'IconeEte',cle:'ete',nom:'Été'},
+  {id:'IconeHalloween',cle:'halloween',nom:'Halloween'}];
+const ICN={charge:false,possible:false,liste:[],actuelle:''};
+async function iconesCharger(){
+  if(ICN.charge)return;
+  ICN.charge=true;
+  const r=await iconesNatif();
+  if(!r)return;
+  ICN.possible=!!r.possible;ICN.liste=r.liste;ICN.actuelle=r.actuelle||'';
+  if(iconesIci()&&typeof activeTab!=='undefined'&&activeTab==='compte'&&typeof renderCompte==='function')renderCompte();
+}
+function iconesIci(){return ICN.possible&&ICONES.some(i=>i.id&&ICN.liste.includes(i.id));}
+function iconeActuelle(){return ICONES.find(i=>i.id===ICN.actuelle)||ICONES[0];}
+function iconeLigneHTML(chevron){
+  if(!iconesIci())return '';
+  const a=iconeActuelle();
+  return `<button class="account-setting-row" type="button" onclick="openPlusDetails('plus-icone')"><span class="plus-row-icon is-icone" aria-hidden="true"><img src="assets/icones/${a.cle}.png" alt=""></span><span><b>Icône de l’app</b><small>${esc(a.nom)}</small></span><span class="account-setting-end">${chevron||''}</span></button>`;
+}
+function iconeReglageHTML(){
+  if(!iconesIci())return '';
+  const a=iconeActuelle();
+  const choix=ICONES.filter(i=>!i.id||ICN.liste.includes(i.id)).map(i=>`<button type="button" class="ic-c${i.id===a.id?' on':''}" role="radio" aria-checked="${i.id===a.id}" onclick="iconeChanger('${i.id}',this)"><img src="assets/icones/${i.cle}.png" alt=""><span>${esc(i.nom)}</span></button>`).join('');
+  return `<details class="plus-details" id="plus-icone">
+      <summary><span>Icône de l’app</span><small>${esc(a.nom)}</small><i aria-hidden="true">×</i></summary>
+      <div class="plus-details-body ic-feuille">
+        <div class="ic-choix" role="radiogroup" aria-label="Icône de l’app">${choix}</div>
+        <p class="ic-note">L’icône change sur ton écran d’accueil, et ton iPhone te le confirme.</p>
+      </div>
+    </details>`;
+}
+async function iconeChanger(id,btn){
+  if(id===ICN.actuelle)return;
+  const g=btn&&btn.closest('[role=radiogroup]');
+  if(g)g.querySelectorAll('[role=radio]').forEach(b=>{const on=b===btn;b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');});
+  if(typeof buzz==='function')buzz('light');
+  const r=await iconeChoisir(id);
+  if(r&&r.ok)ICN.actuelle=r.actuelle||'';
+  else if(typeof toast==='function')toast('L’icône n’a pas changé','Réessaie dans un instant.','warning');
+  if(typeof renderCompte==='function')renderCompte();
+}
 function langueLigneHTML(chevron){
   const L=window.REQUETE_LANGUE;
   if(!L||L.disponibles().length<2)return '';
@@ -54481,7 +54579,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-15-module-v3106';
+  const SW_CACHE='requete-2026-11-15-module-v3107';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

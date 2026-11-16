@@ -39,7 +39,7 @@ function monde({ ua = IPHONE, natif = false, pont = null } = {}) {
 test('Mon compte : le groupe « Sur ton iPhone » se voit aussi dans Safari sur iPhone, pas sur un ordinateur', () => {
   assert.ok(compte.includes("const widgetsIci=typeof obWidgetPossible==='function'&&obWidgetPossible();"), 'l’app et son widget');
   assert.ok(compte.includes('const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());'), 'les widgets : l’app qui les a, ou Safari sur iPhone');
-  assert.ok(compte.includes('const surIphone=widgetsVus;'), 'le groupe : les widgets, dans l’app ou Safari sur iPhone (11 novembre, 12 h 25 : plus d’« Évaluer »)');
+  assert.ok(compte.includes('const surIphone=widgetsVus||iconesIci();'), 'le groupe : les widgets, dans l’app ou Safari sur iPhone (11 novembre, 12 h 25 : plus d’« Évaluer ») ; l’icône de l’app (16 novembre)');
   assert.ok(compte.includes('${surIphone?`<div class="account-settings-group">\n          <p class="account-settings-group-title">Sur ton iPhone</p>'), 'le groupe');
   assert.ok(compte.includes("${widgetsVus?`<button class=\"account-setting-row\" type=\"button\" onclick=\"openPlusDetails('plus-widget-accueil')\">"), 'les lignes des widgets');
   assert.ok(compte.includes('${widgetsVus?`<details class="plus-details plus-widget" id="plus-widget-accueil" ontoggle="wtuToggle(this)">'), 'leurs feuilles');

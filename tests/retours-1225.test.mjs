@@ -35,7 +35,8 @@ test('réf. 2 : le pays touché se coche, la feuille attend deux secondes avant 
 
 test('Mon compte : plus d’« Évaluer l’application » ; la flamme en direct et les statistiques anonymes restent (choix d’Elisa)', () => {
   const compte = cut('function renderCompte(){', '\nfunction ');
-  assert.ok(!compte.includes('noterAppli()') && compte.includes('const surIphone=widgetsVus;'));
+  /* 16 novembre, 7 h 38 (Elisa) : « Noter l’application » revient, dans Compte et assistance (retours-0738) */
+  assert.ok(compte.includes('onclick="noterAppli()"') && compte.includes('const surIphone=widgetsVus||iconesIci();'));
   assert.ok(compte.includes('onclick="flammeDirectBasculer()"'), 'l’accord pour la Live Activity');
   assert.ok(compte.includes('<b>Statistiques anonymes</b>'), 'l’opposition aux statistiques');
 });
