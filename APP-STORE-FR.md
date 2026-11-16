@@ -111,11 +111,17 @@ moyen) » : 1206 × 2622. Les fichiers sont sur le Mac d'Elisa, Téléchargement
 
 - Langue principale : Anglais (États-Unis) ; fiches française et anglaise : nom, sous-titre, texte promotionnel, description,
   mots-clés, URL d'assistance et marketing ; catégorie Éducation ; URL de confidentialité dans les deux langues.
-- Prix : gratuit ; disponibilité : 174 pays, sans la Chine continentale ; les trois abonnements restent dans tous les pays.
+- Prix : gratuit ; disponibilité : 168 pays. Retirés : Chine continentale, puis Uruguay, Brésil, RD Congo, Madagascar, Tunisie,
+  Algérie (pays où Apple ne collecte pas les taxes, annexe B du contrat ; retrait demandé par Elisa le 16 novembre). Le Maroc et
+  l'Afghanistan sont en plus exclus par Apple à cause de la rubrique « Concours » (classements) de la classification par âge.
 - Abonnements : noms et descriptions en anglais ajoutés (groupe, annuel, annuel bienvenue, hebdo).
 - Vérification : « Connexion requise » décochée, note pour l'équipe de vérification (en anglais).
-- Reste à Elisa : glisser les captures, l'en-tête (facultatif), le copyright et ses coordonnées, le build, la confidentialité des
-  données, la classification par âge, les droits sur le contenu, puis la soumission.
+- Fait ensuite le 16 novembre : 18 langues de plus (APP-STORE-LANGUES.md) ; confidentialité des données (publiée par Elisa) ;
+  classification par âge 13+ (12+ au Brésil, en Corée, au Vietnam ; « Concours » fréquent, tout le reste à aucun) ; droits sur le
+  contenu : pas de contenu tiers ; copyright « 2026 Elisa Blanchart » ; contact de vérification (Elisa Blanchart,
+  contact@requeteapp.com, son portable). Chiffrement : ITSAppUsesNonExemptEncryption = false dans Info.plist.
+- Reste : le build (npm run ios:testflight sur le Mac), le choisir dans la version 1.0 avec les 3 abonnements, puis la
+  soumission par Elisa.
 
 ## Confidentialité de l'app : réponses au questionnaire (préparées le 16 novembre, d'après la politique de confidentialité et le code)
 
