@@ -116,3 +116,28 @@ moyen) » : 1206 × 2622. Les fichiers sont sur le Mac d'Elisa, Téléchargement
 - Vérification : « Connexion requise » décochée, note pour l'équipe de vérification (en anglais).
 - Reste à Elisa : glisser les captures, l'en-tête (facultatif), le copyright et ses coordonnées, le build, la confidentialité des
   données, la classification par âge, les droits sur le contenu, puis la soumission.
+
+## Confidentialité de l'app : réponses au questionnaire (préparées le 16 novembre, d'après la politique de confidentialité et le code)
+
+Collecte de données : oui. Suivi (tracking) : non, pour toutes les données. Pas de SDK tiers d'analyse ni de pub
+(dépendances : Capacitor, connexion Apple/Google, mise à jour OTA depuis GitHub, RevenueCat).
+
+| Donnée (catégorie Apple) | Ce que c'est dans Requête | Finalités | Liée à l'utilisateur |
+|---|---|---|---|
+| Coordonnées › Nom | prénom (et nom Google) reçu à la connexion | Fonctionnalité de l'app | oui |
+| Coordonnées › Adresse e-mail | e-mail du compte, e-mail laissé dans « Contacte-nous » | Fonctionnalité de l'app | oui |
+| Localisation › Localisation approximative | pays choisi pour le drapeau (choix prudent : pas de géolocalisation) | Fonctionnalité de l'app | oui |
+| Contenu utilisateur › Assistance clientèle | messages de contact et pièces jointes | Fonctionnalité de l'app | oui |
+| Contenu utilisateur › Contenu de jeu | scores, classement, parties, salles de défi | Fonctionnalité de l'app | oui |
+| Contenu utilisateur › Autre contenu | notes et requêtes sauvegardées, avis sur les leçons, vote, réactions | Fonctionnalité de l'app, Analyses | oui |
+| Identifiants › Identifiant utilisateur | compte, pseudo | Fonctionnalité de l'app | oui |
+| Identifiants › Identifiant de l'appareil | identifiant tiré au hasard, jeton de notification (alerte de lancement) | Fonctionnalité de l'app, Analyses | oui |
+| Achats › Historique des achats | RevenueCat : offre, dates, renouvellement (identifiant anonyme) | Fonctionnalité de l'app | non |
+| Données d'utilisation › Interaction avec le produit | statistiques d'usage (avec accord), écrans de l'accueil vus | Analyses | oui |
+| Diagnostics › Autres données de diagnostic | messages d'erreur (stats), infos techniques des rapports de bug | Fonctionnalité de l'app, Analyses | oui |
+
+Non collecté (reste sur l'iPhone ou n'existe pas) : tranche d'âge, genre, profession, fichiers importés, requêtes de la console,
+contacts, santé, données financières, historique de navigation ou de recherche, données de plantage (pas d'outil de crash).
+
+Statistiques d'usage déclarées « liées » par prudence : leur identifiant est un SHA-256 sans secret de l'identifiant de l'appareil,
+donc recalculable à partir de celui gardé avec le pseudo.
