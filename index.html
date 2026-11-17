@@ -6819,7 +6819,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=388">
+<link rel="stylesheet" href="ludique.css?v=389">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=73">
 <style id="lesson-video-css">
@@ -52947,7 +52947,8 @@ function moduleCompte(){
 function acctParcoursHTML(cur){
   const ids=allLessons.map(l=>l.id),T=ids.length||1,pc=x=>(x/T*100).toFixed(2)+'%',r=cur!=null?ids.indexOf(cur):-1;
   let runs='';
-  for(let i=0;i<ids.length;){if(!itemDone(ids[i])){i++;continue;}let j=i;while(j<ids.length&&itemDone(ids[j]))j++;runs+=`<i style="left:${pc(i)};width:${pc(j-i)}"></i>`;i=j;}
+  /* La première et la dernière leçon touchent les bouts arrondis de la barre (17 novembre : plus de vide avant la première) */
+  for(let i=0;i<ids.length;){if(!itemDone(ids[i])){i++;continue;}let j=i;while(j<ids.length&&itemDone(ids[j]))j++;const rd=i===0||j===ids.length?`;border-radius:${i===0?'99px':'0'} ${j===ids.length?'99px 99px':'0 0'} ${i===0?'99px':'0'}`:'';runs+=`<i style="left:${pc(i)};width:${pc(j-i)}${rd}"></i>`;i=j;}
   let k=0;const traits=MODULES.slice(0,-1).map(m=>{k+=m.lessons.length;return `<b style="left:${pc(k)}"></b>`;}).join('');
   let ici='';
   if(r>=0){
@@ -54195,7 +54196,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-17-module-v3115';
+  const SW_CACHE='requete-2026-11-17-module-v3116';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
