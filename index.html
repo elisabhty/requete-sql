@@ -30955,10 +30955,50 @@ function lvPosSave(){ try{ localStorage.setItem(LV_POS_KEY,JSON.stringify(Object
 const LV_ANS_KEY='rq-video-reponses';
 const LV_ANS=(()=>{ try{ const o=JSON.parse(localStorage.getItem(LV_ANS_KEY)||'{}'); return o&&typeof o==='object'?o:{}; }catch(e){ return {}; } })();
 function lvAnsSave(){ try{ localStorage.setItem(LV_ANS_KEY,JSON.stringify(LV_ANS)); }catch(e){} }
+/* Réponses remises à zéro (17 novembre, Elisa, sur la leçon DISTINCT : « quand on fait rejouer les moments ratés on peut refaire la
+   question, mais plus là ») : depuis le 16 novembre, les réponses des vidéos suivent le compte, et la synchro ajoute celles du compte
+   qui manquent ici (csAppliquer). « Rejouer les moments ratés » effaçait le moment sur l’appareil, la synchro suivante (pendant la
+   vidéo) le ramenait : arrivé dessus, il s’ouvrait déjà fait, « Bien rattrapé ! ». Même chose pour « Tout recommencer » et
+   « Recommencer cette leçon » (celle-ci revenait même validée).
+   Chaque remise à zéro est notée ici, par leçon : les réponses à ne plus reprendre du compte (k : 'p2', 'p*' pour tous les moments,
+   '*' pour tout), et si la leçon entière est à refaire (lecon). À la synchro suivante, l’élément du compte est remis à zéro lui aussi
+   (progression_reinitialiser : video:<id>, ou lesson:<id> qui emporte sa vidéo) ; la marque tombe une fois qu’une lecture du compte
+   faite après cette remise à zéro est passée. Un moment refait sur l’appareil sort tout de suite de la liste. */
+const LV_REJEU_KEY='rq-video-rejeu';
+const LV_REJEU=(()=>{ try{ const o=JSON.parse(localStorage.getItem(LV_REJEU_KEY)||'{}'); return o&&typeof o==='object'?o:{}; }catch(e){ return {}; } })();
+function lvRejeuSave(){ try{ localStorage.setItem(LV_REJEU_KEY,JSON.stringify(LV_REJEU)); }catch(e){} }
+function lvRejeuNoter(id,keys,lecon){
+  /* Sans compte connecté, rien ne revient d’ailleurs : rien à noter (et un compte branché plus tard ne perd rien). */
+  const cs=typeof csPret==='function'?csPret():null; if(!cs)return;
+  const r=LV_REJEU[id]&&LV_REJEU[id].u===cs.user?LV_REJEU[id]:(LV_REJEU[id]={k:[],ok:0,u:cs.user});
+  keys.forEach(k=>{ if(!r.k.includes(k))r.k.push(k); });
+  if(lecon)r.lecon=1;
+  r.ok=0; lvRejeuSave();
+  if(typeof csPlusTard==='function')csPlusTard();
+}
+function lvRejeuBloque(id,k){
+  const r=LV_REJEU[id]; if(!r||r.u!==CS.user)return false;
+  if(k==='lecon')return !!r.lecon;
+  return r.k.includes(k)||r.k.includes('*')||(/^p\d+$/.test(k)&&r.k.includes('p*'));
+}
+function lvRejeuFait(id,k){ const r=LV_REJEU[id]; if(!r||!r.k.includes(k))return; r.k=r.k.filter(x=>x!==k); lvRejeuSave(); }
+/* Pendant la synchro : remet à zéro sur le compte ce qui l’a été sur l’appareil (une fois par marque). */
+async function lvRejeuCompte(cs){
+  for(const [id,r] of Object.entries(LV_REJEU)){
+    if(!r||r.ok||r.u!==cs.user)continue;
+    try{ const res=await cs.prog.reset((r.lecon?'lesson:':'video:')+id,'RECOMMENCER'); if(res&&res.ok){ r.ok=Date.now(); lvRejeuSave(); } }catch(e){}
+  }
+}
+/* Après une lecture du compte commencée après la remise à zéro : plus rien à bloquer. */
+function lvRejeuNettoyer(lu){
+  let m=false;
+  for(const [id,r] of Object.entries(LV_REJEU))if(!r||(r.ok&&r.ok<lu)){ delete LV_REJEU[id]; m=true; }
+  if(m)lvRejeuSave();
+}
 function lvAnsGet(id,i,q){ const a=LV_ANS[id]&&LV_ANS[id][i]; return a&&q&&a.q===q.q&&q.options&&q.options[a.k]?a.k:null; }
 function lvAnsSet(id,i,q,k){ (LV_ANS[id]||(LV_ANS[id]={}))[i]={k,q:q.q}; lvAnsSave(); }
 /* Recommencer la leçon : la vidéo repart du début et les questions sont reposées. */
-function lvForget(id){ LV_POS.delete(id); lvPosSave(); if(LV_ANS[id]){ delete LV_ANS[id]; lvAnsSave(); } }
+function lvForget(id){ LV_POS.delete(id); lvPosSave(); if(LV_ANS[id]){ delete LV_ANS[id]; lvAnsSave(); } if(typeof lvRejeuNoter==='function')lvRejeuNoter(id,['*'],true); }
 let LV=null, LV_MUTED=false;
 let lvCouvreT=0, lvFige=[];   // 10 novembre : la page de la leçon se fige sous le lecteur, une fois le fondu d’ouverture fini (openLessonVideo)
 /* Sous le lecteur plein écran (téléphone : moins de 600 px de large ; au-delà, la page se voit autour du lecteur), seules les animations
@@ -32418,7 +32458,7 @@ function lvQPlace(){
    Sinon : rouge, l’étiquette se barre, l’explication reste sur le résultat et on réessaie. Le premier essai est gardé
    (score de fin) ; le plateau couvre la légende et les commandes, jamais le résultat. */
 function lvPkGet(id,i){ const a=LV_ANS[id]&&LV_ANS[id]['p'+i]; return a&&typeof a.first==='number'?a:null; }
-function lvPkSet(id,i,first,err){ const o=LV_ANS[id]||(LV_ANS[id]={}); if(!o['p'+i]&&typeof stat==='function')stat('moment',null,{l:String(id).slice(0,40),i,ok:!!first}); if(!o['p'+i])o['p'+i]={first:first?1:0,err:Math.max(0,err|0)}; delete o['d'+i]; lvAnsSave(); }
+function lvPkSet(id,i,first,err){ const o=LV_ANS[id]||(LV_ANS[id]={}); if(!o['p'+i]&&typeof stat==='function')stat('moment',null,{l:String(id).slice(0,40),i,ok:!!first}); if(!o['p'+i])o['p'+i]={first:first?1:0,err:Math.max(0,err|0)}; delete o['d'+i]; lvAnsSave(); if(typeof lvRejeuFait==='function')lvRejeuFait(id,'p'+i); }
 /* Moment commencé, pas encore fini : bons gestes (a), réponses écartées (o), erreurs (m) et essais (t), gardés dès qu’ils
    arrivent. « ↺ Revoir », un retour en arrière ou le lecteur fermé ne les effacent pas : le moment rouvre là où on l’a laissé,
    et une erreur faite reste comptée (le premier coup compte). Effacés quand le moment est fini. */
@@ -32440,7 +32480,7 @@ function lvPkErrs(id,n){ let e=0; for(let i=0;i<n;i++){ const a=lvPkGet(id,i); i
 function lvPkRates(id,n){ const out=[]; for(let i=0;i<n;i++){ const a=lvPkGet(id,i); if(a&&lvPkErr(a)>0)out.push(i); } return out; }
 /* Nouvelle tentative : les moments sont à refaire (brouillons compris), le score du premier essai repart de zéro et les
    mails se referment. */
-function lvPkReset(id){ const o=LV_ANS[id]; if(!o)return; Object.keys(o).forEach(k=>{ if(/^[pdo]\d+$/.test(k))delete o[k]; }); lvAnsSave(); }
+function lvPkReset(id){ if(typeof lvRejeuNoter==='function')lvRejeuNoter(id,['p*']); const o=LV_ANS[id]; if(!o)return; Object.keys(o).forEach(k=>{ if(/^[pdo]\d+$/.test(k))delete o[k]; }); lvAnsSave(); }
 /* Validation d’une leçon seule : video.erreurs (au plus N erreurs en tout, tous moments confondus), sinon video.seuil
    (N moments réussis du premier coup, par exemple 6 sur 9) ; sans règle, la fin de la vidéo suffit.
    Depuis le 28 octobre (Elisa : « comme il y a les moments, mettre l’écran de fin de cours et enlever la partie quiz et
@@ -32819,6 +32859,7 @@ function lvPkBack(i){
 function lvRedo(list){
   if(!LV||!list||!list.length)return;
   const o=LV_ANS[LV.id]; if(o){ list.forEach(i=>{ delete o['p'+i]; delete o['d'+i]; }); lvAnsSave(); }
+  if(typeof lvRejeuNoter==='function')lvRejeuNoter(LV.id,list.map(i=>'p'+i));
   lvPkMarks();
   LV.redo={list:list.slice(),k:0};
   lvEndHide();
@@ -50273,6 +50314,7 @@ function csAppliquer(prog,docs,premier){
     const [kind,...r]=e.key.split(':'),id=r.join(':'),d=e.data;
     if(kind==='lesson'){
       const k=/^\d+$/.test(id)?+id:id;if(!allLessons.some(l=>l.id===k))continue;
+      if(typeof lvRejeuBloque==='function'&&lvRejeuBloque(k,'lecon'))continue;   // recommencée sur l’appareil : le compte ne la revalide pas (17 novembre)
       const l=L[k]||(L[k]={level:0});
       if(d.done&&!l.done){l.done=true;change=true;}
       if(d.at&&l.done&&(!l.at||d.at<l.at)){l.at=d.at;change=true;}
@@ -50298,10 +50340,10 @@ function csAppliquer(prog,docs,premier){
       try{
         if(d.answers&&typeof d.answers==='object'&&typeof LV_ANS!=='undefined'){
           const o=LV_ANS[k]||{};let m=false;
-          for(const [q,v] of Object.entries(d.answers))if(!o[q]&&v&&typeof v==='object'){o[q]=v;m=true;}
+          for(const [q,v] of Object.entries(d.answers))if(!o[q]&&v&&typeof v==='object'&&!(typeof lvRejeuBloque==='function'&&lvRejeuBloque(k,q))){o[q]=v;m=true;}   // sauf celles remises à zéro ici (17 novembre)
           if(m){LV_ANS[k]=o;lvAnsSave();change=true;}
         }
-        if(Number.isFinite(d.position)&&d.position>=1&&typeof LV_POS!=='undefined'&&!LV_POS.has(k)&&!(L[k]&&L[k].done)){LV_POS.set(k,d.position);lvPosSave();}
+        if(Number.isFinite(d.position)&&d.position>=1&&typeof LV_POS!=='undefined'&&!LV_POS.has(k)&&!(L[k]&&L[k].done)&&!(typeof lvRejeuBloque==='function'&&lvRejeuBloque(k,'lecon'))){LV_POS.set(k,d.position);lvPosSave();}
       }catch(err){}
     }
     else if(kind==='planning'&&id==='main'&&premier&&Array.isArray(d.sessions)&&d.sessions.length){
@@ -50344,8 +50386,11 @@ function csSync(o){
     CS.distant=null;
     /* 14 novembre, 13 h 11 : le pseudo, les points et les parties suivent le compte (csJeu), avant la progression et sans en dépendre */
     try{await csJeu(cs.user);}catch(e){}
+    const lu=Date.now();
     const [p,d]=await Promise.all([cs.prog.pull(),cs.docs.pull()]);
     CS.distant=csDistant(p,d);
+    /* 17 novembre : les réponses et leçons remises à zéro sur l’appareil le sont aussi sur le compte (lvRejeuCompte) */
+    try{if(typeof lvRejeuCompte==='function')await lvRejeuCompte(cs);}catch(e){}
     if(csAppliquer(p,d,premier||(o&&o.premier&&premier))){
       CS.dedans=true;
       try{save();stkSync&&stkSync();
@@ -50356,6 +50401,7 @@ function csSync(o){
       CS.dedans=false;
     }
     try{localStorage.setItem(premierCle,'1');}catch(e){}
+    try{if(typeof lvRejeuNettoyer==='function')lvRejeuNettoyer(lu);}catch(e){}
     const x=csExtraire(),elts=a=>Object.fromEntries(((a&&a.elements)||[]).map(e=>[e.key,e]));
     const M=window.REQUETE_MOTEURS;
     const rp=await csEnvoyer(cs.prog,x.prog,elts(p),M.mergeProgression);
@@ -54149,7 +54195,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-16-module-v3113';
+  const SW_CACHE='requete-2026-11-17-module-v3114';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
