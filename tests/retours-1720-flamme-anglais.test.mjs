@@ -44,3 +44,32 @@ test('l’heure de la flamme en direct s’écrit comme celle du rappel (7:00 PM
   /* Le calcul des soirs (la Live Activity) garde l’heure 24 h */
   assert.ok(app.includes("[h,m]=flammeDirectHeure().split(':').map(Number)"));
 });
+
+/* 19 h 00 (« Ok et les variantes de ces trad ») : chaque variante des textes retouchés aujourd’hui (Mon compte, le Planning, la flamme
+   en direct) : pluriels, jours de la semaine, heures en 24 h et à l’américaine, séances faites, prévues, en retard. */
+test('toutes les variantes des textes du jour sont traduites', () => {
+  const L = moteur();
+  const s = n => n > 1 ? 's' : '';
+  const plural = (n, m) => n + ' ' + m + s(n);
+  const plur = (n, m) => n + ' ' + m + (n > 1 ? 's' : '');
+  const semaine = (f, p) => !p ? 'Aucune séance prévue' : !f ? `${p} séance${s(p)} prévue${s(p)}` : f >= p ? `${p} séance${s(p)} validée${s(p)}` : `${f} séance${s(f)} validée${s(f)} sur ${p}`;
+  const JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'], Jours = JOURS.map(j => j[0].toUpperCase() + j.slice(1));
+  const T = new Set();
+  for (let p = 0; p <= 7; p++) for (let f = 0; f <= p; f++) T.add(semaine(f, p));
+  for (const j of JOURS) { T.add(`Pas de séance prévue d’ici ${j}.`); T.add(`Tout est fait jusqu’à ${j}. Bravo !`); for (let n = 1; n <= 6; n++) T.add(`Encore ${plural(n, 'séance')} d’ici ${j}.`); }
+  for (const J of Jours) { T.add(`${J}, aujourd’hui : séance terminée`); T.add(`${J}, aujourd’hui : repos`); T.add(`${J}, aujourd’hui : séance prévue`); T.add(`${J} : repos`); T.add(`${J} : séance prévue`); T.add(`${J} : séance terminée`);
+    for (let t = 2; t <= 4; t++) for (let d = 1; d < t; d++) { T.add(`${J} : ${d} activité${d > 1 ? 's' : ''} sur ${t}`); T.add(`${J}, aujourd’hui : ${d} activité${d > 1 ? 's' : ''} sur ${t}`); } }
+  /* Planning : les jours de la bande, la carte du jour */
+  for (const lib of ['Aujourd’hui', 'Demain', 'Hier', 'Jeudi 19 novembre', 'Lundi 1 décembre', 'Samedi 21 novembre']) { T.add(lib + ' · pause'); T.add(lib + ' · terminée'); T.add(lib + ' · en retard'); for (let n = 1; n <= 4; n++) T.add(lib + ' · ' + plur(n, 'activité')); }
+  for (let l = 1; l <= 4; l++) for (const d of [0, 1, 2]) for (const suf of ['', ' · en retard', ' · 1/' + l]) { const x = `${l} leçon${l > 1 ? 's' : ''}${d ? ` · ${d} défi${d > 1 ? 's' : ''}` : ''} · ~${l * 4 + 1} min${suf}`; T.add(x); }
+  for (const lib of ['jeu. 19 nov.', 'lun. 23 nov.', 'demain']) T.add('Prochaine séance · ' + lib);
+  ['Séance validée', 'Journée libre', 'Pas de séance prévue', 'Profites-en pour revoir tes cartes mémo ou faire un défi.', 'Envie d’un défi ? Ils t’attendent dans Pratiquer', 'Continuer la séance', 'Commencer la séance', 'Les leçons suivent l’ordre du parcours : chacune arrive après celle qui la prépare.'].forEach(x => T.add(x));
+  /* La flamme en direct */
+  for (const h of ['18:00', '19:00', '19:30', '21:15', '6:00 PM', '7:00 PM', '7:30 PM', '9:15 PM']) {
+    T.add(`Les soirs de séance, dès ${h}, si ta flamme n’est pas encore allumée.`); T.add(`Dès ${h} les soirs de séance, quand tu ouvres l’app (toute seule avec iOS 26).`); T.add(`Activée · les soirs de séance, dès ${h}`); }
+  ['Flamme en direct activée', 'Flamme en direct désactivée', 'Tu pourras la réactiver ici.', 'Flamme en direct indisponible', 'Mets l’app à jour pour l’activer.', 'Activités en direct coupées', 'Autorise-les pour Requête dans les Réglages de l’iPhone.', 'Un compte à rebours jusqu’à minuit, les soirs de séance', 'Activités en direct coupées dans les Réglages de l’iPhone', 'Ta flamme en direct'].forEach(x => T.add(x));
+
+  const ko = [...T].filter(x => { const y = L.t(x); return y == null || y === x || /[éèàùç]|séance| d’ici | sur \d| leçon| défi/.test(y); });
+  assert.deepEqual(ko, []);
+  assert.ok(T.size > 300);
+});
