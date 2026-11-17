@@ -153,15 +153,21 @@
         if (X[q].debut && gabarit.indexOf(X[q].debut) < 0) continue;
         var mx = X[q].re.exec(gabarit);
         if (!mx) continue;
-        trad = String(D[X[q].cle]);
-        for (var g = 1; g < mx.length; g++) {
+        /* Les nombres de la clé ({1}) prennent le numéro qu’ils ont dans le texte ; puis les places libres, dans l’ordre */
+        var renum = {}, xs = [], nx = 0, nn = 0;
+        for (var g0 = 1; g0 < mx.length; g0++) {
+          if (X[q].groupes[g0 - 1] === 'n') renum[X[q].num[nn++]] = mx[g0];
+          else xs.push({ nom: X[q].noms[nx++], brut: mx[g0] });
+        }
+        trad = String(D[X[q].cle]).replace(/\{(\d+)\}/g, function (t, d) { return renum[d] != null ? '{' + renum[d] + '}' : t; });
+        for (var g = 1; g <= xs.length; g++) {
           /* Le texte retenu peut garder des nombres ({2}) : renumérotés pour sa propre clé (« Jointure de {1} tables »), puis remis */
-          var brut = mx[g], nums = [], ren = propre(brut).replace(/\{(\d+)\}/g, function (t, d) { nums.push(d); return '{' + nums.length + '}'; });
+          var brut = xs[g - 1].brut, nums = [], ren = propre(brut).replace(/\{(\d+)\}/g, function (t, d) { nums.push(d); return '{' + nums.length + '}'; });
           var dedans = Object.prototype.hasOwnProperty.call(D, ren) ? String(D[ren]).replace(/\{(\d+)\}/g, function (t, d) { return nums[d - 1] ? '{' + nums[d - 1] + '}' : t; }) : null;
           /* 15 novembre, 23 h 25 (« Mon objectif : Réussir un entretien » dans l’appli en anglais) : la place libre tient tout un morceau
              (<1>Réussir un entretien</1>) : le texte du morceau est traduit, ses balises restent. */
           if (dedans == null) { var mc = /^<(\d+)>([^<>]*)<\/\1>$/.exec(ren); if (mc && Object.prototype.hasOwnProperty.call(D, mc[2])) dedans = '<' + mc[1] + '>' + D[mc[2]] + '</' + mc[1] + '>'; }
-          trad = trad.split('{x' + X[q].noms[g - 1] + '}').join(dedans != null ? dedans : brut);
+          trad = trad.split('{x' + xs[g - 1].nom + '}').join(dedans != null ? dedans : brut);
         }
       }
     }
@@ -182,12 +188,21 @@
     var D = (TRAD && TRAD.textes) || {}, k;
     for (k in D) {
       if (k.indexOf('{x') < 0) continue;
-      var noms = [], morceaux = k.split(/\{x(\d+)\}/), src = '', fixe = '';
+      /* 17 novembre (« Dès 19:00 les soirs de séance… iOS 26 » restait en français) : les nombres de la phrase sont numérotés dans
+         l’ordre, ceux de la place libre compris (19 et 00 avant 26) ; une clé « … {x1} … iOS {1} » ne reconnaissait donc pas « iOS {3} ».
+         Chaque nombre de la clé ({1}) reconnaît n’importe quel nombre du texte ; la traduction est renumérotée d’après eux (num). */
+      var noms = [], num = [], morceaux = k.split(/\{x(\d+)\}/), src = '', fixe = '', groupes = [];
       for (var i = 0; i < morceaux.length; i++) {
-        if (i % 2) { noms.push(morceaux[i]); src += '(.+?)'; }
-        else { src += morceaux[i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); if (morceaux[i].length > fixe.length) fixe = morceaux[i]; }
+        if (i % 2) { noms.push(morceaux[i]); groupes.push('x'); src += '(.+?)'; }
+        else {
+          var bouts = morceaux[i].split(/\{(\d+)\}/);
+          for (var b = 0; b < bouts.length; b++) {
+            if (b % 2) { num.push(bouts[b]); groupes.push('n'); src += '\\{(\\d+)\\}'; }
+            else { src += bouts[b].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); if (bouts[b].length > fixe.length) fixe = bouts[b]; }
+          }
+        }
       }
-      xCache.push({ cle: k, re: new RegExp('^' + src + '$'), noms: noms, debut: fixe });
+      xCache.push({ cle: k, re: new RegExp('^' + src + '$'), noms: noms, num: num, groupes: groupes, debut: fixe });
     }
     /* Les plus précises d'abord (le plus de texte fixe) */
     xCache.sort(function (a, b) { return b.debut.length - a.debut.length; });

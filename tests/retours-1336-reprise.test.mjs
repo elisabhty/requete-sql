@@ -31,5 +31,5 @@ test('l’aplat de la reprise : sans logo ni barre ; le cache change', () => {
   assert.ok(lq.includes('html.is-native.lq #loader.is-reprise{position:fixed;inset:0;z-index:2147483000;display:block;padding:0;background:#F4F2FC!important}'));
   assert.ok(lq.includes('html.is-native.lq #loader.is-reprise>*{display:none!important}'));
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=389">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-17-module-v3116';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-17-module-v3117';"));
 });
