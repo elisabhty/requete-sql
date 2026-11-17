@@ -43237,6 +43237,16 @@ function planReequilibrer(p){
    de jeudi, et aujourd’hui disait « Journée libre ») : « Il faut prendre en compte qu’on peut valider des leçons qui ne sont pas
    planifiées au jour même ». Une activité validée avant le jour de sa séance passe au jour où elle l’a été (planAnchorDone), et ce qui
    reste est réparti de nouveau (planReequilibrer) : aujourd’hui montre la leçon faite, la séance suivante reste entière, la fin avance. */
+/* 17 novembre, 18 h 06 (Elisa) : « je préfère commencer par 3 leçons au début du plan et finir par une à la fin si jamais (3 max du coup
+   car c’est ce qu’on a planifié, mais 3 au début) » ; 18 h 10 : « Non, j’en ai eu une quand j’ai commencé ». Une séance à venir plus
+   petite que le rythme (ses leçons du jour, validées comprises), alors que d’autres suivent : la répartition est refaite, des séances
+   pleines d’abord, la plus petite à la fin. */
+function planTrou(p){
+  if(!p||!Array.isArray(p.sessions))return false;
+  const t=dstr(auj()),cap=planPer(p.per||2);
+  const v=p.sessions.filter(s=>s&&s.d&&s.d>=t&&Array.isArray(s.lessons)&&s.lessons.some(id=>!itemDone(id))).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+  return v.slice(0,-1).some(s=>s.lessons.length<cap);
+}
 function planEnAvance(p){
   return (p&&Array.isArray(p.sessions)?p.sessions:[]).some(s=>s&&s.d&&Array.isArray(s.lessons)&&s.lessons.some(id=>itemDone(id)&&itemDoneDay(id,s.d)<s.d));
 }
@@ -43245,7 +43255,7 @@ function planDecalerAuto(){
   if(!p||!Array.isArray(p.sessions))return 0;
   const t=dstr(auj());
   const enRetard=p.sessions.filter(s=>s&&s.d&&s.d<t&&Array.isArray(s.lessons)&&s.lessons.some(id=>!itemDone(id)));
-  const surcharge=planSurcharge(p),avance=typeof planEnAvance==='function'&&planEnAvance(p);
+  const surcharge=planSurcharge(p),avance=(typeof planEnAvance==='function'&&planEnAvance(p))||(typeof planTrou==='function'&&planTrou(p));
   if(!enRetard.length&&p.equilibre===1&&!surcharge&&!avance)return 0;
   if(+p.per>PLAN_MAX_JOUR){p.per=PLAN_MAX_JOUR;p.rythme='intensif';}
   if(enRetard.length){
@@ -53026,6 +53036,9 @@ function renderCompte(){
   const nivLu=`Ton niveau : niveau ${level.rank}, ${level.label}. ${nivDit}.`;
   /* Ta semaine : les 7 jours du planning, à partir d’aujourd’hui, comme « Les 7 prochains jours » du Planning (Elisa, 30 octobre,
      22 h 11 : « c’est pas cette semaine, c’est aujourd’hui, du coup pour vendredi » : plus de lundi à jeudi en lunes avant l’inscription). */
+  /* 17 novembre, 18 h 10 (Elisa, capture : une lune aujourd’hui et « 1/3 » jeudi, la leçon faite en avance) : le planning est remis à
+     jour avant d’être lu ici aussi (leçons faites en avance, séances pleines d’abord). */
+  try{if(state.plan&&typeof planDecalerAuto==='function')planDecalerAuto();}catch(e){}
   const DAY_NAMES=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   const weekDays=Array.from({length:NB_JOURS_VUS},(_,i)=>{
     const date=addJ(auj(),i),iso=dstr(date),session=state.plan&&(state.plan.sessions||[]).find(s=>s.d===iso);
@@ -54205,7 +54218,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-17-module-v3118';
+  const SW_CACHE='requete-2026-11-17-module-v3119';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

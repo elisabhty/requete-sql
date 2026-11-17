@@ -16,7 +16,7 @@ const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const lq = fs.readFileSync(path.join(ROOT, 'ludique.css'), 'utf8');
 const fn = n => { const i = app.indexOf('function ' + n + '('); assert.ok(i >= 0, n); return app.slice(i, app.indexOf('\n}\n', i) + 3); };
 const code = ['jour0', 'auj', 'dstr', 'parseD', 'addJ', 'planMergeSessions', 'trierSessions', 'sessionDe', 'debutPlan', 'jourRepos', 'itemDoneDay', 'planAnchorDone',
-  'planPer', 'planFaitsParJour', 'planRemplir', 'planSurcharge', 'planReequilibrer', 'planEnAvance', 'planDecalerAuto'].map(fn).join('\n');
+  'planPer', 'planFaitsParJour', 'planRemplir', 'planSurcharge', 'planReequilibrer', 'planTrou', 'planEnAvance', 'planDecalerAuto'].map(fn).join('\n');
 const PATTERN = { 2: [1, 4], 3: [1, 3, 5], 5: [1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };
 
 /* Aujourd’hui = today ; sessions : [['11-09', [1, 2, 3]], …] ; done : { id: jour de validation } ; o.per : la taille d’une séance ;
@@ -174,4 +174,21 @@ test('une leçon validée avant sa séance passe au jour de sa validation, et la
   /* La séance du jour pas finie, une leçon d’un autre jour faite à la place : le jour reste à 3, le reste glisse */
   assert.deepEqual(decaler('2026-11-19', 2, [['11-19', [1, 2, 3]], ['11-23', [4, 5, 6]]], { 1: '11-19', 4: '11-19' }).jours,
     ['11-19:1,4,2', '11-23:3,5,6']);
+});
+
+/* 18 h 06 et 18 h 10 (Elisa) : « commencer par 3 leçons au début du plan et finir par une à la fin si jamais (3 max) » ; « j’en ai eu
+   une quand j’ai commencé ». Une séance à venir plus petite que le rythme, suivie d’autres : des séances pleines d’abord, la plus
+   petite à la fin. */
+test('des séances pleines d’abord, la plus petite à la fin', () => {
+  /* Le premier jour (dimanche, jour de départ du parcours) n’avait qu’une leçon */
+  assert.deepEqual(decaler('2026-11-15', 2, [['11-15', [1]], ['11-16', [2, 3, 4]], ['11-19', [5, 6, 7]], ['11-23', [8, 9, 10]]]).jours,
+    ['11-15:1,2,3', '11-16:4,5,6', '11-19:7,8,9', '11-23:10']);
+  /* Des séances de 2 au milieu d’un rythme de 3 */
+  assert.deepEqual(decaler('2026-11-16', 2, [['11-16', [1, 2, 3]], ['11-19', [4, 5]], ['11-23', [6, 7]], ['11-26', [8]]]).jours,
+    ['11-16:1,2,3', '11-19:4,5,6', '11-23:7,8']);
+  /* Déjà bien réparti (la dernière plus petite) : rien ne bouge ; une séance du jour en cours (1 validée sur 3) non plus */
+  assert.equal(decaler('2026-11-16', 2, [['11-16', [1, 2, 3]], ['11-19', [4, 5, 6]], ['11-23', [7]]]).n, 0);
+  assert.equal(decaler('2026-11-16', 2, [['11-16', [1, 2, 3]], ['11-19', [4, 5, 6]], ['11-23', [7]]], { 1: '11-16' }).n, 0);
+  /* Le rythme de 2 : une séance de 2 suivie d’autres n’est pas un trou */
+  assert.equal(decaler('2026-11-16', 2, [['11-16', [1, 2]], ['11-19', [3, 4]], ['11-23', [5]]], {}, { per: 2 }).n, 0);
 });
