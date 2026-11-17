@@ -436,6 +436,7 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "{m1} : repos": "{m1}: rest",
     "{m1} : séance prévue": "{m1}: session planned",
     "Encore {1} séances d’ici {m1}.": "{1} more sessions by {m1}.",
+    "Encore {1} séance d’ici {m1}.": "{1} more session by {m1}.",
     "Débloqué": "Unlocked",
     "Premier défi réussi": "First challenge solved",
     "Série de {1} jours": "{1}-day streak",
