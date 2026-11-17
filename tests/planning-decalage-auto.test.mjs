@@ -16,7 +16,7 @@ const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const lq = fs.readFileSync(path.join(ROOT, 'ludique.css'), 'utf8');
 const fn = n => { const i = app.indexOf('function ' + n + '('); assert.ok(i >= 0, n); return app.slice(i, app.indexOf('\n}\n', i) + 3); };
 const code = ['jour0', 'auj', 'dstr', 'parseD', 'addJ', 'planMergeSessions', 'trierSessions', 'sessionDe', 'debutPlan', 'jourRepos', 'itemDoneDay', 'planAnchorDone',
-  'planPer', 'planFaitsParJour', 'planRemplir', 'planSurcharge', 'planReequilibrer', 'planDecalerAuto'].map(fn).join('\n');
+  'planPer', 'planFaitsParJour', 'planRemplir', 'planSurcharge', 'planReequilibrer', 'planEnAvance', 'planDecalerAuto'].map(fn).join('\n');
 const PATTERN = { 2: [1, 4], 3: [1, 3, 5], 5: [1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] };
 
 /* Aujourd’hui = today ; sessions : [['11-09', [1, 2, 3]], …] ; done : { id: jour de validation } ; o.per : la taille d’une séance ;
@@ -155,4 +155,23 @@ test('« vérifier tous les chiffres de la page » (Elisa, 10 novembre, 6 h 53)'
   assert.ok(app.includes("<span>${activitesCompte(progress.done,progress.total,{verbe:'terminée',zero:'à découvrir'})}</span>") && app.includes('<span>${semaineCompte(weekComplete,weekPlanned)}</span>'));
   const c = {}; vm.runInNewContext(fn('activitesCompte') + ';this.a=activitesCompte;', c);
   assert.deepEqual([c.a(0, 71, { verbe: 'terminée', zero: 'à découvrir' }), c.a(3, 71, { verbe: 'terminée' }), c.a(71, 71, { verbe: 'terminée' })], ['71 activités à découvrir', '3 activités terminées sur 71', '71 activités terminées']);
+});
+
+/* 17 novembre, 17 h 58 (Elisa, captures du Planning : « Renommer avec AS », prévue jeudi, validée mardi, restait cochée dans la séance
+   de jeudi, et mardi disait « Journée libre ») : « Il faut prendre en compte qu’on peut valider des leçons qui ne sont pas planifiées
+   au jour même ». La leçon passe au jour où elle a été validée ; la séance suivante reste entière, la fin du parcours avance. */
+test('une leçon validée avant sa séance passe au jour de sa validation, et la suite se répartit de nouveau', () => {
+  /* 2 séances par semaine (lundi, jeudi), mardi 17 : la leçon 2 de jeudi est faite aujourd’hui */
+  const r = decaler('2026-11-17', 2, [['11-15', [1]], ['11-19', [2, 3, 4]], ['11-23', [5, 6, 7]], ['11-26', [8, 9]]], { 1: '11-15', 2: '11-17' });
+  assert.equal(r.n, 1);
+  assert.deepEqual(r.jours, ['11-15:1', '11-17:2', '11-19:3,4,5', '11-23:6,7,8', '11-26:9']);
+  assert.ok(!r.manques || !r.manques.includes('2026-11-17'), 'aujourd’hui n’est pas un jour manqué');
+  /* Puis plus rien à faire : la leçon est à son jour */
+  assert.equal(decaler('2026-11-17', 2, [['11-15', [1]], ['11-17', [2]], ['11-19', [3, 4, 5]]], { 1: '11-15', 2: '11-17' }).n, 0);
+  /* Un jour d’étude avec sa séance : la leçon d’après, faite en plus, s’y ajoute ; la séance suivante reste à la taille du rythme */
+  assert.deepEqual(decaler('2026-11-19', 2, [['11-19', [1, 2, 3]], ['11-23', [4, 5, 6]], ['11-26', [7, 8, 9]]], { 1: '11-19', 2: '11-19', 3: '11-19', 4: '11-19' }).jours,
+    ['11-19:1,2,3,4', '11-23:5,6,7', '11-26:8,9']);
+  /* La séance du jour pas finie, une leçon d’un autre jour faite à la place : le jour reste à 3, le reste glisse */
+  assert.deepEqual(decaler('2026-11-19', 2, [['11-19', [1, 2, 3]], ['11-23', [4, 5, 6]]], { 1: '11-19', 4: '11-19' }).jours,
+    ['11-19:1,4,2', '11-23:3,5,6']);
 });

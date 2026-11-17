@@ -94,7 +94,7 @@ test('partout où le planning se refait : la création, « Adapter mon rythme »
   assert.ok(fo.includes('neuf.sessions=planMergeSessions(ancrees,planRemplir(reste,per,draft.freq,auj(),planFaitsParJour(ancrees)));'));
   assert.ok(fn('nettoyerPlan').includes('const per=planPer(p.per),tJour=dstr(auj());'));
   assert.ok(fn('planReequilibrer').includes('const nouv=planMergeSessions(ancrees,planRemplir(reste,per,p.freq,d,planFaitsParJour(ancrees)));'));
-  assert.ok(fn('planDecalerAuto').includes('if(!enRetard.length&&p.equilibre===1&&!surcharge)return 0;'));
+  assert.ok(fn('planDecalerAuto').includes('if(!enRetard.length&&p.equilibre===1&&!surcharge&&!avance)return 0;'));
   // Le rythme le plus chargé de la création : 4
   const ctx = vm.createContext({});
   vm.runInContext(cut('const RYTHMES=[', 'const FREQS=[') + ';this.R=RYTHMES;', ctx);
