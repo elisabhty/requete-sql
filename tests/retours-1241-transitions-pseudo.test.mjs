@@ -55,12 +55,12 @@ test('CSS : plus de fondu de sortie ; pas de transition tant que la page se pose
   assert.ok(ob.includes('html[data-motion="reduce"] #onboarding.ob-vitrine.ob-clavier .ob-pseudo>.ob-chat{display:none!important}'));
   assert.ok(ob.includes('html #onboarding.ob-vitrine.ob-clavier .ob-pseudo .ps-etat{margin-top:8px!important}') && ob.includes('html #onboarding.ob-vitrine.ob-clavier .ob-pseudo .ps-idees{margin-top:6px!important}'), 'clavier ouvert, les pseudos libres tiennent au-dessus du bouton');
   assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=73">') && sw.includes("'./onboarding-vitrine.css?v=73',"));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-17-module-v3119';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-17-module-v3120';"), 'le cache de l’appli change');
 });
 
 test('13 h 04 (« un trait en bas quand je soumets mon prénom, clavier ») : dans l’app, sous l’onboarding, le fond reste le violet du bas', () => {
   const lq = readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
   assert.ok(lq.includes('html.lq.is-native:has(#onboarding.on) body{background:#4529CC!important}'));
   assert.ok(lq.indexOf('html.lq.is-native:has(#onboarding.on) body{background:#4529CC!important}') > lq.indexOf('html.lq:has(#onboarding.on) body{background:#6E50F6!important}'), 'après la règle du violet clair, qu’elle remplace dans l’app');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=389">'), 'la feuille change d’adresse (le cache de l’appli la reprend)');
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=390">'), 'la feuille change d’adresse (le cache de l’appli la reprend)');
 });

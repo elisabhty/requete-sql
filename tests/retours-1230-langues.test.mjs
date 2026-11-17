@@ -170,7 +170,7 @@ test('le SQL : sur la vraie base du cours, la requête récrite donne le même r
 });
 
 test('index.html : langues.js juste après maj.js, le prénom confié au moteur, le choix de la langue seulement en essai', () => {
-  const i = app.indexOf('<script src="maj.js?v=2"></script>'), j = app.indexOf(`<script src="langues.js?v=${VER('langues.js')}" data-defis></script>`);
+  const i = app.indexOf('<script src="maj.js?v=3"></script>'), j = app.indexOf(`<script src="langues.js?v=${VER('langues.js')}" data-defis></script>`);
   assert.ok(i > 0 && j > i && j < app.indexOf('<script src="vendor/sqljs/sql-wasm.js"></script>'));
   assert.ok(sw.includes(`'./langues.js?v=${VER('langues.js')}',`) && sw.includes(`'./langue-en.js?v=${VER('langue-en.js')}',`));
   assert.ok(app.includes("window.REQUETE_LANGUE.valeur('prenom',()=>state.name||(typeof draft!=='undefined'&&draft&&draft.name)||'')"), 'pendant l’onboarding, le prénom tapé');

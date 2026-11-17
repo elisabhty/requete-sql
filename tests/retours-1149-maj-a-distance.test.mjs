@@ -354,9 +354,9 @@ test('les versions d’essai : l’annonce dit quels iPhone sont en essai (l’e
 /* ---------- l’appli : index.html, sw.js, la configuration ---------- */
 
 test('index.html : maj.js en premier, le démarrage confirmé à la fin de boot, le numéro de version partout le même', () => {
-  const i = app.indexOf('<script src="maj.js?v=2"></script>');
+  const i = app.indexOf('<script src="maj.js?v=3"></script>');
   assert.ok(i > 0 && i < app.indexOf('<script src="vendor/sqljs/sql-wasm.js"></script>') && i < app.indexOf('<style>'), 'chargé avant le moteur SQL et les styles');
-  assert.ok(sw.includes("'./maj.js?v=2',"), 'gardé hors ligne comme les autres scripts');
+  assert.ok(sw.includes("'./maj.js?v=3',"), 'gardé hors ligne comme les autres scripts');
   const nom = /var NOM = '([^']+)';/.exec(MAJ)[1];
   assert.ok(app.includes(`const SW_CACHE='${nom}';`) && sw.includes(`const CACHE = '${nom}';`), 'maj.js, index.html et sw.js : le même numéro');
   assert.equal(versionDe(MAJ), +/v(\d+)$/.exec(nom)[1]);

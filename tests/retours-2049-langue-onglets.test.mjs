@@ -13,7 +13,7 @@ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const app = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
 const cut = (a, b) => { const i = app.indexOf(a); assert.ok(i >= 0, a); const j = app.indexOf(b, i); assert.ok(j > i, b); return app.slice(i, j); };
 
-test('l’onboarding : la langue de l’appli sous le pays, déjà choisie, l’autre d’un appui', () => {
+test('l’onboarding : la langue de l’appli sous le pays, déjà choisie, l’autre d’un appui', async () => {
   assert.ok(app.includes("<u>Choisir dans la liste</u>'}</button>${obLangueHTML()}</div>`;"), 'sous « Ce n’est pas ton pays ? Modifier »');
   const code = cut('function langueDrapeau(c){', 'function openLegal(kind){') + cut('function obLangueHTML(){', 'function obPaysListe(){');
   const ctx = {window: {}, esc: s => String(s), prefersReduceMotion: () => true, obLock: false, obRepriseGarder: s => { ctx.garde = s; }};
@@ -29,6 +29,7 @@ test('l’onboarding : la langue de l’appli sous le pays, déjà choisie, l’
   assert.ok(h.includes('class="ob-langue-c" role="radio" aria-checked="false" lang="en" data-notrad onclick="obLangueChoisir(\'en\',this)"><span class="lg-drapeau" aria-hidden="true">🇺🇸</span><span class="lg-nom">English</span>'));
   ctx.setTimeout = f => f();
   vm.runInNewContext('obLangueChoisir("en",null)', ctx);
+  await new Promise(r => setImmediate(r));   // 17 novembre : la langue change une fois le voile entier (rqVoile, une promesse)
   assert.equal(ctx.garde, 'pays', 'la page et les réponses gardées : l’onboarding reprend ici, dans l’autre langue');
   assert.equal(change, 'en');
   assert.ok(app.includes("valeur('prenom',()=>state.name||(typeof draft!=='undefined'&&draft&&draft.name)||'')"), 'le prénom tapé pendant l’onboarding');

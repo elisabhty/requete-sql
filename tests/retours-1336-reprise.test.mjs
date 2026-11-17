@@ -19,7 +19,7 @@ test('rechargée pendant la même ouverture : pas d’ouverture animée', () => 
 });
 
 test('le démarrage pose la marque ; l’écran de lancement disparaît d’un coup sur la page reprise', () => {
-  assert.ok(cut('async function boot(){', '\n}\n').includes("  if(demarrageOk){try{sessionStorage.setItem('rq-session','1');}catch(e){}}\n  hideLoader();"));
+  assert.ok(cut('async function boot(){', '\n}\n').includes("  if(demarrageOk&&!window.__majInstalle){try{sessionStorage.setItem('rq-session','1');}catch(e){}}   // remplacée par maj.js : la suivante garde son ouverture\n  hideLoader();"));
   const cacher = cut('function hideLoader(){', '\n}\n');
   assert.ok(cacher.indexOf("if(typeof window!=='undefined'&&window.__appReprise&&loader){window.nativeAppReady&&window.nativeAppReady();loader.classList.add('fade-out');loader.style.display='none';return;}")
     < cacher.indexOf('__introJouer'));
@@ -30,6 +30,6 @@ test('le démarrage pose la marque ; l’écran de lancement disparaît d’un c
 test('l’aplat de la reprise : sans logo ni barre ; le cache change', () => {
   assert.ok(lq.includes('html.is-native.lq #loader.is-reprise{position:fixed;inset:0;z-index:2147483000;display:block;padding:0;background:#F4F2FC!important}'));
   assert.ok(lq.includes('html.is-native.lq #loader.is-reprise>*{display:none!important}'));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=389">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-17-module-v3119';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=390">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-17-module-v3120';"));
 });

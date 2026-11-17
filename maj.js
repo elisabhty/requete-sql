@@ -64,7 +64,7 @@
   'use strict';
 
   /* Le même identifiant que SW_CACHE (index.html) et CACHE (sw.js) : la montée de version le remplace partout à la fois. */
-  var NOM = 'requete-2026-11-17-module-v3119';
+  var NOM = 'requete-2026-11-17-module-v3120';
   var ORIGINE = 'https://requeteapp.com/';
   var ANNONCE = ORIGINE + 'maj/version.json';
   var PAUSE_MS = 30 * 60 * 1000;           // entre deux lectures de l'annonce
@@ -142,6 +142,12 @@
   function dejaTentee(v) { try { return sessionStorage.getItem(CLE.session) === String(v); } catch (e) { return false; } }
   function tenter(v) { try { sessionStorage.setItem(CLE.session, String(v)); } catch (e) {} }
 
+  /* 17 novembre, 18 h 19 (« il y a comme un flash ») : pendant l’installation, la page qui va être remplacée le dit
+     (window.__majInstalle) : elle garde l’écran de lancement ou le voile et ne montre rien (index.html, en-tête de #loader). Si
+     l’installation échoue, tout reprend (__majLibere) ; la page reprend aussi d’elle-même si elle n’est pas remplacée à temps. */
+  function lacher() { try { if (window.__majLibere) window.__majLibere(); else window.__majInstalle = false; } catch (e) {} }
+  function tenir() { try { window.__majInstalle = true; } catch (e) {} }
+
   function appliquer() {
     if (!P) return 'rien';
     var retour = lire(CLE.retour);
@@ -150,8 +156,8 @@
       /* La version téléchargée en cours a été retirée du site : retour au contenu embarqué dans l'appli. */
       if (+retour.version === VERSION) {
         ecrire(CLE.prete, null); ecrire(CLE.essais, null);
-        installation = true;
-        appeler('reset', {}).catch(function (e) { installation = false; noter('retour raté', e); reprendre(); });
+        installation = true; tenir();
+        appeler('reset', {}).catch(function (e) { installation = false; lacher(); noter('retour raté', e); reprendre(); });
         return 'retour';
       }
     }
@@ -171,11 +177,11 @@
     tenter(v);
     var suivi = {}; suivi[v] = n + 1;
     ecrire(CLE.essais, suivi);
-    installation = true;
+    installation = true; tenir();
     appeler('set', { id: prete.id }).catch(function (e) {
       /* Le paquet n'existe plus (l'appli a été mise à jour par l'App Store, ou le plugin l'a effacé) : ce n'était pas un essai.
          On l'oublie : la prochaine lecture de l'annonce le retéléchargera s'il est toujours d'actualité. */
-      installation = false;
+      installation = false; lacher();
       ecrire(CLE.prete, null);
       var s = {}; if (n > 0) s[v] = n;
       ecrire(CLE.essais, n > 0 ? s : null);

@@ -68,8 +68,9 @@ test('Mon compte : les compteurs au pluriel en anglais, l’heure du rappel à l
 });
 
 test('un rechargement voulu garde la touche, le nom et l’anneau à l’écran', () => {
-  assert.ok(app.includes("if(reprise){L.classList.add('is-reprise');if(voulu)L.classList.add('is-recharge');window.__appReprise=true;return;}"));
-  assert.ok(app.includes("go=()=>setTimeout(()=>{ if(typeof rqVoile==='function')rqVoile(); setTimeout(()=>location.reload(),180); }"), 'tirer pour actualiser');
-  assert.ok(app.includes("setTimeout(()=>{if(typeof rqVoile==='function')rqVoile();},prefersReduceMotion()?0:140);"), 'la langue');
+  assert.ok(app.includes("if(reprise){L.classList.add('is-reprise');if(voulu){L.classList.add('is-recharge');if(tVoile>0)L.style.setProperty('--rq-ph',(-Math.min(6e5,Math.max(0,Date.now()-tVoile)))+'ms');}window.__appReprise=true;return;}"));
+  /* 17 novembre (« il y a comme un flash ») : on recharge quand le voile est entier (retours-1819-flash-rechargement) */
+  assert.ok(app.includes("go=()=>setTimeout(()=>{ (typeof rqVoile==='function'?rqVoile():Promise.resolve()).then(()=>location.reload()); }"), 'tirer pour actualiser');
+  assert.ok(app.includes("setTimeout(()=>{(typeof rqVoile==='function'?rqVoile():Promise.resolve()).then(()=>{if(!L.changer(c)){"), 'la langue');
   assert.ok(css.includes('html.lq .rq-voile,html.is-native.lq #loader.is-reprise.is-recharge{position:fixed;inset:0;z-index:2147483000;display:flex!important;'));
 });

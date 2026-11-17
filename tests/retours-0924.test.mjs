@@ -86,7 +86,7 @@ test('défilement : l’écran défile nativement ; #app et la scène ne restent
   assert.ok(!/@keyframes lqPing\{[^}]*box-shadow/.test(css));
 });
 
-test('défilement : tirer pour actualiser, tout en passif — seuil, haut de l’écran, rechargement', () => {
+test('défilement : tirer pour actualiser, tout en passif — seuil, haut de l’écran, rechargement', async () => {
   const src = cut('(function pullToRefresh(){', '/* #app et la scène ne défilent jamais');
   const mk = () => {
     const ls = {}, reloads = [];
@@ -113,6 +113,7 @@ test('défilement : tirer pour actualiser, tout en passif — seuil, haut de l�
   for (let i = 1; i <= 16; i++) k.ls.touchmove.f(k.ev(200 + i * 14));
   assert.equal(k.ptr.style.opacity, '1', 'la pastille est là');
   k.ls.touchend.f(k.ev(null)); k.run(); k.run();
+  await new Promise(r => setImmediate(r));   // 17 novembre : le rechargement attend que le voile soit entier (rqVoile, une promesse)
   assert.equal(k.reloads.length, 1, 'rechargement');
   assert.equal(k.prevented(), 0, 'le geste n’est jamais annulé');
   /* Un petit tirer : la pastille repart, rien ne se recharge */

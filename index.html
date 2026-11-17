@@ -39,7 +39,7 @@
 <!-- Elisa, 13 novembre, 11 h 49 : « modifier un cours, ajouter un parcours, modifier une faute, sans passer par une mise en prod
      Apple ». maj.js, chargé avant tout le reste : dans l’app iPhone, une version plus récente déjà téléchargée depuis requeteapp.com
      s’installe ici, sous l’écran de lancement (jamais en cours d’utilisation). Dans un navigateur, il ne fait rien. Voir maj.js. -->
-<script src="maj.js?v=2"></script>
+<script src="maj.js?v=3"></script>
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
@@ -6724,7 +6724,7 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
       };
     }catch(e){}
   }
-  window.nativeAppReady=function(){try{P.SplashScreen&&P.SplashScreen.hide({fadeOutDuration:250});}catch(e){}};
+  window.nativeAppReady=function(){if(window.__majInstalle)return;try{P.SplashScreen&&P.SplashScreen.hide({fadeOutDuration:250});}catch(e){}};
 })();
 </script>
 <style id="ios-finish">
@@ -6819,7 +6819,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=389">
+<link rel="stylesheet" href="ludique.css?v=390">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=73">
 <style id="lesson-video-css">
@@ -7582,8 +7582,20 @@ html.lq #scr-compte .plus-row-icon.is-icone,#scr-compte .plus-row-icon.is-icone{
   /* 15 novembre, 23 h 25 (Elisa : « quand on fait le geste du chargement ça fait tout blanc », « quand on change de langue ça fait un
      flash blanc ») : un rechargement voulu (tirer pour actualiser, la langue : rqVoile) garde à l’écran la touche, le nom et l’anneau,
      de la page qui part à celle qui arrive, puis s’efface en fondu. L’appli déchargée par iOS revient toujours sur un simple aplat. */
-  var voulu=false;try{voulu=sessionStorage.getItem('rq-recharge')==='1';sessionStorage.removeItem('rq-recharge');}catch(e){}
-  if(reprise){L.classList.add('is-reprise');if(voulu)L.classList.add('is-recharge');window.__appReprise=true;return;}
+  /* 17 novembre, 18 h 19 (« il y a comme un flash ») : une version téléchargée s’installe (maj.js, window.__majInstalle) : cette
+     page va être remplacée tout de suite. Elle n’efface pas le voile (la suivante le montre aussi), ne lance pas l’ouverture, ne
+     retire pas l’écran de lancement et ne montre pas l’appli (hideLoader) : rien ne s’affiche deux fois. Si l’installation échoue,
+     maj.js appelle __majLibere : tout reprend. L’anneau et la touche du voile continuent où ils en étaient (--rq-ph). */
+  var voulu=false,tVoile=0;try{voulu=sessionStorage.getItem('rq-recharge')==='1';tVoile=+sessionStorage.getItem('rq-recharge-t')||0;
+    if(!window.__majInstalle){sessionStorage.removeItem('rq-recharge');sessionStorage.removeItem('rq-recharge-t');}}catch(e){}
+  window.__majLibere=function(){
+    if(!window.__majInstalle)return;
+    window.__majInstalle=false;
+    try{sessionStorage.removeItem('rq-recharge');sessionStorage.removeItem('rq-recharge-t');}catch(e){}
+    var f=window.__majApres;window.__majApres=null;if(f)try{f();}catch(e){}
+  };
+  if(window.__majInstalle)setTimeout(function(){window.__majLibere();},6000);   // pas remplacée à temps : tout reprend
+  if(reprise){L.classList.add('is-reprise');if(voulu){L.classList.add('is-recharge');if(tVoile>0)L.style.setProperty('--rq-ph',(-Math.min(6e5,Math.max(0,Date.now()-tVoile)))+'ms');}window.__appReprise=true;return;}
   L.classList.add('is-intro');
   var calme=false;
   try{calme=matchMedia('(prefers-reduced-motion: reduce)').matches||/"reduceMotion":true/.test(localStorage.getItem('requete-sql-v3')||'');}catch(e){}
@@ -7745,6 +7757,7 @@ html.lq #scr-compte .plus-row-icon.is-icone,#scr-compte .plus-row-icon.is-icone{
   };
   var jouer=function(){
     if(lance)return;
+    if(window.__majInstalle){window.__majApres=jouer;return;}   // la page va être remplacée : l’écran de lancement reste
     lance=true;
     L.classList.remove('is-long');
     try{C&&C.Plugins&&C.Plugins.SplashScreen&&C.Plugins.SplashScreen.hide({fadeOutDuration:0});}catch(e){}
@@ -20885,6 +20898,7 @@ function bootFatal(){
    l’anneau tourner ; un chargement plus long n’attend rien de plus. */
 const LOADER_MIN_MS=1000;
 function hideLoader(){
+  if(typeof window!=='undefined'&&window.__majInstalle){window.__majApres=hideLoader;return;}   // maj.js installe : la page va être remplacée
   const loader=document.getElementById('loader');
   /* La page rechargée pendant la même ouverture de l’appli (voir l’en-tête de #loader) : elle apparaît d’un coup, telle qu’on l’avait. */
   if(typeof window!=='undefined'&&window.__appReprise&&loader){window.nativeAppReady&&window.nativeAppReady();loader.classList.add('fade-out');
@@ -21002,7 +21016,7 @@ async function boot(){
      erreur n’est pas confirmée : au bout de 20 secondes, l’appli revient d’elle-même à la version d’avant. */
   try{window.REQUETE_MAJ&&window.REQUETE_MAJ.pret(demarrageOk);}catch(e){}
   /* 14 novembre, 13 h 36 : cette ouverture de l’appli a démarré ; un rechargement d’ici à sa fermeture est une reprise (en-tête de #loader) */
-  if(demarrageOk){try{sessionStorage.setItem('rq-session','1');}catch(e){}}
+  if(demarrageOk&&!window.__majInstalle){try{sessionStorage.setItem('rq-session','1');}catch(e){}}   // remplacée par maj.js : la suivante garde son ouverture
   hideLoader();
 }
 /* Spotlight : le curseur dépose les coordonnées du halo sur la carte survolée.
@@ -53377,8 +53391,8 @@ function langueChanger(c,btn){
   const g=btn&&btn.closest('[role=radiogroup]');
   if(g){g.querySelectorAll('[role=radio]').forEach(b=>{const on=b.getAttribute('lang')===c;b.classList.toggle('on',on);b.setAttribute('aria-checked',on?'true':'false');});g.classList.add('is-change');}
   if(typeof buzz==='function')buzz('light');
-  setTimeout(()=>{if(typeof rqVoile==='function')rqVoile();},prefersReduceMotion()?0:140);
-  setTimeout(()=>{if(!L.changer(c)){if(g)g.classList.remove('is-change');if(typeof rqVoileRetirer==='function')rqVoileRetirer();}},prefersReduceMotion()?0:320);
+  /* 17 novembre : la langue change une fois le voile entier à l’écran (rqVoile), plus à heure fixe */
+  setTimeout(()=>{(typeof rqVoile==='function'?rqVoile():Promise.resolve()).then(()=>{if(!L.changer(c)){if(g)g.classList.remove('is-change');if(typeof rqVoileRetirer==='function')rqVoileRetirer();}});},prefersReduceMotion()?0:140);
   return true;
 }
 function openLegal(kind){
@@ -54095,14 +54109,25 @@ boot();
    déjà défilée, ou quand l’écran utilise déjà le doigt (glisser une activité du planning, un sticker). */
 /* 15 novembre, 23 h 25 : avant un rechargement voulu, la touche, le nom et l’anneau, sur le fond de l’appli, en fondu (0,18 s) ; la
    page qui arrive les garde au même endroit (#loader.is-recharge) jusqu’à ce qu’elle soit prête. */
+/* 17 novembre, 18 h 19 (Elisa, capture de ce voile : « il y a comme un flash ») : la page partait 0,18 s après le voile, encore à
+   moitié transparent (l’appli dessous), et la page qui arrive le montrait d’un coup, entier, l’anneau et la touche repartis de
+   zéro. rqVoile rend une promesse, tenue quand le voile est entier à l’écran : on recharge à ce moment-là. L’heure du voile
+   (rq-recharge-t) fait continuer l’anneau et la touche, dans la page qui arrive, là où ils en étaient. */
 function rqVoile(){
-  try{sessionStorage.setItem('rq-recharge','1');}catch(e){}
-  if(document.querySelector('.rq-voile'))return;
-  const v=document.createElement('div');v.className='rq-voile';v.setAttribute('aria-hidden','true');
-  v.innerHTML='<div class="logo-badge">&gt;_</div><b class="ld-name">Requête</b><div class="spinner"></div>';
-  document.body.appendChild(v);void v.offsetWidth;v.classList.add('on');
+  let v=document.querySelector('.rq-voile');
+  if(!v){
+    try{sessionStorage.setItem('rq-recharge','1');sessionStorage.setItem('rq-recharge-t',String(Date.now()));}catch(e){}
+    v=document.createElement('div');v.className='rq-voile';v.setAttribute('aria-hidden','true');
+    v.innerHTML='<div class="logo-badge">&gt;_</div><b class="ld-name">Requête</b><div class="spinner"></div>';
+    document.body.appendChild(v);void v.offsetWidth;v.classList.add('on');
+  }
+  return new Promise(ok=>{
+    let fait=false;const fin=()=>{if(fait)return;fait=true;requestAnimationFrame(()=>requestAnimationFrame(()=>ok()));};
+    v.addEventListener('transitionend',fin,{once:true});
+    setTimeout(fin,typeof prefersReduceMotion==='function'&&prefersReduceMotion()?0:240);
+  });
 }
-function rqVoileRetirer(){const v=document.querySelector('.rq-voile');if(v)v.remove();try{sessionStorage.removeItem('rq-recharge');}catch(e){}}
+function rqVoileRetirer(){const v=document.querySelector('.rq-voile');if(v)v.remove();try{sessionStorage.removeItem('rq-recharge');sessionStorage.removeItem('rq-recharge-t');}catch(e){}}
 (function pullToRefresh(){
   const stage=document.querySelector('#app > .stage'); if(!stage)return;
   const ptr=document.createElement('div'); ptr.className='ptr'; ptr.setAttribute('aria-hidden','true');
@@ -54162,7 +54187,7 @@ function rqVoileRetirer(){const v=document.querySelector('.rq-voile');if(v)v.rem
     try{ if(navigator.vibrate&&navigator.userActivation&&navigator.userActivation.hasBeenActive)navigator.vibrate(8); }catch(err){}
     /* Le service worker vérifie d’abord s’il y a une nouvelle version ; la page est rechargée de toute façon,
        après au moins 0,7 s de rotation, pour qu’on la voie tourner. */
-    const t0=Date.now(), go=()=>setTimeout(()=>{ if(typeof rqVoile==='function')rqVoile(); setTimeout(()=>location.reload(),180); },Math.max(150,700-(Date.now()-t0)));
+    const t0=Date.now(), go=()=>setTimeout(()=>{ (typeof rqVoile==='function'?rqVoile():Promise.resolve()).then(()=>location.reload()); },Math.max(150,700-(Date.now()-t0)));
     const sw=navigator.serviceWorker;
     if(sw&&sw.getRegistration){ Promise.race([sw.getRegistration().then(r=>r&&r.update()),new Promise(r=>setTimeout(r,1200))]).then(go,go); }
     else go();
@@ -54218,7 +54243,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-17-module-v3119';
+  const SW_CACHE='requete-2026-11-17-module-v3120';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
