@@ -174,7 +174,7 @@ test('automatique : reprogrammé quand ce qui est prévu change, et seulement al
 });
 
 test('branché partout : chaque enregistrement, l’ouverture, le retour dans l’appli ; sur le web, la page aussi suit le planning', () => {
-  assert.ok(app.includes("function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto==='function')rappelAuto(); if(typeof csPlusTard==='function')csPlusTard(); }"));
+  assert.ok(app.includes("function save(){ state=normalizeState(state); Store.set(KEY,state); coffreGarder(); if(typeof rappelAuto==='function')rappelAuto(); if(typeof csPlusTard==='function')csPlusTard(); }"));
   assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);"));
   assert.ok(app.includes("    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ rappelVu(); if(typeof rappelPlusTardAnnuler==='function')rappelPlusTardAnnuler(); tickRappel(); rappelAuto(400); } });"));
   /* La page ouverte (web) : la notification de l’heure, seulement un jour de séance pas encore faite */

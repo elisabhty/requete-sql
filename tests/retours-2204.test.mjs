@@ -101,7 +101,7 @@ test('« Adapter mon rythme » : les rappels suivent le nouveau planning', () =>
   x.ctx.state.plan.sessions = [{ d: '2026-11-06', lessons: [1, 2, 3] }, { d: '2026-11-09', lessons: [4, 5, 6] }, { d: '2026-11-11', lessons: [7, 8] }];
   x.ctx.state.plan.freq = 3;
   assert.deepEqual(x.jours(), ['2026-11-06', '2026-11-09', '2026-11-11']);
-  assert.ok(app.includes('function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto===\'function\')rappelAuto(); if(typeof csPlusTard===\'function\')csPlusTard(); }'));
+  assert.ok(app.includes('function save(){ state=normalizeState(state); Store.set(KEY,state); coffreGarder(); if(typeof rappelAuto===\'function\')rappelAuto(); if(typeof csPlusTard===\'function\')csPlusTard(); }'));
 });
 
 test('Mon compte : « Prochain rappel : demain à 10:00. », sans la phrase sur le planning', () => {

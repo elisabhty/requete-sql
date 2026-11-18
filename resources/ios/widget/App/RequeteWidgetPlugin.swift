@@ -1,4 +1,5 @@
 import Foundation
+import Security
 import UIKit
 import Capacitor
 import WidgetKit
@@ -261,6 +262,46 @@ enum RequeteIcone {
     }
 }
 
+/// Le coffre (18 novembre, 17 h 05 ; Elisa : « je veux qu’il retrouve automatiquement son pseudo, comme s’il l’avait retrouvé avec
+/// les historiques »). Supprimer l’app efface sa page (localStorage) : la clé du joueur partait avec, et son pseudo restait « déjà
+/// pris » par l’ancienne clé, ses points avec. Le trousseau d’iOS, lui, n’est pas effacé avec l’app. Deux éléments :
+/// - « cle » : la clé du joueur, synchronisée par le trousseau iCloud (un nouvel iPhone du même compte Apple la retrouve aussi) ;
+/// - « etat » : une copie de la progression (requete-sql-v3), gardée sur cet iPhone seulement (trop grosse pour iCloud).
+enum RequeteCoffre {
+    static let service = "fr.requete.app.coffre"
+    private static func base(_ compte: String, _ icloud: Bool) -> [String: Any] {
+        [kSecClass as String: kSecClassGenericPassword,
+         kSecAttrService as String: service,
+         kSecAttrAccount as String: compte,
+         kSecAttrSynchronizable as String: icloud]
+    }
+    static func lire(_ compte: String, _ icloud: Bool) -> String? {
+        var q = base(compte, icloud)
+        q[kSecReturnData as String] = true
+        q[kSecMatchLimit as String] = kSecMatchLimitOne
+        var res: AnyObject?
+        guard SecItemCopyMatching(q as CFDictionary, &res) == errSecSuccess, let d = res as? Data else { return nil }
+        return String(data: d, encoding: .utf8)
+    }
+    @discardableResult
+    static func ecrire(_ compte: String, _ valeur: String, _ icloud: Bool) -> Bool {
+        let q = base(compte, icloud), d = Data(valeur.utf8)
+        var st = SecItemUpdate(q as CFDictionary, [kSecValueData as String: d] as CFDictionary)
+        if st == errSecItemNotFound {
+            var a = q
+            a[kSecValueData as String] = d
+            // Un élément synchronisé par iCloud ne peut pas être « cet appareil seulement ».
+            a[kSecAttrAccessible as String] = icloud ? kSecAttrAccessibleAfterFirstUnlock : kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+            st = SecItemAdd(a as CFDictionary, nil)
+        }
+        return st == errSecSuccess
+    }
+    static func effacer(_ compte: String) {
+        for icloud in [true, false] { SecItemDelete(base(compte, icloud) as CFDictionary) }
+    }
+    static let file = DispatchQueue(label: "fr.requete.app.coffre", qos: .utility)
+}
+
 @objc(RequeteWidgetPlugin)
 public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "RequeteWidgetPlugin"
@@ -293,7 +334,10 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "partagerFichiers", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "widgetImages", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "icones", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "iconeChoisir", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "iconeChoisir", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "coffreLire", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "coffreEcrire", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "coffreEffacer", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -339,6 +383,38 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
             RequeteFichier.effacer(chemin)
         }
         call.resolve(["ok": true])
+    }
+
+    /// Le coffre, lu au démarrage quand la page n’a pas de progression (l’app réinstallée). Répond { cle, etat } (absents : vides).
+    @objc func coffreLire(_ call: CAPPluginCall) {
+        RequeteCoffre.file.async {
+            let cle = RequeteCoffre.lire("cle", true) ?? RequeteCoffre.lire("cle", false) ?? ""
+            let etat = RequeteCoffre.lire("etat", false) ?? ""
+            call.resolve(["cle": cle, "etat": etat])
+        }
+    }
+
+    /// La page range sa clé et sa progression : { cle?, etat? }. Répond { ok }.
+    @objc func coffreEcrire(_ call: CAPPluginCall) {
+        let cle = call.getString("cle"), etat = call.getString("etat")
+        RequeteCoffre.file.async {
+            var ok = true
+            if let cle = cle, !cle.isEmpty {
+                // Sans trousseau iCloud (désactivé dans Réglages), la clé reste au moins sur cet iPhone.
+                if !RequeteCoffre.ecrire("cle", cle, true) { ok = RequeteCoffre.ecrire("cle", cle, false) && ok }
+            }
+            if let etat = etat, !etat.isEmpty { ok = RequeteCoffre.ecrire("etat", etat, false) && ok }
+            call.resolve(["ok": ok])
+        }
+    }
+
+    /// « Supprimer mon compte » : plus rien à retrouver. Répond { ok }.
+    @objc func coffreEffacer(_ call: CAPPluginCall) {
+        RequeteCoffre.file.async {
+            RequeteCoffre.effacer("cle")
+            RequeteCoffre.effacer("etat")
+            call.resolve(["ok": true])
+        }
     }
 
     @objc private func raccourciRecu() {
