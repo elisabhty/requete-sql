@@ -64,7 +64,7 @@ test('« À bientôt ! » : le GIF une fois, en entier, puis la page de connexio
       querySelector: s => (s === 'img.lq-flamme-chat' ? img : null), classList: { add: c => cls.add(c), contains: c => cls.has(c) } };
     const ctx = vm.createContext({ document: { getElementById: () => null, createElement: () => el, body: { appendChild: e => corps.push(e) }, addEventListener: (e, f) => { ecoutes['doc-' + e] = f; }, removeEventListener: e => { delete ecoutes['doc-' + e]; } },
       setTimeout: (f, d) => { timers.push({ f, d }); return timers.length; }, clearTimeout() {}, mascotReduced: () => reduit, accord: (f) => f, ...plus });
-    vm.runInContext(cut('function chatBonusHtml(k,cls){', '\nfunction mascotReduced(){') + cut('function lqAuRevoir(){', '\nconst DEL_SVG='), ctx);
+    vm.runInContext(cut('function chatBonusHtml(k,cls){', '\nfunction mascotReduced(){') + cut('function lqAuRevoir(apres){', '\nconst DEL_SVG='), ctx);
     ctx.lqAuRevoir();
     return { el, img, timers, ecoutes, corps, cls };
   };

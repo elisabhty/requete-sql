@@ -53895,18 +53895,50 @@ async function seDeconnecter(){
      mouvement réduit : son image la plus triste (chat-triste-fixe.webp). Après la déconnexion, il salue et s’en va, comme avant. */
   if(!await lqAsk({ico:'🥺',chat:typeof chatBonusHtml==='function'?chatBonusHtml('triste'):'',titre:'Tu nous quittes déjà\u00a0?',texte:'Ta progression reste sur ton compte : tu la retrouves en te reconnectant, ici ou sur un autre appareil.',oui:'Me déconnecter',non:'Rester connecté'}))return;
   /* 16 novembre : ce qui n’est pas encore parti rejoint le compte avant de le quitter (4 s au plus) */
-  try{if(typeof csSync==='function'){clearTimeout(CS.t);clearTimeout(PRJ.t);await Promise.race([csSync({force:true}),new Promise(ok=>setTimeout(ok,4000))]);}}catch(e){}
+  let envoi=null;
+  try{if(typeof csSync==='function'){clearTimeout(CS.t);clearTimeout(PRJ.t);envoi=await Promise.race([csSync({force:true}),new Promise(ok=>setTimeout(()=>ok({erreur:'delai'}),4000))]);}}catch(e){envoi={erreur:'sync'};}
   try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
   state.accountMode='guest';delete state.accountProvider;delete state.accountLabel;save();
   if(typeof closePlusDetails==='function')closePlusDetails();
+  /* 18 novembre, 18 h 55 (Elisa : « je me suis déconnectée mais je reste sur un compte sans compte ; est-ce qu’on peut faire en sorte
+     que la personne se retrouve à l’accueil » ; « Écran de bienvenue ») : tout est parti sur le compte, l’iPhone est vidé et l’appli
+     repart sur l’écran de bienvenue (« Commencer », « J’ai déjà un compte »), comme neuve. Rien n’est vidé tant qu’une donnée n’a pas
+     rejoint le compte (hors ligne, délai dépassé) : on reste alors dans l’appli, sans compte, comme avant. */
+  if(deconnexionToutParti(envoi)){
+    await deconnexionVider();
+    if(typeof lqAuRevoir==='function')lqAuRevoir(()=>location.reload());else location.reload();
+    return;
+  }
   /* 14 novembre : le compte est facultatif ; on reste dans l’appli, sans compte (la page de connexion ne s’ouvre plus d’elle-même). */
   if(typeof renderCompte==='function')renderCompte();
   if(typeof lqAuRevoir==='function')lqAuRevoir();   // il salue et s’en va (7 novembre, 13 h 02)
 }
+/* La synchro de départ (csSync) a tout envoyé : leçons, notes, projets ; rien en attente, pas d’erreur. */
+function deconnexionToutParti(r){
+  return !!r&&typeof r==='object'&&!r.erreur&&!(r.progression>0)&&!(r.notes>0)&&!(r.projets&&r.projets.erreur);
+}
+/* L’iPhone sans les données du compte quitté (elles sont sur le compte) : la progression, les projets, les rappels programmés. Restent
+   ce qui tient à l’iPhone : la langue et la mise à jour à distance (maj.js). La clé de joueur repart neuve au prochain démarrage :
+   quelqu’un d’autre qui commence ici ne reprend ni le pseudo ni les points du compte. */
+const DECONNEXION_GARDE=/^(requete-langue|requete-maj-|requete-sql-app-version$)/;
+async function deconnexionVider(){
+  try{const LN=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications;if(LN)await LN.cancel({notifications:(typeof RAPPEL_IDS!=='undefined'?[...RAPPEL_IDS,RAPPEL_PLUS_TARD_ID]:[1,11,12,13,14,15,16,17]).map(id=>({id}))});}catch(e){}
+  try{const C=typeof flammeDirectPont==='function'&&flammeDirectPont();if(C)await C.nativePromise('RequeteWidget','flammeArreter',{});}catch(e){}
+  try{const idb=await dbsIdb();await new Promise(ok=>{const tx=idb.transaction(DBS_STORE,'readwrite');tx.objectStore(DBS_STORE).clear();tx.oncomplete=ok;tx.onerror=ok;tx.onabort=ok;});}catch(e){}
+  try{
+    const garde={};
+    for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&DECONNEXION_GARDE.test(k))garde[k]=localStorage.getItem(k);}
+    localStorage.clear();
+    Object.keys(garde).forEach(k=>localStorage.setItem(k,garde[k]));
+  }catch(e){}
+  try{sessionStorage.clear();}catch(e){}
+  try{if(window.storage&&typeof window.storage.delete==='function')await window.storage.delete(KEY);}catch(e){}
+  try{for(const k of Object.keys(memStore))delete memStore[k];}catch(e){}
+}
 /* Après la déconnexion (Elisa, 7 novembre, 13 h 02 : son GIF, il salue de la patte, se retourne et s’en va) : une page comme celle du
    « Bravo » de la flamme, le temps qu’il parte (6 s, le GIF joué une fois ; il s’efface en sortant du cadre), puis la page de
    connexion, déjà ouverte dessous. Un toucher ou Échap la ferme plus tôt. Mouvement réduit : il salue, immobile, 2,4 s. */
-function lqAuRevoir(){
+function lqAuRevoir(apres){
   if(typeof document==='undefined')return;
   const old=document.getElementById('lq-aurevoir');if(old)old.remove();
   const calme=typeof mascotReduced==='function'&&mascotReduced();
@@ -53917,7 +53949,7 @@ function lqAuRevoir(){
   let tm=0,filet=0,fini=false,url='';
   const key=e=>{if(e.key==='Escape'){e.preventDefault();fin();}};
   const fin=()=>{if(fini)return;fini=true;clearTimeout(tm);clearTimeout(filet);document.removeEventListener('keydown',key,true);el.classList.add('is-sort');
-    setTimeout(()=>{el.remove();if(url)try{URL.revokeObjectURL(url);}catch(e){}},calme?0:220);};
+    setTimeout(()=>{el.remove();if(url)try{URL.revokeObjectURL(url);}catch(e){}if(typeof apres==='function')apres();},calme?0:220);};
   /* 12 novembre, 20 h 24 (Elisa : « cette page bug, parfois on voit pas tout le GIF »). Le GIF ne se joue qu’une fois (6,08 s) et la
      page se fermait 6,1 s après son ouverture, que l’image soit arrivée ou non ; et un GIF déjà joué dans la session (deuxième
      déconnexion) restait sur sa dernière image, le chat déjà parti. L’image est maintenant relue à neuf à chaque fois (une adresse
