@@ -53894,6 +53894,10 @@ async function seDeconnecter(){
      « mettre ce GIF en disant “Tu nous quittes déjà ?” pour la déconnexion ». 12 images de 420 ms, en boucle dans la question ;
      mouvement réduit : son image la plus triste (chat-triste-fixe.webp). Après la déconnexion, il salue et s’en va, comme avant. */
   if(!await lqAsk({ico:'🥺',chat:typeof chatBonusHtml==='function'?chatBonusHtml('triste'):'',titre:'Tu nous quittes déjà\u00a0?',texte:'Ta progression reste sur ton compte : tu la retrouves en te reconnectant, ici ou sur un autre appareil.',oui:'Me déconnecter',non:'Rester connecté'}))return;
+  /* 18 novembre, 20 h 33 (Elisa : « on voit encore un peu le compte quand on se déconnecte et après l’animation du chat ») : « À bientôt ! »
+     part dès « Me déconnecter » et couvre l’écran pendant l’envoi au compte ; s’il part pour l’écran de bienvenue, l’écran de chargement
+     est déjà dessous quand le chat s’en va, jusqu’au redémarrage. */
+  const auRevoirFini=new Promise(ok=>{if(typeof lqAuRevoir==='function')lqAuRevoir(ok);else ok();});
   /* 16 novembre : ce qui n’est pas encore parti rejoint le compte avant de le quitter (4 s au plus) */
   let envoi=null;
   try{if(typeof csSync==='function'){clearTimeout(CS.t);clearTimeout(PRJ.t);envoi=await Promise.race([csSync({force:true}),new Promise(ok=>setTimeout(()=>ok({erreur:'delai'}),4000))]);}}catch(e){envoi={erreur:'sync'};}
@@ -53906,12 +53910,18 @@ async function seDeconnecter(){
      rejoint le compte (hors ligne, délai dépassé) : on reste alors dans l’appli, sans compte, comme avant. */
   if(deconnexionToutParti(envoi)){
     await deconnexionVider();
-    if(typeof lqAuRevoir==='function')lqAuRevoir(()=>location.reload());else location.reload();
+    deconnexionCouvrir();
+    await auRevoirFini;
+    location.reload();
     return;
   }
-  /* 14 novembre : le compte est facultatif ; on reste dans l’appli, sans compte (la page de connexion ne s’ouvre plus d’elle-même). */
+  /* 14 novembre : le compte est facultatif ; on reste dans l’appli, sans compte (la page de connexion ne s’ouvre plus d’elle-même).
+     Le chat, parti dès « Me déconnecter », finit de saluer (7 novembre, 13 h 02). */
   if(typeof renderCompte==='function')renderCompte();
-  if(typeof lqAuRevoir==='function')lqAuRevoir();   // il salue et s’en va (7 novembre, 13 h 02)
+}
+/* L’écran de chargement, remis sous le chat : quand il s’en va, plus rien du compte quitté, jusqu’au redémarrage (18 novembre). */
+function deconnexionCouvrir(){
+  try{const L=document.getElementById('loader');if(L){L.classList.remove('fade-out','is-recharge');L.style.display='';L.style.zIndex='9980';}}catch(e){}
 }
 /* La synchro de départ (csSync) a tout envoyé : leçons, notes, projets ; rien en attente, pas d’erreur. */
 function deconnexionToutParti(r){
@@ -54276,7 +54286,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-18-module-v3123';
+  const SW_CACHE='requete-2026-11-18-module-v3124';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

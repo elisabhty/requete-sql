@@ -17,7 +17,8 @@ const page = envoi => {
     appels, state: {accountMode: 'connected'}, save: () => appels.push('save'), KEY: 'requete-sql-v3', memStore: {a: 1},
     lqAsk: async () => true, chatBonusHtml: () => '', CS: {}, PRJ: {}, clearTimeout() {}, setTimeout: (f, ms) => setTimeout(f, Math.min(ms, 5)),
     csSync: async () => (envoi instanceof Error ? Promise.reject(envoi) : envoi),
-    closePlusDetails() {}, renderCompte: () => appels.push('reste'), lqAuRevoir: f => appels.push(['au revoir', typeof f]),
+    closePlusDetails() {}, renderCompte: () => appels.push('reste'), lqAuRevoir: f => { appels.push(['au revoir', typeof f]); setTimeout(f, 0); },
+    document: {getElementById: id => (id === 'loader' ? {classList: {remove: () => appels.push('chargement')}, style: {}} : null)},
     window: {REQUETE_AUTH: {signOut: async () => appels.push('signOut')}, Capacitor: null},
     dbsIdb: async () => ({transaction: () => { const tx = {objectStore: () => ({clear: () => appels.push('projets')})}; setTimeout(() => tx.oncomplete(), 0); return tx; }}), DBS_STORE: 'bases',
     localStorage: {get length() { return ls.size; }, key: i => [...ls.keys()][i], getItem: k => ls.get(k) ?? null, setItem: (k, v) => ls.set(k, String(v)), clear: () => ls.clear()},
@@ -32,7 +33,10 @@ test('tout est parti sur le compte : l’iPhone est vidé, puis l’appli repart
   await x.run();
   assert.ok(x.appels.indexOf('signOut') >= 0 && x.appels.indexOf('signOut') < x.appels.indexOf('projets'), 'déconnecté d’abord');
   assert.ok(x.appels.includes('projets') && x.appels.includes('session'));
-  assert.deepEqual(JSON.parse(JSON.stringify(x.appels.at(-1))), ['au revoir', 'function'], 'le chat salue, puis l’appli redémarre');
+  const i = k => x.appels.findIndex(a => JSON.stringify(a) === JSON.stringify(k));
+  assert.equal(i(['au revoir', 'function']), 0, 'le chat dès « Me déconnecter », avant l’envoi : le compte ne se voit plus');
+  assert.ok(i('chargement') > i('session') && i('chargement') < i('reload'), 'l’écran de chargement sous le chat, avant le redémarrage');
+  assert.equal(x.appels.at(-1), 'reload');
   assert.ok(!x.appels.includes('reste'));
   assert.deepEqual([...x.ls.keys()].sort(), ['requete-langue', 'requete-langue-essai', 'requete-maj-canal', 'requete-sql-app-version'],
     'restent la langue et la mise à jour à distance ; partent la progression, la session, le pseudo (une clé de joueur neuve)');
@@ -44,7 +48,7 @@ test('quelque chose n’a pas rejoint le compte (hors ligne, délai, en attente)
   for (const envoi of [{erreur: 'reseau'}, {progression: 2, notes: 0}, {progression: 0, notes: 1}, {progression: 0, notes: 0, projets: {erreur: 'projets'}}, new Error('x'), null]) {
     const x = page(envoi);
     await x.run();
-    assert.ok(x.appels.includes('reste') && !x.appels.includes('projets'), JSON.stringify(envoi));
+    assert.ok(x.appels.includes('reste') && !x.appels.includes('projets') && !x.appels.includes('chargement') && !x.appels.includes('reload'), JSON.stringify(envoi));
     assert.ok(x.ls.has('requete-sql-v3') && x.ls.has('rq-jeu-nom'), 'la progression reste sur l’iPhone');
   }
   assert.ok(code.includes("envoi=await Promise.race([csSync({force:true}),new Promise(ok=>setTimeout(()=>ok({erreur:'delai'}),4000))]);"), '4 s au plus, comme avant');

@@ -73,7 +73,7 @@ test('se déconnecter : on reste dans l’appli, sans compte (plus de page de co
     lqAuRevoir: () => appels.push('au revoir'), chatBonusHtml: () => '', window: {REQUETE_AUTH: {signOut: async () => appels.push('signOut')}}});
   vm.runInContext(cut('async function seDeconnecter(){', '\n/* Après la déconnexion'), ctx);
   await vm.runInContext('seDeconnecter()', ctx);
-  assert.deepEqual(appels, ['signOut', 'enregistre', 'feuilles', 'mon compte', 'au revoir']);
+  assert.deepEqual(appels, ['au revoir', 'signOut', 'enregistre', 'feuilles', 'mon compte'], 'le chat dès « Me déconnecter » (18 novembre, 20 h 33)');
   assert.equal(ctx.state.accountMode, 'guest');
 });
 
