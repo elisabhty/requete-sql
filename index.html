@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=5db5e30a" data-defis></script>
+<script src="langues.js?v=9b57c82b" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -29334,13 +29334,39 @@ function psAfficher(scope,etat,v,idees){
   const id=Array.isArray(idees)?idees.filter(x=>typeof x==='string'&&psForme(x)).map(psForme).slice(0,3):[];
   const ko=etat==='pris'||etat==='refuse';
   if(e){e.className='ps-etat'+(etat?' is-'+etat:'');e.innerHTML=etat&&PS_TXT[etat]?PS_TXT[etat](v,id.length):'';}
-  if(d)d.innerHTML=ko?id.map((x,i)=>`<button type="button" class="ps-idee" style="--i:${i}" data-v="${escAttr(x)}" onclick="psIdee('${scope}',this.dataset.v)">${esc(x)}</button>`).join(''):'';
+  if(d)d.innerHTML=ko?id.map((x,i)=>`<button type="button" class="ps-idee" style="--i:${i}" data-v="${escAttr(x)}" onclick="psIdee('${scope}',this.dataset.v)">${esc(x)}</button>`).join('')
+    +(etat==='pris'&&psRetrouvable(scope)?`<button type="button" class="ps-retrouver" style="--i:${id.length}" data-v="${escAttr(v)}" onclick="psRetrouver(this.dataset.v)">C’est mon pseudo&nbsp;: je me connecte</button>`:''):'';
   if(inp){
     inp.classList.toggle('is-ok',etat==='libre'||etat==='mien');inp.classList.toggle('is-ko',ko||etat==='invalide');
     if(ko&&!prefersReduceMotion()){inp.classList.remove('is-shake');void inp.offsetWidth;inp.classList.add('is-shake');}
     if(ko&&typeof buzz==='function')buzz('warning');
   }
   psBouton(scope,v);
+}
+/* 18 novembre, 17 h 24 (Elisa, après « j’ai supprimé l’application et j’arrive plus à me connecter » : son pseudo était « déjà pris »
+   par l’ancienne clé de son iPhone ; « je veux ça plutôt : Se connecter avec Apple… Oui, elle garde automatiquement le pseudo, pas
+   besoin de demander, et tout ce qui suit, tout ce qui a été sauvegardé »). Le compte rapporte déjà le pseudo, les points et la
+   progression (csSync, csJeu) ; il manquait de le proposer :
+   - pendant l’onboarding, un pseudo « déjà pris » (l’app réinstallée) : « C’est mon pseudo : je me connecte » ouvre la connexion.
+     Connecté, le pseudo du compte revient seul, sans repasser par cette page ; « Choisir un autre pseudo » y ramène ;
+   - juste après le choix du pseudo, la feuille du compte dit « Garde @pseudo et tes points » (obCompteTextes). */
+function psRetrouvable(scope){
+  return scope==='ob'&&!state.onboarded&&state.accountMode!=='connected'&&(!draft||draft.accountMode!=='connected')
+    &&typeof obAuthReady==='function'&&obAuthReady()&&typeof obCompteVisible==='function'&&obCompteVisible();
+}
+function psRetrouver(v){
+  const n=psForme(v);if(!n||!psRetrouvable('ob'))return;
+  if(typeof buzz==='function')buzz('light');
+  draft.retrouver={pseudo:n,page:PS.page};
+  PS.suite=PS.siOk=PS.page=null;
+  obGoto('account');
+}
+/* Revenir à « Choisis ton pseudo » depuis la connexion (« Choisir un autre pseudo », Retour) : la page d’avant, telle quelle. */
+function psRetrouverAnnuler(){
+  const r=draft&&draft.retrouver;if(!r)return false;
+  delete draft.retrouver;
+  psPage(Object.assign({},r.page||{},{voulu:'',raison:'',idees:null}));
+  return true;
 }
 function psPeut(scope,v){return !!psForme(v)&&!['pris','refuse','invalide'].includes(PS.etat[scope]||'');}
 function psBouton(scope,v){
@@ -49416,6 +49442,7 @@ function obBack(){
   if(state.onboarded&&OB_SLIDES[obStep]===obEntry&&obEntry!=='welcome'){closeOnboardingAuth();return;}
   if(OB_SLIDES[obStep]==='paywall'&&obPwSortie){obSortieRefuser();return;}   /* de l’offre de bienvenue, « Retour » ramène aux offres */
   if(OB_SLIDES[obStep]==='paywall'){obGoto(obCompteVisible()?'account':'ready');return;}
+  if(OB_SLIDES[obStep]==='account'&&typeof psRetrouverAnnuler==='function'&&psRetrouverAnnuler())return;   // ouverte par « C’est mon pseudo » (18 novembre)
   if(OB_SLIDES[obStep]==='account'){obGoto(draft.finVoulue?'ready':'bonjour');return;}   // « J’ai déjà un compte » (sur « bonjour ») : retour
   if(OB_SLIDES[obStep]==='welcome'){obGoto('bonjour');return;}   // la question des statistiques, répondue, ne revient pas (14 novembre)
   if(OB_SLIDES[obStep]==='ready'||OB_FIN_SLIDES.includes(OB_SLIDES[obStep])){obGoto(obFinPrecedente(OB_SLIDES[obStep]));return;}
@@ -50127,6 +50154,7 @@ function obSansCompte(){
   if(typeof obAuthBusy!=='undefined'&&obAuthBusy)return;
   if(typeof buzz==='function')buzz('light');
   if(state.onboarded&&obEntry==='account'){closeOnboardingAuth();return;}
+  if(typeof psRetrouverAnnuler==='function'&&psRetrouverAnnuler())return;   // ouverte par « C’est mon pseudo » : « Choisir un autre pseudo »
   /* 14 novembre, 11 h 56 (Elisa : « Sans compte -> onboarding quand même n’est ce pas ? ») : ouverte au tout début par « J’ai déjà un
      compte » (avant les questions, draft.finVoulue vide), la page menait droit au paywall, sans questions ni pseudo. Sans compte, on
      fait l’onboarding comme avec « Commencer » ; la page du compte revient après « Ton parcours est prêt », puis le paywall. */
@@ -50135,9 +50163,21 @@ function obSansCompte(){
   obApresCompte();
 }
 function obSansCompteHTML(){
-  const depuisCompte=!!state.onboarded&&obEntry==='account';
-  return `<div class="ob-sans-compte"><button type="button" class="ob-sans-compte-btn" onclick="obSansCompte()"${typeof obAuthBusy!=='undefined'&&obAuthBusy?' disabled':''}>${depuisCompte?'Plus tard':'Continuer sans compte'}</button>`+
-    (depuisCompte?'':'<p class="ob-sans-compte-note">Ta progression reste sur cet iPhone. Tu pourras te connecter plus tard, dans Mon compte.</p>')+'</div>';
+  const depuisCompte=!!state.onboarded&&obEntry==='account',retrouver=!!(draft&&draft.retrouver),pseudo=typeof psMien==='function'?psMien():'';
+  const note=depuisCompte||retrouver?'':pseudo?'Sans compte, ton pseudo et tes points restent sur cet iPhone&nbsp;: supprimer l’app les efface.'
+    :'Ta progression reste sur cet iPhone. Tu pourras te connecter plus tard, dans Mon compte.';
+  return `<div class="ob-sans-compte"><button type="button" class="ob-sans-compte-btn" onclick="obSansCompte()"${typeof obAuthBusy!=='undefined'&&obAuthBusy?' disabled':''}>${retrouver?'Choisir un autre pseudo':depuisCompte?'Plus tard':'Continuer sans compte'}</button>`+
+    (note?`<p class="ob-sans-compte-note">${note}</p>`:'')+'</div>';
+}
+/* Le titre et la phrase de la feuille du compte (18 novembre, 17 h 24) : venue de « C’est mon pseudo », « Retrouve @pseudo » ; avec un
+   pseudo déjà réservé (juste après l’avoir choisi), « Garde @pseudo et tes points » ; sinon, null : ceux d’avant. */
+function obCompteTextes(){
+  const r=draft&&draft.retrouver,p=typeof psMien==='function'?psMien():'';
+  if(r&&r.pseudo)return {titre:`Retrouve <em>${esc(r.pseudo)}</em>.`,
+    sous:'Connecte-toi avec le compte où tu l’as gardé&nbsp;: ton pseudo, tes points et ta progression reviennent.'};
+  if(p&&state.accountMode!=='connected')return {titre:`Garde <em>${esc(p)}</em> et tes points.`,
+    sous:'Connecte-toi&nbsp;: même sur un autre iPhone ou après avoir supprimé l’app, tu retrouves ton pseudo, tes points et ta progression.'};
+  return null;   // les textes d’avant (« Ton parcours, partout avec toi. »)
 }
 function obPasserConnexion(){
   if(obAuthReady())return;
@@ -51041,6 +51081,7 @@ async function obStartAuth(provider,btn){
     save();
     if(typeof csSync==='function')csSync({premier:true});   // 12 novembre : la progression rejoint le compte (ou en revient)
     draft.accountMode='connected';
+    if(draft.retrouver)delete draft.retrouver;   // 18 novembre : le pseudo du compte revient avec lui (csJeu), plus rien à demander
     obAuthBusy=false;obAuthMessage='';
     /* Un autre compte, depuis Mon compte : le sien arrive d’abord (6 s au plus) ; vide, c’est une nouvelle personne : ses questions. */
     if(autre&&obEntry==='account'&&state.onboarded){
@@ -51758,12 +51799,14 @@ function paintOb(){
     /* 13 novembre, 3 h 22 (réf. 2) : la garde du compte. Le haut de la page n’est plus un bouton « Revenir en arrière » : un simple
        titre, qui ne referme rien. */
     const fige=typeof obCompteBloque==='function'&&obCompteBloque();
+    const obCt=typeof obCompteTextes==='function'?obCompteTextes():null;   // 18 novembre : « Garde @pseudo et tes points », « Retrouve @pseudo »
     if(!masquee){
     html=`<div class="ob-screen ob-profile ob-account is-feuille">${obFlowHeader(slide)}
       ${fige?'<div class="ob-acc-fond is-fige">':`<button type="button" class="ob-acc-fond" onclick="obBack()" aria-label="${finale?'Revenir à mon parcours':'Revenir en arrière'}">`}${finale?'<span class="ob-success" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.3 4.3L19 7.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>':''}<b>${haut}</b><small>Connecte-toi en un geste, et c’est parti.</small>${fige?'</div>':'</button>'}
       <div class="ob-acc-feuille"><i class="ob-acc-poignee" aria-hidden="true"></i><img class="ob-acc-chat" src="assets/chat-cle${chatFixe?'-fixe':''}.webp" alt="" aria-hidden="true" draggable="false">
-      <h1 class="ob-title" id="ob-title">Ton parcours, <em>partout avec toi</em>.</h1>
-      <p class="ob-compte-sub">Connecte-toi pour retrouver tes cours, tes défis et tes réussites sur tous tes appareils.</p>
+      ${obCt?`<h1 class="ob-title" id="ob-title">${obCt.titre}</h1>
+      <p class="ob-compte-sub">${obCt.sous}</p>`:`<h1 class="ob-title" id="ob-title">Ton parcours, <em>partout avec toi</em>.</h1>
+      <p class="ob-compte-sub">Connecte-toi pour retrouver tes cours, tes défis et tes réussites sur tous tes appareils.</p>`}
       ${authReady?obCompteAtoutsHTML():''}
       <div class="ob-provider-list">
         ${OB_PROVIDERS.filter(([provider])=>provider!=='email'&&obFournisseurOk(provider)).map(bouton).join('')}
