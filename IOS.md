@@ -1096,3 +1096,20 @@ saison** (assets/saisons, les mêmes six thèmes) : le chat du widget de la sér
 31 octobre).
 
 Pour vérifier que tout compile : `npm run ios:verif` (le journal : ios/verif-swift.log).
+
+## Le coffre : réinstallée, l’app retrouve tout (18 novembre, 17 h 05)
+
+Elisa : « J’ai supprimé l’application et j’arrive plus à me connecter » (son pseudo était « déjà pris » par l’ancienne clé de
+l’iPhone), puis « je veux qu’il retrouve automatiquement son pseudo, comme s’il l’avait retrouvé avec les historiques ».
+
+- Supprimer l’app efface sa page (localStorage), donc la clé du joueur. Le trousseau d’iOS, lui, reste : le pont
+  (`RequeteWidgetPlugin.swift`, `RequeteCoffre`, méthodes `coffreLire`, `coffreEcrire`, `coffreEffacer`) y range la clé du
+  joueur (synchronisée par le trousseau iCloud : un nouvel iPhone du même compte Apple la retrouve) et une copie de la
+  progression (`requete-sql-v3`, sur cet iPhone seulement).
+- `index.html` (`coffreGarder`) écrit quatre secondes après chaque `save()` et en quittant l’app ; au démarrage, sans
+  progression, `coffreRetrouver` la reprend. La clé seule (nouvel iPhone) : le pseudo revient du serveur (`coffreRepseudo`),
+  les points du classement avec lui ; l’onboarding se refait, sans la page du pseudo.
+- « Supprimer mon compte / mes données » vide aussi le trousseau (`coffreEffacer`), avant le rechargement.
+- Aucune capacité à ajouter dans Xcode. Il faut une nouvelle version de l’app (TestFlight, App Store) : la mise à jour à
+  distance ne change que la page, et une app d’avant le coffre ignore ces appels. Un joueur qui a supprimé l’app avant cette
+  version ne retrouve rien tout seul : son ancien pseudo se libère à la main (Supabase, `jeu_pseudo`).

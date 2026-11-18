@@ -20726,10 +20726,81 @@ const Store={
     try{ localStorage.removeItem(k); }catch(e){}
   }
 };
+/* Le coffre (18 novembre, 17 h 05 ; Elisa : « j’ai supprimé l’application et j’arrive plus à me connecter » : « @elisabhty » était
+   « déjà pris » par l’ancienne clé de son iPhone ; puis « je veux qu’il retrouve automatiquement son pseudo, comme s’il l’avait
+   retrouvé avec les historiques »). Supprimer l’app efface localStorage, et la clé du joueur partait avec. L’app iPhone range
+   maintenant dans le trousseau d’iOS (RequeteWidgetPlugin.swift, RequeteCoffre), qui survit à la suppression :
+   - la clé du joueur, synchronisée par le trousseau iCloud (un nouvel iPhone du même compte Apple retrouve son pseudo et ses points) ;
+   - une copie de la progression, sur cet iPhone seulement : réinstallée, l’app repart comme avant (leçons, stats, pseudo, classement).
+   Écrit quelques secondes après chaque save() et en quittant l’app ; lu au démarrage seulement quand la page n’a rien (boot).
+   Sur le site, ou un iPhone dont l’app n’a pas encore ce pont natif : rien ne change. */
+const COFFRE={dernier:'',cle:'',minuterie:0,coupe:false};
+function coffrePont(){
+  const C=typeof window!=='undefined'?window.Capacitor:null;
+  return C&&C.isNativePlatform&&C.isNativePlatform()&&typeof C.nativePromise==='function'&&(!C.isPluginAvailable||C.isPluginAvailable('RequeteWidget'))?C:null;
+}
+function coffreCle(s){const c=s&&s.salle&&s.salle.cle;return typeof c==='string'&&/^[A-Za-z0-9]{24,64}$/.test(c)?c:'';}
+/* Ce que le trousseau garde de la progression, au démarrage d’une app réinstallée : { etat, cle } (vides s’il n’y a rien). Une seconde
+   et demie au plus : le démarrage n’attend pas un pont qui ne répond pas. */
+async function coffreLire(){
+  const C=coffrePont();if(!C)return null;
+  try{
+    const r=await Promise.race([Promise.resolve(C.nativePromise('RequeteWidget','coffreLire',{})),new Promise(ok=>setTimeout(()=>ok(null),1500))]);
+    if(!r||typeof r!=='object')return null;
+    let etat=null;
+    try{const e=r.etat?JSON.parse(r.etat):null;if(e&&typeof e==='object'&&!Array.isArray(e))etat=e;}catch(e){}
+    const cle=typeof r.cle==='string'&&/^[A-Za-z0-9]{24,64}$/.test(r.cle)?r.cle:'';
+    return etat||cle?{etat,cle}:null;
+  }catch(e){return null;}
+}
+function coffreGarder(tout){
+  if(COFFRE.coupe||!coffrePont())return;
+  clearTimeout(COFFRE.minuterie);COFFRE.minuterie=0;
+  if(!tout){COFFRE.minuterie=setTimeout(()=>coffreGarder(true),4000);return;}
+  if(!state||!state.onboarded&&!coffreCle(state))return;   // rien à garder encore (l’onboarding pas commencé)
+  let etat='';try{etat=JSON.stringify(state);}catch(e){return;}
+  const cle=coffreCle(state),corps={};
+  if(etat!==COFFRE.dernier)corps.etat=etat;
+  if(cle&&cle!==COFFRE.cle)corps.cle=cle;
+  if(!corps.etat&&!corps.cle)return;
+  Promise.resolve(coffrePont().nativePromise('RequeteWidget','coffreEcrire',corps)).then(r=>{
+    if(r&&r.ok){if(corps.etat)COFFRE.dernier=corps.etat;if(corps.cle)COFFRE.cle=corps.cle;}
+  }).catch(()=>{});   // une app d’avant le coffre : rien
+}
+/* « Supprimer mon compte / mes données » : le trousseau est vidé aussi, sinon l’app rechargée retrouverait tout. */
+async function coffreEffacer(){
+  COFFRE.coupe=true;clearTimeout(COFFRE.minuterie);
+  const C=coffrePont();if(!C)return;
+  try{await Promise.race([Promise.resolve(C.nativePromise('RequeteWidget','coffreEffacer',{})),new Promise(ok=>setTimeout(ok,1500))]);}catch(e){}
+}
+/* L’app réinstallée (la page n’a pas de progression) : celle du coffre. Avec la clé seule (un autre iPhone, ou une copie illisible),
+   la clé : le pseudo et les points du classement reviennent du serveur (coffreRepseudo, après le démarrage). */
+async function coffreRetrouver(){
+  const r=await coffreLire();if(!r)return null;
+  if(r.etat&&(r.etat.onboarded||coffreCle(r.etat))){
+    if(r.cle&&!coffreCle(r.etat))(r.etat.salle=r.etat.salle&&typeof r.etat.salle==='object'?r.etat.salle:{pts:0,parties:0,best:0}).cle=r.cle;
+    try{const n=r.etat.salle&&r.etat.salle.pseudo;if(typeof n==='string'&&n)localStorage.setItem('rq-jeu-nom',n);}catch(e){}
+    COFFRE.dernier='';COFFRE.cle=coffreCle(r.etat);
+    return r.etat;
+  }
+  if(r.cle){COFFRE.cle=r.cle;COFFRE.repseudo=true;return {lessons:{},defis:{},notes:[],plan:null,onboarded:false,name:'',profile:{},accountMode:null,entretien:{},
+    salle:{pts:0,parties:0,best:0,cle:r.cle,clsRattrape:1}};}
+  return null;
+}
+/* La clé seule retrouvée : son pseudo, demandé au serveur (jeu_pseudo_prendre ne change pas un pseudo déjà réservé ; vide, il ne
+   réserve rien). Adopté avant la fin de l’onboarding, la page du pseudo ne s’ouvre pas : c’est le sien. */
+function coffreRepseudo(){
+  if(!COFFRE.repseudo)return;COFFRE.repseudo=false;
+  const cle=coffreCle(state);if(!cle||typeof clsRpc!=='function')return;
+  clsRpc('jeu_pseudo_prendre',{p_cle:cle,p_pseudo:''}).then(r=>{
+    if(r&&r.ok&&r.pseudo&&typeof psAdopter==='function'&&coffreCle(state)===cle&&!psMien())psAdopter(r.pseudo);
+  }).catch(()=>{});
+}
+try{document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')coffreGarder(true);});}catch(e){}
 let state={lessons:{},defis:{},notes:[],plan:null,onboarded:false,name:'',profile:{},accountMode:null,entretien:{}};
 const INTERVALS=[1,3,7,21,60];
 const DAY=86400000;
-function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto==='function')rappelAuto(); if(typeof csPlusTard==='function')csPlusTard(); }   // le rappel suit le planning (21 h 41)
+function save(){ state=normalizeState(state); Store.set(KEY,state); coffreGarder(); if(typeof rappelAuto==='function')rappelAuto(); if(typeof csPlusTard==='function')csPlusTard(); }   // le rappel suit le planning (21 h 41)
 async function wipeStorageIfUpdated(){
   const force=/#fresh\b|\bfresh=1\b/.test(location.href);
   let prev=null;
@@ -20937,8 +21008,11 @@ async function boot(){
   let demarrageOk=false;   // maj.js : seule une version dont les écrans se sont préparés sans erreur est confirmée (13 novembre, 11 h 49)
   try{
     await wipeStorageIfUpdated();
-    const saved=await Store.get(KEY);
+    let saved=await Store.get(KEY);
+    let duCoffre=false;
+    if(!saved){try{saved=await coffreRetrouver();duCoffre=!!saved;}catch(e){saved=null;}}   // l’app réinstallée : le trousseau (le coffre)
     state=normalizeState(saved||state);
+    if(duCoffre){try{await Store.set(KEY,state);}catch(e){}setTimeout(coffreRepseudo,0);}
     try{window.REQUETE_LANGUE&&window.REQUETE_LANGUE.valeur('prenom',()=>state.name||(typeof draft!=='undefined'&&draft&&draft.name)||'');}catch(e){}   /* pendant l’onboarding, le prénom tapé (15 novembre) */
     /* 14 novembre, l’interface en anglais : ton pseudo (« Modifier mon profil. Léa, pseudo @lea… ») et le nom de ton niveau (« Niveau 2 :
        Constructrice de requêtes »), mis de côté comme le prénom ; le nom du niveau est remis traduit. */
@@ -53989,6 +54063,7 @@ async function compteSupprimer(){
   try{const C=typeof flammeDirectPont==='function'&&flammeDirectPont();if(C)await C.nativePromise('RequeteWidget','flammeArreter',{});}catch(e){}   // ta flamme en direct, programmée : partie aussi
   /* 16 novembre : les projets enregistrés aussi (IndexedDB) ; la fenêtre le promettait, mais leurs bases survivaient au vidage */
   try{const idb=await dbsIdb();await new Promise(ok=>{const tx=idb.transaction(DBS_STORE,'readwrite');tx.objectStore(DBS_STORE).clear();tx.oncomplete=ok;tx.onerror=ok;tx.onabort=ok;});}catch(e){}
+  await coffreEffacer();   // le trousseau aussi (18 novembre) : l’app rechargée ne retrouve rien
   try{localStorage.clear();}catch(e){}
   try{sessionStorage.clear();}catch(e){}
   location.reload();
