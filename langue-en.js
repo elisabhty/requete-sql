@@ -7626,6 +7626,11 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "{1} sur {2} parties": "{1} of {2} games",
     "{1} à {2} sur {3} confrontations": "{1} to {2} of {3} head-to-heads",
     "{1} sur {2} confrontations": "{1} of {2} head-to-heads",
+    /* 19 novembre : les projets et les bases de la Console en pages */
+    "{1} à {2} sur {3} projets": "{1} to {2} of {3} projects",
+    "{1} sur {2} projets": "{1} of {2} projects",
+    "{1} à {2} sur {3} bases": "{1} to {2} of {3} databases",
+    "{1} sur {2} bases": "{1} of {2} databases",
     /* 15 novembre, 20 h 49 : la langue dans l’onboarding */
     "Langue de l’appli": "App language",
     /* 15 novembre, 20 h 55 : la fin d’une partie */
