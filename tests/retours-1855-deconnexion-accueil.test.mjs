@@ -51,5 +51,5 @@ test('quelque chose n’a pas rejoint le compte (hors ligne, délai, en attente)
     assert.ok(x.appels.includes('reste') && !x.appels.includes('projets') && !x.appels.includes('chargement') && !x.appels.includes('reload'), JSON.stringify(envoi));
     assert.ok(x.ls.has('requete-sql-v3') && x.ls.has('rq-jeu-nom'), 'la progression reste sur l’iPhone');
   }
-  assert.ok(code.includes("envoi=await Promise.race([csSync({force:true}),new Promise(ok=>setTimeout(()=>ok({erreur:'delai'}),4000))]);"), '4 s au plus, comme avant');
+  assert.ok(code.includes("envoi=await Promise.race([csSync({force:true,hist:true}),new Promise(ok=>setTimeout(()=>ok({erreur:'delai'}),8000))]);"), '8 s au plus : l’historique part aussi (19 novembre)');
 });

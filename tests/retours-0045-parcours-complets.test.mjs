@@ -83,7 +83,7 @@ test('un autre compte sur le même iPhone : l’appareil se vide du compte d’a
     && a.indexOf("avant=localStorage.getItem(COMPTE_DERNIER)") < a.indexOf('localStorage.setItem(COMPTE_DERNIER'), 'revenu : son planning revient');
   assert.ok(a.includes("if(autre&&obEntry==='account'&&state.onboarded){") && a.includes("obGoto('questions');"), 'compte neuf : les questions');
   const d = app.slice(app.indexOf('async function seDeconnecter(){'), app.indexOf('\n}\n', app.indexOf('async function seDeconnecter(){')));
-  assert.ok(d.indexOf('await Promise.race([csSync({force:true}),') > 0 && d.indexOf('await Promise.race([csSync({force:true}),') < d.indexOf('REQUETE_AUTH.signOut()'), 'la dernière synchro avant de partir');
+  assert.ok(d.indexOf('await Promise.race([csSync({force:true,hist:true}),') > 0 && d.indexOf('await Promise.race([csSync({force:true,hist:true}),') < d.indexOf('REQUETE_AUTH.signOut()'), 'la dernière synchro avant de partir');
   assert.ok(app.includes('CS.user=u.id;CS.prog=M.createProgressionSync(o);CS.docs=M.createDocumentsSync(o);\n    try{localStorage.setItem(COMPTE_DERNIER,u.id);}catch(e){}'));
 });
 

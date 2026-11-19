@@ -50,7 +50,7 @@ test('l’empreinte ne dépend pas de l’ordre des clés (le compte les renvoie
 });
 
 test('la synchro : sommaire d’abord, puis seulement ce qui a changé ; ouvert à l’écran, jamais remplacé', () => {
-  const f = fn('async function prjSyncFaire(uid){');
+  const f = fn('async function prjSyncFaire(uid,avecHist){');
   assert.ok(f.includes("'/rest/v1/projets_element?select=cle,revision,generation,supprime,modifie_le'"), 'le sommaire, sans les données');
   assert.ok(f.includes("'/rest/v1/projets_element?select=donnees,revision,generation,supprime&cle=eq.'"), 'un projet à la fois');
   assert.ok(f.includes("'/rest/v1/rpc/projets_enregistrer'") && f.includes("'/rest/v1/rpc/projets_reinitialiser'"));
@@ -60,11 +60,11 @@ test('la synchro : sommaire d’abord, puis seulement ce qui a changé ; ouvert 
   assert.ok(f.includes('if(!m||m.sig!==sig){prjCopier(id,uid);bilan.copies++;}'), 'changé des deux côtés : la version d’ici en copie');
   assert.ok(fn('function prjOuvert(id){').includes("activeTab==='console'&&consoleView==='work'&&activeDbId===id"));
   /* branchée sur la synchro du compte, après un changement de projet, et au départ */
-  assert.ok(fn('function csSync(o){').includes('rj=await prjSync({force:!!(o&&(o.premier||o.force))})'));
+  assert.ok(fn('function csSync(o){').includes('rj=await prjSync({force:!!(o&&(o.premier||o.force)),hist:!!(o&&o.hist)})'));
   assert.ok(fn('async function persistCustomDbs(seul){').includes('try{prjPlanifier();}catch(e){}'));
   assert.ok(fn('function saveProjState(){').includes('try{prjPlanifier();}catch(e){}'));
   assert.ok(app.includes('    loadProjState();\n    PRJ.pret=true;'), 'pas avant que les projets soient chargés');
-  assert.ok(fn('async function seDeconnecter(){').includes('csSync({force:true})'));
+  assert.ok(fn('async function seDeconnecter(){').includes('csSync({force:true,hist:true})'));
 });
 
 test('supprimer : partout, même hors connexion ; un autre compte : ceux du compte d’avant quittent l’appareil', () => {

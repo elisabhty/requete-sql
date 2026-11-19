@@ -333,7 +333,7 @@ function validateProject(key,p){
  const fields=['name','scope','draft','desc','tdesc','pins','hist','database','baselines'];
  if(typeof key!=='string'||!/^project:db_[A-Za-z0-9_.-]{1,93}$/.test(key)||!object(p)||Object.keys(p).length!==fields.length||fields.some(k=>!Object.hasOwn(p,k))||!text(p.name,80)||!p.name.trim()||!['workspace','complete'].includes(p.scope)||!text(p.draft,12000)||!text(p.desc,4000)||!object(p.tdesc)||Object.keys(p.tdesc).length>128||!object(p.baselines)||Object.keys(p.baselines).length>128)fail();
  for(const [name,desc] of Object.entries(p.tdesc))if(!text(name,128)||!name.length||!text(desc,4000))fail();
- queryList(p.pins,12,true);queryList(p.hist,24,false);
+ queryList(p.pins,12,true);queryList(p.hist,100,false);
  if(p.scope==='workspace'){if(p.database!==null||Object.keys(p.baselines).length)fail();}
  else{if(!object(p.database)||Object.keys(p.database).length!==1||!Object.hasOwn(p.database,'b64'))fail();sqliteBytes(p.database.b64);}
  for(const [key,b] of Object.entries(p.baselines)){

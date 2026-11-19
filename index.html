@@ -50440,7 +50440,7 @@ function csSync(o){
     const rp=await csEnvoyer(cs.prog,x.prog,elts(p),M.mergeProgression);
     const rd=await csEnvoyer(cs.docs,x.docs,elts(d),(k,a,b)=>b);
     /* 16 novembre, 5 h : les projets de la Console aussi (prjSync, au plus toutes les 30 s ; tout de suite à la connexion et au départ) */
-    let rj=null;try{rj=await prjSync({force:!!(o&&(o.premier||o.force))});}catch(e){}
+    let rj=null;try{rj=await prjSync({force:!!(o&&(o.premier||o.force)),hist:!!(o&&o.hist)});}catch(e){}
     return {progression:rp&&rp.pending,notes:rd&&rd.pending,distant:CS.distant,projets:rj};
   })().catch(e=>({erreur:e&&(e.code||e.message)||'sync',distant:CS.distant})).finally(()=>{CS.cours=null;});
   return CS.cours;
@@ -50671,6 +50671,29 @@ function prjDonnees(id,octets){
   return {name:prjCoupe(String(meta.name||''),80).trim()||'Mon projet',scope:'complete',draft:prjCoupe(w.draft||'',12000),
     desc:prjCoupe(w.desc||'',4000),tdesc,pins,hist:[],database:{b64:u8ToB64(octets)},baselines:{}};
 }
+/* 19 novembre, 10 h 05 (Elisa : « quand on se déconnecte et on se reconnecte, on n’aura plus l’historique » ; « oui, direct pour tout le
+   monde ») : l’historique des exécutions suit le projet sur le compte, ses 100 dernières (projets_valide, migration
+   20261119090825_projets_historique_100). Il part avec le projet quand celui-ci part (un brouillon, une base changés) et à la
+   déconnexion (csSync({hist:true})) : une exécution seule ne renvoie pas toute la base. À l’arrivée, il rejoint celui de l’appareil. */
+const PRJ_HIST_MAX=100;
+function prjHist(id){
+  const w=projState[id]||{},out=[];
+  for(const q of Array.isArray(w.hist)?w.hist:[]){
+    if(out.length>=PRJ_HIST_MAX)break;
+    if(!q||typeof q.sql!=='string')continue;
+    const sql=prjCoupe(q.sql,12000);if(!/\S/.test(sql))continue;
+    const ts=Math.round(+q.ts);if(!Number.isSafeInteger(ts)||ts<0||ts>4102444800000)continue;
+    const r={sql,ts};
+    if(typeof q.ok==='boolean')r.ok=q.ok;
+    if(Number.isInteger(q.n)&&q.n>=0&&q.n<=1000000000)r.n=q.n;
+    if(Number.isFinite(q.ms)&&q.ms>=0&&q.ms<=86400000)r.ms=q.ms;
+    if(typeof q.err==='string'&&q.err)r.err=prjCoupe(q.err,2000);
+    out.push(r);
+  }
+  return out;
+}
+/* L’empreinte d’un projet reçu, sans son historique (celle d’ici se calcule sans lui) */
+const prjSigSansHist=data=>prjSig(Object.assign({},data,{hist:[]}));
 /* Les bases telles qu’enregistrées sur l’appareil (IndexedDB, ou l’ancienne sauvegarde) : sans export(), qui ferme et rouvre la base */
 async function prjOctetsLocaux(){
   const out={};
@@ -50711,7 +50734,16 @@ async function prjRecevoir(id,data){
   try{await copiesCompresser(id);}catch(e){}
   const w=projOf(id);
   w.draft=data.draft;w.desc=data.desc;w.tdesc=Object.assign({},data.tdesc);w.pins=data.pins.map(q=>({sql:q.sql,ts:q.ts}));
+  prjHistJoindre(id,data.hist,true);
   PRJ.dedans=true;try{saveProjState();}finally{PRJ.dedans=false;}
+}
+/* L’historique reçu rejoint celui de l’appareil : le plus récent d’abord, une requête une fois (19 novembre) */
+function prjHistJoindre(id,hist,sansEnregistrer){
+  if(!Array.isArray(hist)||!hist.length)return;
+  const w=projOf(id),ici=Array.isArray(w.hist)?w.hist:[];
+  const tous=hist.map(q=>Object.assign({},q)).concat(ici).sort((a,b)=>(+b.ts||0)-(+a.ts||0));
+  w.hist=dedupeConsoleQueries(tous,HIST_MAX,HIST_CAR_MAX);
+  if(!sansEnregistrer){PRJ.dedans=true;try{saveProjState();}finally{PRJ.dedans=false;}}
 }
 /* Changé ici et sur le compte : la version d’ici devient un projet à part (« … (copie) »), qui partira à son tour */
 function prjCopier(id,uid){
@@ -50730,14 +50762,14 @@ function prjOuvert(id){return typeof activeTab!=='undefined'&&activeTab==='conso
 function prjSync(o){
   const cs=csPret();
   if(!cs||!PRJ.pret||typeof SQL==='undefined'||!SQL||!window.REQUETE_MOTEURS||typeof window.REQUETE_MOTEURS.validateProject!=='function')return Promise.resolve(null);
-  if(PRJ.cours)return PRJ.cours;
+  if(PRJ.cours)return o&&o.hist?PRJ.cours.then(()=>prjSync(o)):PRJ.cours;   // l’historique : après celle en cours, qui ne l’envoie pas
   if(!(o&&o.force)&&Date.now()-PRJ.dernier<30000)return Promise.resolve(null);
-  const uid=cs.user,p=PRJ.chaine.then(()=>prjSyncFaire(uid));
+  const uid=cs.user,avecHist=!!(o&&o.hist),p=PRJ.chaine.then(()=>prjSyncFaire(uid,avecHist));
   PRJ.chaine=p.catch(()=>{});
   PRJ.cours=p.catch(e=>({erreur:e&&(e.code||e.message)||'projets'})).finally(()=>{PRJ.cours=null;PRJ.dernier=Date.now();});
   return PRJ.cours;
 }
-async function prjSyncFaire(uid){
+async function prjSyncFaire(uid,avecHist){
   const A=window.REQUETE_AUTH,M=window.REQUETE_MOTEURS;
   const jeton=A&&typeof A.jeton==='function'?await A.jeton():null;if(!jeton)return null;
   const encore=()=>CS.user===uid&&A.connecte&&A.connecte();   // un changement de compte en route arrête tout
@@ -50753,16 +50785,18 @@ async function prjSyncFaire(uid){
   const proprios=prjProprios(),locaux=await prjOctetsLocaux(),bilan={envoyes:0,recus:0,supprimes:0,copies:0};
   const lourdsAvant=[...PRJ.lourds].sort().join();
   const envoyer=async(id,data,rev,gen)=>{
-    const r=await prjAppel(jeton,'/rest/v1/rpc/projets_enregistrer',{p_epoch:epoch,p_cle:'project:'+id,p_revision:rev,p_generation:gen,p_data:data});
+    const hist=prjHist(id);let corps=data;
+    try{corps=M.validateProject('project:'+id,Object.assign({},data,{hist}));}catch(e){corps=data;}   // un historique refusé : le projet part sans lui
+    const r=await prjAppel(jeton,'/rest/v1/rpc/projets_enregistrer',{p_epoch:epoch,p_cle:'project:'+id,p_revision:rev,p_generation:gen,p_data:corps});
     if(!r||!r.ok||!r.element)return false;
-    S.el[id]={rev:r.element.revision,gen:r.element.generation,sig:prjSig(data)};prjProprio(id,uid);bilan.envoyes++;return true;
+    S.el[id]={rev:r.element.revision,gen:r.element.generation,sig:prjSig(data),hsig:prjSig(corps.hist)};prjProprio(id,uid);bilan.envoyes++;return true;
   };
   const telecharger=async id=>{
     const r=await prjAppel(jeton,'/rest/v1/projets_element?select=donnees,revision,generation,supprime&cle=eq.'+encodeURIComponent('project:'+id));
     const l=Array.isArray(r)&&r[0];if(!l||l.supprime)return null;
     return {data:M.validateProject('project:'+id,l.donnees),rev:l.revision,gen:l.generation};
   };
-  const recu=async(id,d)=>{await prjRecevoir(id,d.data);S.el[id]={rev:d.rev,gen:d.gen,sig:prjSigLocale(id)||prjSig(d.data)};prjProprio(id,uid);bilan.recus++;};
+  const recu=async(id,d)=>{await prjRecevoir(id,d.data);S.el[id]={rev:d.rev,gen:d.gen,sig:prjSigLocale(id)||prjSigSansHist(d.data),hsig:prjSig(d.data.hist||[])};prjProprio(id,uid);bilan.recus++;};
   for(const meta of dbCatalog.filter(d=>!isDemoDb(d.id)&&customDbs[d.id])){
     if(!encore())break;
     const id=meta.id;if(!/^db_[A-Za-z0-9_.-]{1,93}$/.test(id))continue;
@@ -50779,10 +50813,17 @@ async function prjSyncFaire(uid){
         if(m&&!m.del&&m.sig===sig&&l.generation>m.gen){if(prjOuvert(id))continue;prjRetirerLocal(id);delete S.el[id];prjProprio(id,null);bilan.supprimes++;continue;}
         await envoyer(id,data,l.revision,l.generation);continue;
       }
-      if(m&&l.revision===m.rev&&l.generation===m.gen){if(m.sig!==sig)await envoyer(id,data,l.revision,l.generation);continue;}
+      if(m&&l.revision===m.rev&&l.generation===m.gen){
+        if(m.sig!==sig||avecHist&&m.hsig!==prjSig(prjHist(id)))await envoyer(id,data,l.revision,l.generation);
+        continue;
+      }
       if(prjOuvert(id))continue;
       const d=await telecharger(id);if(!d)continue;
-      if(prjSig(d.data)===sig){S.el[id]={rev:d.rev,gen:d.gen,sig};prjProprio(id,uid);continue;}
+      if(prjSigSansHist(d.data)===sig){
+        prjHistJoindre(id,d.data.hist);S.el[id]={rev:d.rev,gen:d.gen,sig,hsig:prjSig(d.data.hist||[])};prjProprio(id,uid);
+        if(avecHist&&prjSig(prjHist(id))!==S.el[id].hsig)await envoyer(id,data,d.rev,d.gen);
+        continue;
+      }
       if(!m||m.sig!==sig){prjCopier(id,uid);bilan.copies++;}
       await recu(id,d);
     }catch(e){if(e&&e.code==='54000')PRJ.lourds.add(id);}
@@ -53900,7 +53941,11 @@ async function seDeconnecter(){
   const auRevoirFini=new Promise(ok=>{if(typeof lqAuRevoir==='function')lqAuRevoir(ok);else ok();});
   /* 16 novembre : ce qui n’est pas encore parti rejoint le compte avant de le quitter (4 s au plus) */
   let envoi=null;
-  try{if(typeof csSync==='function'){clearTimeout(CS.t);clearTimeout(PRJ.t);envoi=await Promise.race([csSync({force:true}),new Promise(ok=>setTimeout(()=>ok({erreur:'delai'}),4000))]);}}catch(e){envoi={erreur:'sync'};}
+  const uidAvant=typeof CS!=='undefined'&&CS.user||'';
+  try{if(typeof csSync==='function'){clearTimeout(CS.t);clearTimeout(PRJ.t);envoi=await Promise.race([csSync({force:true,hist:true}),new Promise(ok=>setTimeout(()=>ok({erreur:'delai'}),8000))]);}}catch(e){envoi={erreur:'sync'};}
+  /* 19 novembre : chaque projet de l’appareil doit être sur le compte, tel quel, historique compris ; une base de plus de 2 Mo, un
+     projet d’un autre compte ou pas encore parti : rien n’est vidé, on reste sans compte (sinon ils seraient perdus) */
+  if(envoi&&!envoi.erreur&&!(await deconnexionProjetsSurCompte(uidAvant)))envoi={erreur:'projets'};
   try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
   state.accountMode='guest';delete state.accountProvider;delete state.accountLabel;save();
   if(typeof closePlusDetails==='function')closePlusDetails();
@@ -53923,6 +53968,22 @@ async function seDeconnecter(){
 function deconnexionCouvrir(){
   try{const L=document.getElementById('loader');if(L){L.classList.remove('fade-out','is-recharge');L.style.display='';L.style.zIndex='9980';}}catch(e){}
 }
+/* Chaque projet de l’appareil (hors bases de démo) est sur ce compte, tel qu’il est ici, historique compris (19 novembre) */
+async function deconnexionProjetsSurCompte(uid){
+  try{
+    if(typeof dbCatalog==='undefined'||typeof customDbs==='undefined')return true;
+    const ids=dbCatalog.filter(d=>!isDemoDb(d.id)&&customDbs[d.id]).map(d=>d.id);
+    if(!ids.length)return true;
+    if(!uid||typeof prjLire!=='function')return false;
+    const S=prjLire(uid),proprios=prjProprios();
+    for(const id of ids){
+      if(PRJ.lourds.has(id)||(proprios[id]&&proprios[id]!==uid))return false;
+      const m=S.el[id];
+      if(!m||m.del||m.sig!==prjSigLocale(id)||m.hsig!==prjSig(prjHist(id)))return false;
+    }
+    return true;
+  }catch(e){return false;}
+}
 /* La synchro de départ (csSync) a tout envoyé : leçons, notes, projets ; rien en attente, pas d’erreur. */
 function deconnexionToutParti(r){
   return !!r&&typeof r==='object'&&!r.erreur&&!(r.progression>0)&&!(r.notes>0)&&!(r.projets&&r.projets.erreur);
@@ -53935,9 +53996,14 @@ async function deconnexionVider(){
   try{const LN=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications;if(LN)await LN.cancel({notifications:(typeof RAPPEL_IDS!=='undefined'?[...RAPPEL_IDS,RAPPEL_PLUS_TARD_ID]:[1,11,12,13,14,15,16,17]).map(id=>({id}))});}catch(e){}
   try{const C=typeof flammeDirectPont==='function'&&flammeDirectPont();if(C)await C.nativePromise('RequeteWidget','flammeArreter',{});}catch(e){}
   try{const idb=await dbsIdb();await new Promise(ok=>{const tx=idb.transaction(DBS_STORE,'readwrite');tx.objectStore(DBS_STORE).clear();tx.oncomplete=ok;tx.onerror=ok;tx.onabort=ok;});}catch(e){}
+  /* 19 novembre : les bases de démo (NutriBoost, celles des défis) ne sont à aucun compte ; leur Console (brouillon, historique,
+     requêtes épinglées) reste sur l’iPhone, comme quand on change de compte. Les projets, eux, sont sur le compte. */
+  let demos=null;
+  try{if(typeof projState!=='undefined'&&typeof isDemoDb==='function'){demos={};for(const [id,w] of Object.entries(projState))if(isDemoDb(id))demos[id]=w;}}catch(e){demos=null;}
   try{
     const garde={};
     for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&DECONNEXION_GARDE.test(k))garde[k]=localStorage.getItem(k);}
+    if(demos&&Object.keys(demos).length)garde[PROJ_KEY]=JSON.stringify(demos);
     localStorage.clear();
     Object.keys(garde).forEach(k=>localStorage.setItem(k,garde[k]));
   }catch(e){}
@@ -54286,7 +54352,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-18-module-v3124';
+  const SW_CACHE='requete-2026-11-19-module-v3125';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
