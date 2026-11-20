@@ -169,5 +169,5 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 
 test('versions : ludique.css v155, cache du service worker', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=391">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-20-module-v3127';") && app.includes("const SW_CACHE='requete-2026-11-20-module-v3127';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-20-module-v3128';") && app.includes("const SW_CACHE='requete-2026-11-20-module-v3128';"));
 });

@@ -50251,6 +50251,21 @@ function csProfilLocal(){
   const pr=state.preferences||{};reglages.grandTexte=pr.largeText===true;reglages.moinsAnim=pr.reduceMotion===true;
   try{const l=localStorage.getItem('requete-langue');if(l&&/^[a-z]{2}$/.test(l))reglages.langue=l;}catch(e){}
   try{reglages.rappelHeure=rappelHeure();}catch(e){}
+  /* 20 novembre, 8 h 50 (Elisa, « Ok » pour faire suivre ce qui restait sur l’iPhone) : la vitesse des vidéos et la place des stickers
+     sur le tableau suivent le compte. Le tableau, en morceaux de 200 caractères au plus (stk0, stk1…) : « id,x,y,r,s;… ». */
+  try{if(typeof LV_RATE==='number')reglages.vitesse=LV_RATE;}catch(e){}
+  try{
+    const B=state.stickers&&Array.isArray(state.stickers.board)?state.stickers.board:[],bouts=[];let cur='';
+    for(const b of B){
+      if(!b||!/^[a-z0-9]{2,16}$/.test(b.id))continue;
+      const t=[b.id,+(+b.x).toFixed(3),+(+b.y).toFixed(3),Math.round(+b.r||0),+(+b.s||1).toFixed(2)].join(',');
+      if(cur&&cur.length+1+t.length>200){bouts.push(cur);cur='';}
+      cur=cur?cur+';'+t:t;
+    }
+    if(cur)bouts.push(cur);
+    bouts.slice(0,20).forEach((x,i)=>{reglages['stk'+i]=x;});
+    reglages.stkN=Math.min(20,bouts.length);   // le tableau est suivi (même vide) : un appareil d’avant, sans lui, ne le vide pas
+  }catch(e){}
   const out={reponses,reglages},pa=P.pacte;
   if(pa&&typeof pa==='object'&&Number.isFinite(pa.at))out.pacte={at:Math.round(pa.at),sig:String(pa.sig||'empreinte').slice(0,200)};
   return out;
@@ -50281,6 +50296,24 @@ function csProfilAppliquer(d){
     if(typeof G.rappelHeure==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(G.rappelHeure)&&G.rappelHeure!==rappelHeure()){
       localStorage.setItem('requete-rappel-heure',G.rappelHeure);
       if(localStorage.getItem('requete-rappel')==='1'&&typeof rappelNativeSync==='function')rappelNativeSync(true);
+    }
+  }catch(e){}
+  /* 20 novembre : la vitesse des vidéos, et le tableau de stickers (les stickers gagnés d’abord recomptés depuis la progression) */
+  try{
+    const r=+G.vitesse;
+    if(typeof LV_RATES!=='undefined'&&LV_RATES.includes(r)&&r!==LV_RATE){LV_RATE=r;localStorage.setItem('rq-video-vitesse',String(r));}
+  }catch(e){}
+  try{
+    const txt=Object.keys(G).filter(k=>/^stk\d{1,2}$/.test(k)&&typeof G[k]==='string').sort((a,b)=>+a.slice(3)-+b.slice(3)).map(k=>G[k]).join(';');
+    if(typeof G.stkN==='number'&&typeof stkState==='function'){
+      if(typeof stkSync==='function'){try{stkSync();}catch(e){}}   // sans page : ceux que la progression a déjà gagnés
+      const S=stkState(),n=(v,a,z,d)=>{v=Number(v);return Number.isFinite(v)?Math.min(z,Math.max(a,v)):d;},board=[];
+      for(const t of txt?txt.split(';'):[]){
+        const [id,x,y,r,s]=t.split(',');
+        if(!/^[a-z0-9]{2,16}$/.test(id||'')||!S.got[id]||board.some(q=>q.id===id))continue;
+        board.push({id,x:n(x,0,1,.5),y:n(y,0,1,.5),r:n(r,-180,180,0),s:n(s,.5,2,1)});
+      }
+      if(JSON.stringify(board)!==JSON.stringify(S.board)){S.board=board;try{if(activeTab==='collection'&&typeof renderStickers==='function')renderStickers();}catch(e){}}
     }
   }catch(e){}
   try{localStorage.setItem(CS_PROFIL_SIG,csStable(csProfilLocal()));localStorage.setItem(CS_PROFIL_MAJ,String(d.maj));}catch(e){}
@@ -54399,7 +54432,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-20-module-v3127';
+  const SW_CACHE='requete-2026-11-20-module-v3128';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

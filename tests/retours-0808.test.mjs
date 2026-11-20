@@ -64,5 +64,5 @@ test('la coche « validé » : sans mot, au centre de la chose touchée, comme l
 
 test('la nouvelle version arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=391">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-20-module-v3127';") && app.includes("const SW_CACHE='requete-2026-11-20-module-v3127';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-20-module-v3128';") && app.includes("const SW_CACHE='requete-2026-11-20-module-v3128';"));
 });
