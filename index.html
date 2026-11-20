@@ -47273,6 +47273,7 @@ function obGardeEtat(){
 function obGardeBloque(){return !!state.onboarded&&!obApercu&&obGardeEtat()==='non';}
 function obGardeVoir(){
   clearTimeout(obGardeT);
+  try{if(typeof rappelAuto==='function')rappelAuto(0);}catch(e){}   // les rappels suivent l’abonnement (20 novembre, 21 h 08)
   if(!state.onboarded||obApercu)return false;
   if(typeof obCompteGardeVoir==='function'&&obCompteGardeVoir())return false;   /* 13 novembre, 3 h 22 : sans compte connecté, la page de connexion d’abord */
   const e=obGardeEtat(),root=document.getElementById('onboarding'),ouvert=!!(root&&root.classList.contains('on'));
@@ -52728,7 +52729,7 @@ function rappelNativeSync(demander){
   try{rappelSig=rappelSignature();}catch(e){rappelSig='';}
   const go=async()=>{
     try{await LN.cancel({notifications:RAPPEL_IDS.map(id=>({id}))});}catch(e){}
-    if(!rappelOn())return;
+    if(!rappelOn()||!rappelAbonne())return;
     try{const p=await(demander||typeof LN.checkPermissions!=='function'?LN.requestPermissions():LN.checkPermissions());if(p&&p.display&&p.display!=='granted')return;}catch(e){return;}
     const boutons=typeof LN.registerActionTypes==='function'?await rappelBoutonsPoser(LN):false;
     const notifications=rappelSeances(new Date(),56).filter(d=>!(typeof flammeDirectCouvre==='function'&&flammeDirectCouvre(d))).map((d,i)=>{const [title,body]=rappelMessage(d);return Object.assign({id:100+i,title,body,schedule:{at:d,allowWhileIdle:true}},boutons?{actionTypeId:RAPPEL_BOUTONS}:{});});
@@ -52772,6 +52773,11 @@ function rappelPlusTardAnnuler(){
 }
 /* Automatique (21 h 41) : après chaque enregistrement (save), au retour dans l’appli et à l’ouverture, on reprogramme si ce qui
    est prévu a changé. Rien pendant l’onboarding : sa fin programme le rappel d’après le planning créé. */
+/* 20 novembre, 21 h 08 (Elisa : « celui qui aura les notifications, c’est celui qui va autoriser les notifications et qui est rentré
+   dans le paywall, que ce soit par l’essai de 3 jours ou celui qui a payé, à l’année ou à la semaine ») : un abonnement fini (essai
+   annulé, abonnement arrêté), l’app le sait (« non » sûr de RevenueCat, la garde du paywall) : plus de rappels. Sans réponse (hors
+   ligne), on les garde. L’abonnement revenu, ils sont reprogrammés (rappelSig vidé). */
+function rappelAbonne(){try{return !(typeof obGardeEtat==='function'&&obGardeEtat()==='non');}catch(e){return true;}}
 function rappelTousAnnuler(){
   try{
     const C=window.Capacitor,LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;
@@ -52788,7 +52794,7 @@ function rappelAuto(ms){
         const ob=document.getElementById('onboarding');
         /* 20 novembre : onboarding pas fini (arrêté avant la connexion ou le paywall) : aucun rappel, et ceux programmés avant la
            correction (à l’étape du rappel) sont retirés */
-        if(!state.onboarded){rappelTousAnnuler();return;}
+        if(!state.onboarded||!rappelAbonne()){rappelTousAnnuler();rappelSig='';return;}
         if(ob&&ob.classList.contains('on'))return;
         rappelCharger();   // la liste en ligne (rappels.json), relue au plus deux fois par jour ; si elle change, on repasse ici
         if(rappelSignature()!==rappelSig)rappelNativeSync();
@@ -54449,7 +54455,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-20-module-v3131';
+  const SW_CACHE='requete-2026-11-20-module-v3132';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

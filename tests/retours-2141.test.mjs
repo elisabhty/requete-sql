@@ -127,7 +127,9 @@ test('sur l’iPhone : les séances du planning, chacune avec son message ; l’
   /* 20 novembre, 20 h 42 (« pourquoi quelqu’un qui n’est pas rentré dans le paywall reçoit des notifications ? ») : à cette étape,
      seulement l’autorisation ; les rappels partent à la fin de l’onboarding (finishOnboard), ou tout de suite pour qui l’a déjà fini */
   assert.ok(app.includes("  if(ok){buzz('success');if(typeof state!=='undefined'&&state&&state.onboarded)rappelNativeSync();}"), 'l’onboarding vient d’avoir la réponse');
-  assert.ok(app.includes("if(!state.onboarded){rappelTousAnnuler();return;}"), 'onboarding pas fini : aucun rappel, ceux d’avant retirés');
+  assert.ok(app.includes("if(!state.onboarded||!rappelAbonne()){rappelTousAnnuler();rappelSig='';return;}"), 'onboarding pas fini, ou abonnement fini (21 h 08) : aucun rappel, ceux d’avant retirés');
+  assert.ok(app.includes("function rappelAbonne(){try{return !(typeof obGardeEtat==='function'&&obGardeEtat()==='non');}catch(e){return true;}}"), 'seulement sur un « non » sûr : hors ligne, on garde les rappels');
+  assert.ok(app.includes("if(!rappelOn()||!rappelAbonne())return;") && app.includes("try{if(typeof rappelAuto==='function')rappelAuto(0);}catch(e){}   // les rappels suivent l’abonnement"), 'l’abonnement revenu, ils reviennent');
   /* Refusée dans les réglages d’iOS : tout est annulé, rien de programmé */
   const z = bac({ sessions: s, perm: 'denied' });
   z.run('rappelNativeSync()'); await z.attendre();
@@ -223,5 +225,5 @@ test('Mon compte : le prochain rappel, et qu’il suit le planning', () => {
   const loin = `${t.toLocaleDateString('fr-FR', { weekday: 'long' })} ${t.getDate() === 1 ? '1er' : t.getDate()} ${t.toLocaleDateString('fr-FR', { month: 'long' })} à 19:00`;
   assert.ok(feuille([{ d: J(3), lessons: [1] }]).includes(`Prochain rappel : ${loin}.`), loin);
   assert.ok(feuille([{ d: J(1), lessons: [1] }], [1]).includes('Ton planning ne prévoit plus de séance : pas de rappel pour l’instant.'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-20-module-v3131';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-20-module-v3132';"), 'le cache de l’appli change');
 });
