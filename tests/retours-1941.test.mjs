@@ -312,7 +312,7 @@ test('le rappel sur l’iPhone : une notification par séance à venir, chacune 
     if (freq === 7) assert.equal(new Set(notes.slice(0, 8).map(n => n.title)).size, 8, 'une semaine et un jour : huit messages différents');
   }
   /* 21 h 41 : d’après le planning, et seulement si ce qui est prévu a changé depuis la dernière fois (retours-2141) */
-  assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)"),
+  assert.ok(app.includes("    setTimeout(()=>{try{rappelAuto(0);}catch(e){}},2200);   // 20 novembre : onboarding pas fini, rappelAuto retire les rappels programmés avant"),
     'à l’ouverture de l’appli : les semaines suivantes, sans attendre d’avoir touché au rappel');
-  assert.ok(sw.includes("requete-2026-11-20-module-v3130"), 'le cache de l’appli change');
+  assert.ok(sw.includes("requete-2026-11-20-module-v3131"), 'le cache de l’appli change');
 });

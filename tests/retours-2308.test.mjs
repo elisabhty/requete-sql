@@ -38,7 +38,7 @@ test('« Autoriser » ouvre la vraie demande d’iOS, puis programme le rappel ;
   t.ctx.obRappelDemander();     // un deuxième toucher pendant que la fenêtre d’iOS est ouverte
   t.ctx.obRappelRefuser();      // ou « Ne pas autoriser » derrière elle
   t.repondre(); await p;
-  assert.deepEqual(t.appels, ['demande d’iOS', 'rappel programmé', 'vers widget'], 'une seule demande, une seule suite');
+  assert.deepEqual(t.appels, ['demande d’iOS', 'vers widget'], 'une seule demande, une seule suite (les rappels partent à la fin de l’onboarding : 20 novembre)');
   assert.deepEqual({ ...t.store }, { 'requete-rappel-heure': '08:00', 'requete-rappel': '1' });
   const t2 = etape({ reponse: 'denied' }); const p2 = t2.ctx.obRappelDemander(); t2.repondre(); await p2;
   assert.deepEqual(t2.appels, ['demande d’iOS', 'vers widget'], 'refusé dans la fenêtre d’iOS : pas de rappel, on continue');

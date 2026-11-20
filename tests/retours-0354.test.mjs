@@ -95,7 +95,8 @@ test('le rappel : la fenêtre d’iOS en aperçu au centre de l’écran, la fl�
     await ctx.obRappelDemander();
     return {appels, store};
   };
-  assert.deepEqual(await essai(), {appels: ['demande', 'programme', 'vers widget'], store: {'requete-rappel-heure': '08:00', 'requete-rappel': '1'}}, 'l’heure choisie (11 h 08), puis le rappel');
+  /* 20 novembre, 20 h 42 : l’autorisation seulement ; les rappels partent à la fin de l’onboarding, après le paywall */
+  assert.deepEqual(await essai(), {appels: ['demande', 'vers widget'], store: {'requete-rappel-heure': '08:00', 'requete-rappel': '1'}}, 'l’heure choisie (11 h 08), l’autorisation, puis la suite');
   assert.deepEqual(await essai({reponse: 'denied'}), {appels: ['demande', 'vers widget'], store: {'requete-rappel-heure': '08:00', 'requete-rappel': '0'}}, 'refusé : pas de rappel (l’heure reste pour Mon compte)');
   assert.deepEqual(await essai({apercu: true}), {appels: ['vers widget'], store: {}}, 'aperçu : rien demandé, rien gardé');
 });

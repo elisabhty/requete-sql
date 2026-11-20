@@ -124,7 +124,10 @@ test('sur l’iPhone : les séances du planning, chacune avec son message ; l’
   y.run('rappelNativeSync(true)'); await y.attendre();
   assert.deepEqual(y.appels.map(a => a[0]), ['annule', 'demande', 'programme']);
   assert.ok(app.includes("  rappelNativeSync(true);\n  RP=null;"), 'rappelEnregistrer');
-  assert.ok(app.includes("  if(ok){rappelNativeSync();buzz('success');}"), 'l’onboarding vient d’avoir la réponse');
+  /* 20 novembre, 20 h 42 (« pourquoi quelqu’un qui n’est pas rentré dans le paywall reçoit des notifications ? ») : à cette étape,
+     seulement l’autorisation ; les rappels partent à la fin de l’onboarding (finishOnboard), ou tout de suite pour qui l’a déjà fini */
+  assert.ok(app.includes("  if(ok){buzz('success');if(typeof state!=='undefined'&&state&&state.onboarded)rappelNativeSync();}"), 'l’onboarding vient d’avoir la réponse');
+  assert.ok(app.includes("if(!state.onboarded){rappelTousAnnuler();return;}"), 'onboarding pas fini : aucun rappel, ceux d’avant retirés');
   /* Refusée dans les réglages d’iOS : tout est annulé, rien de programmé */
   const z = bac({ sessions: s, perm: 'denied' });
   z.run('rappelNativeSync()'); await z.attendre();
@@ -165,17 +168,21 @@ test('automatique : reprogrammé quand ce qui est prévu change, et seulement al
   x.appels.length = 0;
   x.run('rappelAuto();rappelAuto();rappelAuto(400)');
   assert.deepEqual(x.minuteur(), [400]);
-  /* Pendant l’onboarding, avant d’avoir fini, ou sur le web : rien */
-  for (const o of [{ ob: true }, { onboarded: false }, { natif: false }]) {
+  /* Pendant l’onboarding ou sur le web : rien. Onboarding pas fini (arrêté avant la connexion ou le paywall, 20 novembre, 20 h 42) :
+     rien de programmé, et les rappels posés avant (à l’étape du rappel) retirés */
+  for (const o of [{ ob: true, onboarded: true }, { natif: false }]) {
     const y = bac({ sessions: s, ...o });
     y.run('rappelAuto()'); y.minuteur(); await y.attendre();
     assert.deepEqual(y.appels, [], JSON.stringify(o));
   }
+  { const y = bac({ sessions: s, onboarded: false });
+    y.run('rappelAuto()'); y.minuteur(); await y.attendre();
+    assert.deepEqual(y.appels.map(a => a[0]), ['annule'], 'onboarding pas fini : seulement l’annulation'); }
 });
 
 test('branché partout : chaque enregistrement, l’ouverture, le retour dans l’appli ; sur le web, la page aussi suit le planning', () => {
   assert.ok(app.includes("function save(){ state=normalizeState(state); Store.set(KEY,state); if(typeof rappelAuto==='function')rappelAuto(); if(typeof csPlusTard==='function')csPlusTard(); }"));
-  assert.ok(app.includes("    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);"));
+  assert.ok(app.includes("    setTimeout(()=>{try{rappelAuto(0);}catch(e){}},2200);"), "à l’ouverture, toujours : onboarding pas fini, les rappels d’avant retirés (20 novembre)");
   assert.ok(app.includes("    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ rappelVu(); if(typeof rappelPlusTardAnnuler==='function')rappelPlusTardAnnuler(); tickRappel(); rappelAuto(400); } });"));
   /* La page ouverte (web) : la notification de l’heure, seulement un jour de séance pas encore faite */
   const tick = cut('function tickRappel(){', 'function plusIcon(kind){');
@@ -216,5 +223,5 @@ test('Mon compte : le prochain rappel, et qu’il suit le planning', () => {
   const loin = `${t.toLocaleDateString('fr-FR', { weekday: 'long' })} ${t.getDate() === 1 ? '1er' : t.getDate()} ${t.toLocaleDateString('fr-FR', { month: 'long' })} à 19:00`;
   assert.ok(feuille([{ d: J(3), lessons: [1] }]).includes(`Prochain rappel : ${loin}.`), loin);
   assert.ok(feuille([{ d: J(1), lessons: [1] }], [1]).includes('Ton planning ne prévoit plus de séance : pas de rappel pour l’instant.'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-20-module-v3130';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-20-module-v3131';"), 'le cache de l’appli change');
 });

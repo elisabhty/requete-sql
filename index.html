@@ -20997,7 +20997,7 @@ async function boot(){
     setTimeout(()=>{try{psVerifier();}catch(e){}},2500);
     setTimeout(()=>{try{widgetMaj();}catch(e){}},1200);   // le widget de l’app iPhone reprend la série du jour
     setTimeout(()=>{try{raccourcisBrancher();}catch(e){}},1300);   // les raccourcis de l’icône (appui long, comme Duolingo)
-    setTimeout(()=>{try{if(state.onboarded)rappelAuto(0);}catch(e){}},2200);   // les rappels des semaines à venir, reposés d’après le planning (19 h 41, 21 h 41)
+    setTimeout(()=>{try{rappelAuto(0);}catch(e){}},2200);   // 20 novembre : onboarding pas fini, rappelAuto retire les rappels programmés avant
   /* Hors ligne à l’ouverture : le pseudo est réservé au retour du réseau. */
   window.addEventListener('online',()=>{try{psVerifier();}catch(e){}});
     if(document.visibilityState!=='hidden'){rappelVu();if(typeof rappelPlusTardAnnuler==='function')rappelPlusTardAnnuler();}   // ouverte aujourd’hui : pas de rappel aujourd’hui (22 h 04)
@@ -47866,7 +47866,11 @@ async function obRappelDemander(){
   try{localStorage.setItem('requete-rappel',ok?'1':'0');}catch(e){}
   if(typeof stat==='function')stat(ok?'rappel_oui':'rappel_non');
   obRappelEnCours=false;
-  if(ok){rappelNativeSync();buzz('success');}
+  /* 20 novembre, 20 h 42 (Elisa : « pourquoi quelqu’un qui n’est pas rentré dans le paywall, qui ne s’est pas inscrit, reçoit des
+     notifications ? ») : les rappels étaient programmés sur l’iPhone dès cette étape, avant la connexion et le paywall ; qui
+     s’arrêtait là les recevait quand même, huit semaines durant. Ici, seulement l’autorisation : les rappels partent à la fin de
+     l’onboarding (finishOnboard, après le paywall). */
+  if(ok){buzz('success');if(typeof state!=='undefined'&&state&&state.onboarded)rappelNativeSync();}   // déjà abonné (le rappel rouvert depuis Mon compte) : tout de suite
   if(btn)btn.disabled=false;
   suite();
 }
@@ -52768,6 +52772,12 @@ function rappelPlusTardAnnuler(){
 }
 /* Automatique (21 h 41) : après chaque enregistrement (save), au retour dans l’appli et à l’ouverture, on reprogramme si ce qui
    est prévu a changé. Rien pendant l’onboarding : sa fin programme le rappel d’après le planning créé. */
+function rappelTousAnnuler(){
+  try{
+    const C=window.Capacitor,LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;
+    if(LN)Promise.resolve(LN.cancel({notifications:RAPPEL_IDS.concat(RAPPEL_PLUS_TARD_ID).map(id=>({id}))})).catch(()=>{});
+  }catch(e){}
+}
 function rappelAuto(ms){
   try{
     if(typeof flammeDirectAuto==='function')flammeDirectAuto(ms);   // ta flamme en direct suit les mêmes changements (7 novembre)
@@ -52776,7 +52786,10 @@ function rappelAuto(ms){
       try{
         const C=window.Capacitor;if(!(C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications))return;
         const ob=document.getElementById('onboarding');
-        if(!state.onboarded||(ob&&ob.classList.contains('on')))return;
+        /* 20 novembre : onboarding pas fini (arrêté avant la connexion ou le paywall) : aucun rappel, et ceux programmés avant la
+           correction (à l’étape du rappel) sont retirés */
+        if(!state.onboarded){rappelTousAnnuler();return;}
+        if(ob&&ob.classList.contains('on'))return;
         rappelCharger();   // la liste en ligne (rappels.json), relue au plus deux fois par jour ; si elle change, on repasse ici
         if(rappelSignature()!==rappelSig)rappelNativeSync();
       }catch(e){}
@@ -54436,7 +54449,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-20-module-v3130';
+  const SW_CACHE='requete-2026-11-20-module-v3131';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
