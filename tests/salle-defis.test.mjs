@@ -726,8 +726,8 @@ test('solo : aucun message réseau, tirage immédiat, points selon la rapidité'
   /* 6 novembre, 15 h (« Multiplicateur ×2 / ×4 ») : la partie est en Moyen, les points de vitesse comptent double et chaque palier
      dure 3 min (retours-1242) ; 8 novembre, 9 h 17 : le premier coup reste à +25. 14 novembre, 7 h 17 : chaque palier du Moyen dure
      2 min. Trouvés en moins de 2 min, les deux premiers valent 400, le troisième (vers 2 min 30) 350, plus 25 du premier coup */
-  assert.deepEqual(rk.map(x => x.pts), rk.map(x => 2 * valeur(Math.floor(x.ms / 2)) + 25), 'seul : le palier du Moyen ×2, et le premier coup');
-  assert.deepEqual(rk.map(x => x.pts), [425, 425, 375], 'vers 20 s, 80 s et 150 s : 400, 400 et 350, plus 25 du premier coup');
+  assert.deepEqual(rk.map(x => x.pts), rk.map(x => Math.round(1.5 * valeur(Math.floor(x.ms / 1.5))) + 25), 'seul : le palier du Moyen ×1,5 (paliers de 1 min 30, 20 novembre), et le premier coup');
+  assert.deepEqual(rk.map(x => x.pts), [325, 325, 288], 'vers 20 s, 80 s et 150 s : 300, 300 et 263 (Moyen ×1,5, paliers de 1 min 30 depuis le 20 novembre), plus 25 du premier coup');
   s.ev('jeuFinish()'); sec(w, 1);
   assert.equal(s.view(), 'final'); assert.match(s.html, /Carton plein/); assert.match(s.html, /Rejouer/);
   assert.equal(s.ev('state.salle.pts'), rk.reduce((a, x) => a + x.pts, 0)); assert.equal(s.ev('state.salle.parties'), 1);
@@ -867,24 +867,24 @@ test('le bilan d’une partie de 2 manches dit l’essentiel une fois : le nivea
   assert.match(s.html, /onclick="jeuRejouer\(\)"><svg[^]*?<\/svg><span>Rejouer<\/span>/); assert.doesNotMatch(s.html, /jeu-prog/, 'pas tout résolu : pas de prochaine étape');
 });
 
-test('solo : en Moyen, la manche dure 12 min au plus (14 novembre, 7 h 17 ; 15 min depuis le 8 novembre) ; trouvée à 7 min, elle rapporte encore 250 (+25 du premier coup)', () => {
+test('solo : en Moyen, la manche dure 9 min au plus (20 novembre, 10 h 15 ; 12 min depuis le 14 novembre) ; trouvée à 7 min, elle rapporte encore 150 (+25 du premier coup)', () => {
   const w = new World();
   const s = makeClient(w, 'Seul'); s.ev("jeuNb=2;jeuNiv='m'");
   s.ev("jeuStart('SOLO44',true,null,{solo:true})"); sec(w, 4);
   sec(w, 7 * 60);
   assert.equal(s.view(), 'play0', 'à 7 min, on cherche encore');
   assert.equal(s.ev('jeuValeur(Date.now()-JEU.rounds[0].t1)'), 50, 'en Facile, le défi vaudrait 50 au-delà de 6 min (la manche y est déjà finie)');
-  assert.equal(s.ev("jeuValeur(Date.now()-JEU.rounds[0].t1,'m')"), 250, 'en Moyen, les paliers durent 2 min : entre 6 et 8 min, 125 × 2');
+  assert.equal(s.ev("jeuValeur(Date.now()-JEU.rounds[0].t1,'m')"), 150, 'en Moyen, les paliers durent 1 min 30 : entre 6 min et 7 min 30, 100 × 1,5');
   s.found(); sec(w, 1);
-  assert.equal(s.ev('jeuRanking(0)[0].pts'), 275, '250, plus 25 du premier coup (le palier ×2 en Moyen, 6 novembre, 15 h ; le premier coup fixe, 8 novembre, 9 h 17)');
+  assert.equal(s.ev('jeuRanking(0)[0].pts'), 175, '150, plus 25 du premier coup (le palier ×1,5 en Moyen, 20 novembre ; le premier coup fixe, 8 novembre, 9 h 17)');
   s.ev('jeuNextRound()'); sec(w, 4);
-  assert.match(s.html, /role="timer" aria-label="Temps restant de la manche">(12:00|11:5\d)<\/b>/, 'le chrono du Moyen part de 12:00');
-  sec(w, 11.5 * 60); assert.equal(s.view(), 'play1', 'à 11 min 30, on cherche encore');
-  sec(w, 31); assert.equal(s.view(), 'play1', 'à 12 min (le chrono à 0), la manche s’arrête et reste à l’écran (9 novembre, 10 h 01)');
+  assert.match(s.html, /role="timer" aria-label="Temps restant de la manche">(09:00|08:5\d)<\/b>/, 'le chrono du Moyen part de 09:00');
+  sec(w, 8.5 * 60); assert.equal(s.view(), 'play1', 'à 8 min 30, on cherche encore');
+  sec(w, 31); assert.equal(s.view(), 'play1', 'à 9 min (le chrono à 0), la manche s’arrête et reste à l’écran (9 novembre, 10 h 01)');
   assert.match(s.html, /<b class="coach-to-k">Temps écoulé<\/b>/); assert.match(s.html, /Tes points arrivent dans <b id="jeu-auto-n">([1-9]|10)<\/b>/);
   sec(w, 10); assert.equal(s.view(), 'final', 'puis le bilan');
   assert.match(s.html, /class="jr2-tuiles.*class="jr is-ok".*class="jr is-miss".*Temps écoulé.*jeuCorrection\(1\)/s, "le bilan : la manche trouvée, puis la manquée « Temps écoulé », et sa correction (10 h 37)");
-  assert.equal(s.ev('state.salle.pts'), 275);
+  assert.equal(s.ev('state.salle.pts'), 175);
 });
 
 /* Elisa, 31 octobre, 17 h 53 : « laisse tomber le fait qu’un défi ne peut pas être rejoué s’il est réussi : il peut être rejoué, et ne
@@ -1572,7 +1572,7 @@ test('8 novembre, 9 h 31 : à 0, la manche s’arrête, 0 point pour qui n’a p
   assert.match(host.html, /role="timer" aria-label="Temps restant de la manche">(06:00|05:5\d)<\/b>/, 'le temps qui reste');
   assert.equal(host.ev("jeuRebours(jeuDureeMs('f'),jeuDureeMs('f'))"), '06:00');
   assert.deepEqual(host.ev('[360000,359001,61000,999,0,-5].map(x=>jeuRebours(x,360000))'), ['06:00', '06:00', '01:01', '00:01', '00:00', '00:00'], 'à la seconde du dessus');
-  assert.deepEqual(host.ev("[jeuRebours(700000,360000),jeuRebours(1300000),['f','m','d'].map(jeuDureeMs)]"), ['06:00', '15:00', [360000, 720000, 900000]], 'jamais plus que la manche (6, 12, 15 min : 14 novembre, 7 h 17)');
+  assert.deepEqual(host.ev("[jeuRebours(700000,360000),jeuRebours(1300000),['f','m','d'].map(jeuDureeMs)]"), ['06:00', '15:00', [360000, 540000, 900000]], 'jamais plus que la manche (6, 9, 15 min : 20 novembre)');
   host.found(); sec(w, 2);
   sec(w, 5.5 * 60);
   assert.equal(guests[0].view(), 'play0', 'à 5 min 30, l’ami cherche encore');
@@ -1667,7 +1667,8 @@ test('8 novembre, 8 h 52 : 10 min en Facile, 15 en Moyen, 20 en Difficile, dans 
   assert.ok(sql.includes("neuf := regexp_replace(def, '([a-z_]+)\\.debut\\+interval ''10 minutes''', '\\1.debut+requete_private.manche_duree(\\1.defi)', 'g');"), 'seule la borne change');
   assert.ok(sql.includes("if position('interval ''10 minutes''' in neuf) > 0 then") && sql.includes("if nb <> 5 then raise exception"), 'toutes les bornes, les cinq fonctions, ou rien');
   /* 14 novembre, 7 h 17 : 6, 12 et 15 min, dans l’appli et sur le serveur (la même fonction, 20261114063120) */
-  assert.ok(engineSrc.includes('const JEU_NIV_MANCHE={f:360000,m:720000,d:900000};   // 6, 12, 15 min (14 novembre, 7 h 17 ; 10, 15, 20 min avant)\nfunction jeuDureeMs(k){return JEU_NIV_MANCHE[k]||JEU_NIV_MANCHE.f;}'), 'l’appli compte les mêmes durées');
+  assert.ok(engineSrc.includes('const JEU_NIV_MANCHE={f:360000,m:540000,d:900000};   // Moyen : 9 min depuis le 20 novembre (10 h 15)\nfunction jeuDureeMs(k){return JEU_NIV_MANCHE[k]||JEU_NIV_MANCHE.f;}'), 'l’appli compte les mêmes durées (6, 9, 15 min depuis le 20 novembre)');
+  assert.ok(fs.readFileSync(new URL(fs.readdirSync(dir).find(x => x.endsWith('_moyen_un_et_demi.sql')), dir), 'utf8').includes("when 'm' then interval '9 minutes' when 'd' then interval '15 minutes' else interval '6 minutes' end"), 'le serveur : 9 min en Moyen (20 novembre)');
   const f2 = fs.readdirSync(dir).find(x => x.endsWith('_salle_manches_plus_courtes.sql'));
   assert.ok(f2 && f2 > f, 'la migration du 14 novembre, après celle du 8');
   assert.ok(fs.readFileSync(new URL(f2, dir), 'utf8').includes("select case (select c.niv from requete_private.catalogue c where c.id = p_defi)\n    when 'm' then interval '12 minutes' when 'd' then interval '15 minutes' else interval '6 minutes' end"), 'le serveur : 6, 12, 15 min');

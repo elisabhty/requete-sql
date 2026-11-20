@@ -84,6 +84,6 @@ test('Supabase — jeu_score accepte le nouveau barème : de 50 à 225 points pa
   /* Vérifié sur la vraie base (31 octobre, 17 h 46, sans rien garder) : 225 seul accepté, 226 refusé ; 50 accepté, 49 refusé ;
      3 manches entre amis : 825 accepté, 826 refusé */
   assert.ok(app.includes("const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];"));
-  assert.ok(app.includes('const JEU_NIV_MANCHE={f:360000,m:720000,d:900000};'), 'la manche : 6 min en Facile, 12 en Moyen, 15 en Difficile (14 novembre, 7 h 17 ; 10, 15, 20 depuis le 8 novembre)');
+  assert.ok(app.includes('const JEU_NIV_MANCHE={f:360000,m:540000,d:900000};'), 'la manche : 6 min en Facile, 9 en Moyen (20 novembre), 15 en Difficile (14 novembre, 7 h 17 ; 10, 15, 20 depuis le 8 novembre)');
   assert.ok(app.includes('(une manche non trouvée compte ${jeuDureeMs(J.niv)/60000} min)'));
 });

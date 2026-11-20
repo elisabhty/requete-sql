@@ -193,7 +193,7 @@ test('14 novembre, 7 h 17 : les indices au quart, à la moitié, aux trois quart
   vm.runInContext(app.slice(app.indexOf('const JEU_NIV_MANCHE='), app.indexOf('\n', app.indexOf('function jeuDureeMs('))) + '\n' + app.slice(app.indexOf('function jeuIndT('), app.indexOf('\n', app.indexOf('function jeuIndT('))), c);
   const t = k => JSON.parse(JSON.stringify(vm.runInContext(`jeuIndT('${k}').map(x=>x/1000)`, c)));
   assert.deepEqual(t('f'), [90, 180, 270], 'Facile (6 min) : 1 min 30, 3 min, 4 min 30');
-  assert.deepEqual(t('m'), [180, 360, 540], 'Moyen (12 min) : 3, 6, 9 min');
+  assert.deepEqual(t('m'), [135, 270, 405], 'Moyen (9 min depuis le 20 novembre) : 2 min 15, 4 min 30, 6 min 45');
   assert.deepEqual(t('d'), [225, 450, 675], 'Difficile (15 min) : 3 min 45, 7 min 30, 11 min 15');
   assert.ok(fn('coachNext').includes('return Math.max(0,jeuIndT(jeuNivManche(COACH.round))[COACH.n]-(Date.now()-r.t1));'), 'la carte dit dans combien de temps vient le suivant');
 });
