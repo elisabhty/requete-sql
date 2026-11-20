@@ -45,7 +45,7 @@ test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses r
   /* 17 h 39 : les paliers de temps, +25 du premier coup, le classement entre amis jusqu’au 4e */
   for (const part of ['<li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${fin/60}&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.</small>',
     '<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>',
-    '<li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>',
+    '<li><b>🥇 Premier à trouver</b><span>+${Math.round((JEU_PTS_RANG[0])*(x))}</span><small>À plusieurs : 2e +${Math.round((JEU_PTS_RANG[1])*(x))} · 3e +${Math.round((JEU_PTS_RANG[2])*(x))} · 4e +${Math.round((JEU_PTS_RANG[3])*(x))}. Seul à jouer la manche, pas de bonus de place</small></li>',
     '<small>Le plus rapide au total passe devant ; même temps : ex æquo</small>'])
     assert.ok(rules.includes(part), part);
   assert.ok(!rules.includes('Rapidité') && !rules.includes('moins toutes les'), 'plus de ligne « Rapidité » à part');
@@ -54,7 +54,7 @@ test('ref 4 — Défis : la salle seule, tirée au sort au niveau choisi ; ses r
 
 test('ref 4 — les points en paliers (17 h 39) : 200 → 50 selon le temps, +25 du premier coup, +50 / +30 / +20 / +10 ; les temps en 00:00', () => {
   const ctx = vm.createContext({});
-  vm.runInContext(['const JEU_NIV_MANCHE={f:360000,m:720000,d:900000};', 'const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];', 'const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:2,d:2.5};', line('jeuChrono'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
+  vm.runInContext(['const JEU_NIV_MANCHE={f:360000,m:720000,d:900000};', "const jeuX=(n,x)=>Math.round(n*(x||1)),jeuXDit=x=>String(x).replace('.',',');", 'const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];', 'const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:2,d:2.5};', line('jeuChrono'), line('jeuValeur'), line('jeuPts')].join('\n'), ctx);
   assert.ok(app.includes('const JEU_NIV_MANCHE={f:360000,m:720000,d:900000};') && app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'));   // 6, 12, 15 min ; le dernier palier à 6 min (14 novembre, 7 h 17)
   const ev = c => JSON.parse(JSON.stringify(vm.runInContext(c, ctx)));
   assert.deepEqual(ev("[0,999,72000,179999].map(jeuChrono)"), ['00:00', '00:00', '01:12', '02:59']);

@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=6abc065c" data-defis></script>
+<script src="langues.js?v=3a7170b4" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -28764,7 +28764,7 @@ function defisFeuilleHTML(k){
      adversaires ». Les trois tiennent sur une ligne dès 360 px. */
   const PIECE='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.6" fill="#fff" stroke="#1B1640" stroke-width="2"/><path d="M12 6.9l1.5 3.1 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4-2.5-2.4 3.4-.5z" fill="#FFC83D" stroke="#1B1640" stroke-width="1.5" stroke-linejoin="round"/></svg>';
   const GENS='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11.2a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8zM3 19.6c.4-3.3 2.8-5.4 6-5.4s5.6 2.1 6 5.4M15.6 4.6a3.2 3.2 0 0 1 0 6.3M17.4 14.4c2 .6 3.3 2.4 3.6 5.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const niv=`<p class="dx-f-niv-l"><span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span><span class="lq-sr">, </span><span class="dx-f-chip is-pts">${PIECE}<span><b>×${JEU_NIV_X[jeuNiv]||1}</b><small aria-hidden="true">\u00a0pts</small><span class="lq-sr"> points</span></span></span>${friends?`<span class="lq-sr">, </span><span class="dx-f-chip is-max">${GENS}<span><b>${JEU_MAX}</b>\u00a0joueurs max</span></span>`:''}</p>`;
+  const niv=`<p class="dx-f-niv-l"><span class="dx-f-niv is-${jeuNiv}">${jeuNivBars(jeuNiv)}${JEU_NIVL[jeuNiv]||'Facile'}</span><span class="lq-sr">, </span><span class="dx-f-chip is-pts">${PIECE}<span><b>×${String(JEU_NIV_X[jeuNiv]||1).replace('.',typeof REQUETE_LANGUE!=='undefined'&&REQUETE_LANGUE.code&&REQUETE_LANGUE.code!=='fr'?'.':',')}</b><small aria-hidden="true">\u00a0pts</small><span class="lq-sr"> points</span></span></span>${friends?`<span class="lq-sr">, </span><span class="dx-f-chip is-max">${GENS}<span><b>${JEU_MAX}</b>\u00a0joueurs max</span></span>`:''}</p>`;
   /* Le surtitre : le libellé du bouton touché (7 novembre, 21 h 44) ; seul : « Mode solo » (sa maquette). Le code (8 novembre, 0 h 23,
      sa relecture : « il y a un peu trop d’explications pour une action aussi simple que saisir un code ») : « Rejoindre une partie »,
      « Entre ton code ! ». 15 h 27 (la relecture qu’elle a fait faire) : « Code de la salle » au-dessus du champ, « Rejoindre la
@@ -29689,15 +29689,15 @@ function renderDefisRules(){
   const host=document.getElementById('defis-rules');if(!host)return;
   const k=JEU_NIV_X[defisReglesNiv]?defisReglesNiv:(typeof jeuNiv!=='undefined'&&JEU_NIV_X[jeuNiv]?jeuNiv:'f');
   const x=JEU_NIV_X[k],d=JEU_NIV_DUREE[k],fin=jeuDureeMs(k)/1000;
-  const top=JEU_PALIERS[0][1]*x,mn=t=>String(t/60).replace('.',','),last=JEU_PALIERS[JEU_PALIERS.length-1][0]*d;
+  const top=Math.round((JEU_PALIERS[0][1])*(x)),mn=t=>String(t/60).replace('.',typeof REQUETE_LANGUE!=='undefined'&&REQUETE_LANGUE.code&&REQUETE_LANGUE.code!=='fr'?'.':','),last=JEU_PALIERS[JEU_PALIERS.length-1][0]*d;
   /* 14 novembre, 7 h 39 (Elisa : « pourquoi ×2 ×4 à côté de Niveau du défi », puis « oui » à la ligne qui suit le niveau choisi) : la
      ligne du niveau dit le coefficient du niveau choisi au-dessus (×1, ×2 ou ×4) et la longueur de ses paliers ; avant, « ×2 · ×4 » et
      le même texte pour les trois niveaux, la durée de la manche en plus (la ligne « Trouvé vite » la donne). */
-  const nivDit=`${x>1?`Les points de vitesse et de place comptent ${x===2?'double':'quadruple'}`:'Les points de base'}, un palier ${d===1?'par minute':`toutes les ${jeuMinDit(60*d)}`}. Le premier coup vaut +${JEU_PTS_ESSAI} à tous les niveaux.`;
-  const marches=JEU_PALIERS.map(([t,p],i)=>{const a=i?JEU_PALIERS[i-1][0]*d:0,b=Math.min(t*d,fin);return {a,p:p*x,lab:i?`${mn(a)}–${mn(b)}`:`≤ ${mn(b)}`,dit:i?`de ${jeuMinDit(a)} à ${jeuMinDit(b)}`:`jusqu’à ${jeuMinDit(b)}`};})
-    .concat([{a:last,p:JEU_PTS_MIN*x,lab:`${mn(last)} +`,dit:`après ${jeuMinDit(last)}`}]).filter(m=>m.a<fin);
-  const choix=['f','m','d'].map(n=>`<button type="button" role="radio" aria-checked="${n===k}" class="${n===k?'is-on':''}" onclick="defisRulesNiv('${n}')">${JEU_NIVL[n]}${JEU_NIV_X[n]>1?`<small>×${JEU_NIV_X[n]}\u00a0pts</small>`:''}</button>`).join('');
-  const ouvert=!!defisReglesOuvert,parfaite=(top+JEU_PTS_ESSAI+JEU_PTS_RANG[0]*x).toLocaleString('fr-FR');
+  const nivDit=`${x>1?`Les points de vitesse et de place comptent ${x===2?'double':`${String(x).replace('.',',')} fois plus`}`:'Les points de base'}, un palier ${d===1?'par minute':`toutes les ${jeuMinDit(60*d)}`}. Le premier coup vaut +${JEU_PTS_ESSAI} à tous les niveaux.`;
+  const marches=JEU_PALIERS.map(([t,p],i)=>{const a=i?JEU_PALIERS[i-1][0]*d:0,b=Math.min(t*d,fin);return {a,p:Math.round((p)*(x)),lab:i?`${mn(a)}–${mn(b)}`:`≤ ${mn(b)}`,dit:i?`de ${jeuMinDit(a)} à ${jeuMinDit(b)}`:`jusqu’à ${jeuMinDit(b)}`};})
+    .concat([{a:last,p:Math.round((JEU_PTS_MIN)*(x)),lab:`${mn(last)} +`,dit:`après ${jeuMinDit(last)}`}]).filter(m=>m.a<fin);
+  const choix=['f','m','d'].map(n=>`<button type="button" role="radio" aria-checked="${n===k}" class="${n===k?'is-on':''}" onclick="defisRulesNiv('${n}')">${JEU_NIVL[n]}${JEU_NIV_X[n]>1?`<small>×${String(JEU_NIV_X[n]).replace('.',',')}\u00a0pts</small>`:''}</button>`).join('');
+  const ouvert=!!defisReglesOuvert,parfaite=(top+JEU_PTS_ESSAI+Math.round((JEU_PTS_RANG[0])*(x))).toLocaleString('fr-FR');
   host.innerHTML=`<section class="room-rules ${ouvert?'is-ouvert':'is-ferme'}" aria-labelledby="room-rules-h">
     <h2 id="room-rules-h"><button type="button" class="room-rules-tog" aria-expanded="${ouvert}" aria-controls="room-rules-corps" onclick="defisRulesOuvrir()"><span class="room-rules-stk" aria-hidden="true">${lqStkSvg('target')}</span><span class="room-rules-tt">Comment sont calculés les points&nbsp;?<small>Jusqu’à ${parfaite}&nbsp;points par manche en ${JEU_NIVL[k]}</small></span><i class="room-rules-chev" aria-hidden="true">${typeof DEF_CHEV_SVG==='string'?DEF_CHEV_SVG:''}</i></button></h2>
     <div class="room-rules-corps" id="room-rules-corps"${ouvert?'':' hidden'}>
@@ -29706,12 +29706,12 @@ function renderDefisRules(){
       <li class="room-rule-vite"><b>⏱️ Trouvé vite</b><span>jusqu’à ${top}</span><small>Plus tu trouves vite, plus le défi rapporte. Le chrono part de ${fin/60}&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.</small>
         <ol class="room-paliers" aria-label="Points selon le temps pour trouver">${marches.map((m,i)=>`<li style="--h:${Math.round(m.p/top*52)}px;--i:${i}"><b>${m.p}</b><i aria-hidden="true"></i><small aria-hidden="true">${m.lab}</small><em class="lq-sr"> points ${m.dit}</em></li>`).join('')}</ol>
         <p class="room-paliers-u" aria-hidden="true">minutes pour trouver</p></li>
-      <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×${x}</span><small>${nivDit}</small></li>
+      <li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×${String(x).replace('.',typeof REQUETE_LANGUE!=='undefined'&&REQUETE_LANGUE.code&&REQUETE_LANGUE.code!=='fr'?'.':',')}</span><small>${nivDit}</small></li>
       <li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>
-      <li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>
+      <li><b>🥇 Premier à trouver</b><span>+${Math.round((JEU_PTS_RANG[0])*(x))}</span><small>À plusieurs : 2e +${Math.round((JEU_PTS_RANG[1])*(x))} · 3e +${Math.round((JEU_PTS_RANG[2])*(x))} · 4e +${Math.round((JEU_PTS_RANG[3])*(x))}. Seul à jouer la manche, pas de bonus de place</small></li>
       <li><b>⚖️ Égalité</b><span>chrono</span><small>Le plus rapide au total passe devant ; même temps : ex æquo</small></li>
     </ul>
-    <p class="room-rules-max"><span>Manche parfaite en ${JEU_NIVL[k]}</span><b>${(top+JEU_PTS_ESSAI).toLocaleString('fr-FR')}</b><small>seul</small><i aria-hidden="true">·</i><b>${(top+JEU_PTS_ESSAI+JEU_PTS_RANG[0]*x).toLocaleString('fr-FR')}</b><small>à plusieurs</small></p>
+    <p class="room-rules-max"><span>Manche parfaite en ${JEU_NIVL[k]}</span><b>${(top+JEU_PTS_ESSAI).toLocaleString('fr-FR')}</b><small>seul</small><i aria-hidden="true">·</i><b>${(top+JEU_PTS_ESSAI+Math.round((JEU_PTS_RANG[0])*(x))).toLocaleString('fr-FR')}</b><small>à plusieurs</small></p>
     </div>
   </section>`;
   /* Les marches montent quand le cadre arrive à l’écran (il est en bas de l’onglet) ; mouvement réduit : tout de suite. */
@@ -29897,7 +29897,7 @@ function defisMoiHTML(){
    8 novembre, 11 h 08 (« ce niveau premium ») : la pastille de « Ta salle de défi », la pièce puis ×N ; celle du niveau choisi en jaune. */
 function jeuNiveauxHTML(lab,fn){
   const auto=jeuNivAuto();
-  return `<div class="room-levels" role="radiogroup" aria-labelledby="${lab}">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length,x=JEU_NIV_X[k]||1,lu=`${JEU_NIVL[k]}, ${x>1?`points multipliés par ${x}`:'points de base'}${k===auto?', niveau recommandé':''}`;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="${fn}('${k}')"${vide?' disabled':` aria-label="${lu}"`}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'':`<span class="room-lv-x" aria-hidden="true">${DX_PIECE_SVG}×${x}<small>pts</small></span>`}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div>`;
+  return `<div class="room-levels" role="radiogroup" aria-labelledby="${lab}">${['f','m','d'].map(k=>{const vide=!jeuChallenges(k).length,x=JEU_NIV_X[k]||1,lu=`${JEU_NIVL[k]}, ${x>1?`points multipliés par ${String(x).replace('.',',')}`:'points de base'}${k===auto?', niveau recommandé':''}`;return `<button type="button" role="radio" aria-checked="${jeuNiv===k}" class="room-level is-${k}${jeuNiv===k?' on':''}${vide?' is-bientot':''}" data-set="niv" data-v="${k}" onclick="${fn}('${k}')"${vide?' disabled':` aria-label="${lu}"`}><span class="room-bars" aria-hidden="true"><i></i><i></i><i></i></span><b>${JEU_NIVL[k]}</b>${vide?'':`<span class="room-lv-x" aria-hidden="true">${DX_PIECE_SVG}×${String(x).replace('.',typeof REQUETE_LANGUE!=='undefined'&&REQUETE_LANGUE.code&&REQUETE_LANGUE.code!=='fr'?'.':',')}<small>pts</small></span>`}${k===auto&&!vide?'<em class="room-lv-auto">Niveau recommandé</em>':''}</button>`;}).join('')}</div>`;
 }
 function defisNiv(k){
   if(!(JEU_NIVL[k]&&jeuChallenges(k).length))return;
@@ -34570,7 +34570,7 @@ function nivPageHtml(ids,niv){
       <div class="mu-conseil${change?' is-new':''}">
         <span class="mu-c-ico">${NIV_CIBLE}</span>
         <span class="mu-c-t"><small>${change?'Maintenant conseillés':'Défis conseillés'}</small><b>Les défis ${NIV_DEFIS[kAp]||'Faciles'}</b></span>
-        ${x>1?`<span class="mu-c-x">×${x} pts</span>`:''}
+        ${x>1?`<span class="mu-c-x">×${String(x).replace('.',',')} pts</span>`:''}
       </div>
       <div class="mu-acts">
         <button type="button" class="mu-go"><span class="mu-go-ico">${stk.length?MU_STK:MU_PLAY}</span><span class="mu-go-l">${!stk.length?'Continuer':plus?'Récupérer les stickers':'Récupérer le sticker'}</span></button>
@@ -37084,7 +37084,11 @@ const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JE
    8 novembre, 9 h 17 (« Ok » à la proposition de 9 h 14) : le premier coup vaut +25 à tous les niveaux, il ne compte plus ×2 ni ×4 ; à
    +100 en Difficile, il dissuadait de lancer une requête pour regarder les données, un bon réflexe en SQL. La vitesse et la place
    gardent leur multiplicateur. Manche parfaite : 225, 425 ou 825 seul ; 275, 525 ou 1 025 entre amis. */
-const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:2,d:2.5};   // paliers de 1 min, 2 min, 2 min 30 (14 novembre, 7 h 17 ; 1, 3, 5 min avant)
+/* 20 novembre, 9 h 43 (Elisa : « rends proportionnels les points », puis « Points ×2,5 ») : en Difficile, ×4 pour des paliers de
+   2 min 30 faisait 320 points par minute, contre 200 en Facile et en Moyen. Les points comptent ×2,5, comme la longueur des paliers :
+   500, 438, 375, 313, 250, 188, puis 125 ; arrondis à l’entier le plus proche (Math.round), « ×2,5 » écrit avec la virgule, comme le serveur (jeu_score_v2, migration
+   20261120084511_difficile_proportionnel). Manche parfaite en Difficile : 525 seul, 650 entre amis. */
+const JEU_NIV_X={f:1,m:2,d:2.5},JEU_NIV_DUREE={f:1,m:2,d:2.5};   // paliers de 1 min, 2 min, 2 min 30 (14 novembre, 7 h 17 ; 1, 3, 5 min avant)
 const JEU_NIV_MANCHE={f:360000,m:720000,d:900000};   // 6, 12, 15 min (14 novembre, 7 h 17 ; 10, 15, 20 min avant)
 function jeuDureeMs(k){return JEU_NIV_MANCHE[k]||JEU_NIV_MANCHE.f;}
 const JEU_NIVL={f:'Facile',m:'Moyen',d:'Difficile'};
@@ -37181,7 +37185,7 @@ function jeuCalcHTML(termes,total){
 /* Le calcul d’une manche : le défi et son temps (sa valeur baisse avec le temps), le premier coup, la place (entre amis) */
 function jeuCalcManche(y,total){
   if(!y)return '';
-  return jeuCalcHTML([[y.val,`défi${y.x>1?` ×${y.x}`:''} en ${jeuDureeLisible(y.ms)}`],y.essai?[y.essai,'premier coup','is-essai']:null,y.rang?[y.rang,`${y.place===1?'1<sup>re</sup> place':y.place+'<sup>e</sup> place'}`,'is-rang']:null],total);
+  return jeuCalcHTML([[y.val,`défi${y.x>1?` ×${String(y.x).replace('.',',')}`:''} en ${jeuDureeLisible(y.ms)}`],y.essai?[y.essai,'premier coup','is-essai']:null,y.rang?[y.rang,`${y.place===1?'1<sup>re</sup> place':y.place+'<sup>e</sup> place'}`,'is-rang']:null],total);
 }
 /* 6 h 12 : plusieurs manches, le calcul manche par manche (« 230 + 230 = 460 ») ; une manche non trouvée compte 0, en plus pâle */
 function jeuCalcManches(J,total){
@@ -38234,9 +38238,9 @@ function jeuRoundDone(n){
   return true;
 }
 /* Ce que vaut le défi quand on le trouve en ms : son palier, d’après les secondes du chrono affiché. */
-function jeuValeur(ms,k){const s=Math.floor(Math.max(0,+ms||0)/1000),x=JEU_NIV_X[k]||1,d=JEU_NIV_DUREE[k]||1;for(const [t,p] of JEU_PALIERS)if(s<=t*d)return p*x;return JEU_PTS_MIN*x;}
+function jeuValeur(ms,k){const s=Math.floor(Math.max(0,+ms||0)/1000),x=JEU_NIV_X[k]||1,d=JEU_NIV_DUREE[k]||1;for(const [t,p] of JEU_PALIERS)if(s<=t*d)return Math.round((p)*(x));return Math.round((JEU_PTS_MIN)*(x));}
 /* Les points d’un joueur qui trouve en ms, i-ème à trouver (0 : le premier) : le détail sert à l’écran (réussite, rang, rapidité). */
-function jeuPts(ms,i,solo,p1,k){const x=JEU_NIV_X[k]||1,val=jeuValeur(ms,k),essai=p1?JEU_PTS_ESSAI:0,rang=solo?0:(JEU_PTS_RANG[i]||0)*x;return {val,x,essai,rang,pts:val+essai+rang};}
+function jeuPts(ms,i,solo,p1,k){const x=JEU_NIV_X[k]||1,val=jeuValeur(ms,k),essai=p1?JEU_PTS_ESSAI:0,rang=solo?0:Math.round((JEU_PTS_RANG[i]||0)*(x));return {val,x,essai,rang,pts:val+essai+rang};}
 /* Le niveau d’une manche : celui de son défi, qui est celui de la salle (le serveur prend le niveau de la salle). */
 function jeuNivManche(n){const J=JEU,r=J&&J.rounds[n],c=r&&typeof CHALLENGES!=='undefined'?CHALLENGES.find(x=>x.id===r.cid):null;return (c&&c.niv)||(J&&J.niv)||'f';}
 function jeuRanking(n){
@@ -38270,7 +38274,7 @@ function jeuScores(){
 function jeuPlaces(sc){let place=0;sc.forEach((x,i)=>{if(i===0||x.pts<sc[i-1].pts||x.ms>sc[i-1].ms)place=i+1;x.place=place;});return sc;}
 /* Le détail des points d’une manche : « 100 réussite · +50 1er · +46 rapidité ». */
 /* Le détail : ce que valait le défi quand on l’a trouvé, et le bonus de place entre amis (« Défi 193 · 2e +30 »). */
-function jeuPtsDetail(x){return `<span class="jeu-pd">${x.x>1?`<i class="is-niv is-${x.k}">${JEU_NIVL[x.k]||'Niveau'} ×${x.x}</i>`:''}<i>Défi ${x.val}</i>${x.essai?`<i class="is-essai">Du premier coup +${x.essai}</i>`:''}${x.rang?`<i class="is-rang">${x.place===1?'1er':x.place+'e'} +${x.rang}</i>`:''}</span>`;}
+function jeuPtsDetail(x){return `<span class="jeu-pd">${x.x>1?`<i class="is-niv is-${x.k}">${JEU_NIVL[x.k]||'Niveau'} ×${String(x.x).replace('.',',')}</i>`:''}<i>Défi ${x.val}</i>${x.essai?`<i class="is-essai">Du premier coup +${x.essai}</i>`:''}${x.rang?`<i class="is-rang">${x.place===1?'1er':x.place+'e'} +${x.rang}</i>`:''}</span>`;}
 /* Seul dans la salle (personne n’a rejoint, ou tous sont partis) et personne d’autre n’a trouvé cette manche : tout se dessine
    comme seul (ni liste de joueurs, ni réactions, ni annonce « seul·e dans la salle »). */
 /* Fin de manche sans réponse validée (Elisa, 3 novembre, 7 h 25) : ce qui s’est passé, 0 point, « Non validée ». */
@@ -39370,7 +39374,7 @@ function jeuRender(){
     else{ton='is-ko';titre=ab?(sl?'Manche abandonnée':'Manche close par l’hôte'):'Temps écoulé';chat=ab?'effort':'reveil';}
     const ico=`${typeof chatBonusHtml==='function'?chatBonusHtml(chat):''}${med?`<i class="jr2-med">${med}</i>`:''}`;
     const pts=got&&moi?moi.pts:0;
-    const pills=got&&moi?[`<i>Défi ${moi.val}${moi.x>1?` ×${moi.x}`:''}</i>`,moi.essai?`<i class="is-essai">Du premier coup +${moi.essai}</i>`:'',moi.rang?`<i class="is-rang">${moi.place===1?'1er':moi.place+'e'} +${moi.rang}</i>`:''].join(''):'';
+    const pills=got&&moi?[`<i>Défi ${moi.val}${moi.x>1?` ×${String(moi.x).replace('.',',')}`:''}</i>`,moi.essai?`<i class="is-essai">Du premier coup +${moi.essai}</i>`:'',moi.rang?`<i class="is-rang">${moi.place===1?'1er':moi.place+'e'} +${moi.rang}</i>`:''].join(''):'';
     const sub=got?'':'Tu pourras retenter ce défi plus tard.';   // 16 h 22 (Elisa : « enlève “Résolu en 1 s” ») : le temps est dans le classement
     const kick=J.nb===1?(sl?'Défi solo terminé':'Manche unique terminée'):`Manche ${n+1}/${J.nb} terminée`;
     const hero=`<section class="jr2-hero ${ton}" aria-labelledby="jr2-t">
@@ -39918,7 +39922,7 @@ function jeuFinBoutonsHTML(nOk,all){
   /* 11 h 38 (Elisa : « trop de cadres, trop de boutons ») : la prochaine étape n’est plus une carte, une ligne sans cadre, entre le
      récapitulatif et « Rejouer » : les barres du niveau, « Passer au niveau moyen », ce qu’y vaut un défi, la flèche. */
   const prog=J.solo&&all&&nextNiv?`<button type="button" class="jeu-prog is-${nextNiv}" onclick="jeuNiveauSuivant()">${jeuNivBars(nextNiv)}`+
-    `<span class="jeu-prog-t">Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}</span><span class="jeu-prog-x">×${JEU_NIV_X[nextNiv]||1}<span class="lq-sr"> points par défi</span></span>${DEF_CHEV_SVG}</button>`:'';
+    `<span class="jeu-prog-t">Passer au niveau ${JEU_NIVL[nextNiv].toLowerCase()}</span><span class="jeu-prog-x">×${String(JEU_NIV_X[nextNiv]||1).replace('.',typeof REQUETE_LANGUE!=='undefined'&&REQUETE_LANGUE.code&&REQUETE_LANGUE.code!=='fr'?'.':',')}<span class="lq-sr"> points par défi</span></span>${DEF_CHEV_SVG}</button>`:'';
   /* 13 novembre, 21 h 52 (Elisa : « quand on a fait une partie en solo, ça met Rejouer au lieu de Revanche ») : « Revanche » sur
      chaque écran de fin. Dans une salle, même seule, la carte de la revanche (Quitter la salle, Revanche : seule, elle relance
      aussitôt ; à plusieurs, on attend que chacun ait répondu) ; avant, l’hôte avait « Rejouer » et « Quitter la salle », et un
@@ -54432,7 +54436,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-20-module-v3128';
+  const SW_CACHE='requete-2026-11-20-module-v3129';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -34,8 +34,8 @@ test('seule dans la salle : le +25 du premier coup reste, le bonus de place ne c
   assert.deepEqual(deux.map(x => [x.pid, x.essai, x.rang, x.pts]), [['a', 25, 50, 275], ['b', 0, 30, 230]], 'à plusieurs : le +25 au premier, le bonus de place à chacun');
   const regles = fn('renderDefisRules');
   assert.ok(regles.includes('<li><b>✨ Du premier coup</b><span>+${JEU_PTS_ESSAI}</span><small>Ta première requête exécutée est la bonne. Seul, tu le gardes toujours ; à plusieurs, si personne n’a trouvé avant toi</small></li>'));
-  assert.ok(regles.includes('<li><b>🥇 Premier à trouver</b><span>+${JEU_PTS_RANG[0]*x}</span><small>À plusieurs : 2e +${JEU_PTS_RANG[1]*x} · 3e +${JEU_PTS_RANG[2]*x} · 4e +${JEU_PTS_RANG[3]*x}. Seul à jouer la manche, pas de bonus de place</small></li>'));
-  assert.ok(regles.includes('<small>seul</small><i aria-hidden="true">·</i><b>${(top+JEU_PTS_ESSAI+JEU_PTS_RANG[0]*x).toLocaleString(\'fr-FR\')}</b><small>à plusieurs</small>'), 'le premier coup ne compte plus ×2 ni ×4 (8 novembre, 9 h 17)');
+  assert.ok(regles.includes('<li><b>🥇 Premier à trouver</b><span>+${Math.round((JEU_PTS_RANG[0])*(x))}</span><small>À plusieurs : 2e +${Math.round((JEU_PTS_RANG[1])*(x))} · 3e +${Math.round((JEU_PTS_RANG[2])*(x))} · 4e +${Math.round((JEU_PTS_RANG[3])*(x))}. Seul à jouer la manche, pas de bonus de place</small></li>'));
+  assert.ok(regles.includes('<small>seul</small><i aria-hidden="true">·</i><b>${(top+JEU_PTS_ESSAI+Math.round((JEU_PTS_RANG[0])*(x))).toLocaleString(\'fr-FR\')}</b><small>à plusieurs</small>'), 'le premier coup ne compte plus ×2 ni ×4 (8 novembre, 9 h 17)');
 });
 
 test('réf. 1 : le curseur de « À toi de jouer » clignote par sa couleur, plus en opacité ; l’étiquette, droite, reste nette (8 novembre, 10 h 10)', () => {
@@ -169,5 +169,5 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 
 test('versions : ludique.css v155, cache du service worker', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=391">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-20-module-v3128';") && app.includes("const SW_CACHE='requete-2026-11-20-module-v3128';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-20-module-v3129';") && app.includes("const SW_CACHE='requete-2026-11-20-module-v3129';"));
 });

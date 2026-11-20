@@ -37,7 +37,7 @@ function bac(o = {}) {
     clsRpc: (f, b) => { appels.push([f, b]); return o.rpcKo ? Promise.reject(new Error('net')) : Promise.resolve(o.rpc ? o.rpc(f, b) : {}); },
     esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), escAttr: s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'),
     jeuInitial: n => String(n || '?').replace(/^@+/, '').charAt(0).toUpperCase(), perfColor: () => 2, lqStkSvg: k => `<svg data-k="${k}"></svg>`, chatBonusHtml: k => `<img data-k="${k}">`,
-    JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_MAX: 6, JEU_HIST_MAX: 500, jeuChallenges: () => [1, 2, 3], jeuNivAuto: () => 'f', jeuNiv: 'm', jeuNivUser: true,
+    jeuX: (n, x) => Math.round(n * (x || 1)), jeuXDit: x => String(x).replace('.', ','), JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_MAX: 6, JEU_HIST_MAX: 500, jeuChallenges: () => [1, 2, 3], jeuNivAuto: () => 'f', jeuNiv: 'm', jeuNivUser: true,
     DEF_CHEV_SVG: '<svg data-k="chev"></svg>', CLS_FLAG_SVG: '<svg data-k="flag"></svg>', LQ_X_SVG: '<svg data-k="x"></svg>', perfDay: () => 'Hier', CHALLENGES: [1], SQL: {},
     jeuStart: (...a) => { appels.push(['jeuStart', ...a]); }, jeuPseudoPuis: f => f(), jeuRand: () => 'NOUV01', jeuNom: v => String(v || '').trim(),
     psForme: v => { const h = String(v || '').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 15); return h ? '@' + h : ''; },

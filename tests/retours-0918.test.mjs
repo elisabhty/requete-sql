@@ -110,7 +110,7 @@ test('« Les liens en clair » : plus de trait de couleur sur le côté des cadr
 });
 
 test('salle : le +25 du premier coup ne va qu’au premier à trouver (entre amis) ; seul, comme avant', () => {
-  const c = vm.createContext({JEU_PALIERS: [[60, 200], [120, 175], [180, 150], [240, 125], [300, 100], [420, 75]], JEU_PTS_MIN: 50, JEU_PTS_ESSAI: 25, JEU_PTS_RANG: [50, 30, 20, 10], JEU_NIV_X: {f: 1, m: 2, d: 4}, JEU_NIV_DUREE: {f: 1, m: 3, d: 5}});
+  const c = vm.createContext({jeuX: (n, x) => Math.round(n * (x || 1)), jeuXDit: x => String(x).replace('.', ','), JEU_PALIERS: [[60, 200], [120, 175], [180, 150], [240, 125], [300, 100], [420, 75]], JEU_PTS_MIN: 50, JEU_PTS_ESSAI: 25, JEU_PTS_RANG: [50, 30, 20, 10], JEU_NIV_X: {f: 1, m: 2, d: 4}, JEU_NIV_DUREE: {f: 1, m: 3, d: 5}});
   vm.runInContext(line('jeuValeur') + line('jeuPts') + line('jeuNivManche') + fn('jeuRanking') + line('jeuBonusPris'), c);
   c.JEU = {solo: false, me: 'a', rounds: [{found: {a: 30000, b: 20000, c: 40000}, first: {a: 1, b: 1, c: 1}, one: false}]};
   const pur = x => JSON.parse(JSON.stringify(x));

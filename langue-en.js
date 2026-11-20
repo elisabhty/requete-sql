@@ -815,6 +815,11 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "{m1} {1} {m2} · {2} activités": "{m1}, {m2} {1} · {2} activities",
     "{m1} {1} {m2} · pause": "{m1}, {m2} {1} · break",
     /* 20 novembre (Elisa : « chercher d’autres ») : les libellés lus à voix haute (VoiceOver) */
+    /* 20 novembre (« Points ×2,5 ») : le nombre à virgule écrit à l’anglaise (×2.5, ≤ 2.5, 2.5–5) */
+    "×{1}": "×{1}",
+    "≤ {1}": "≤ {1}",
+    "{1}–{2}": "{1}–{2}",
+    "{1} +": "{1} +",
     "Module verrouillé : {x1}": "Locked module: {x1}",
     "{x1} : cours {x2} en plein écran": "{x1}: {x2} lesson in full screen",
     "Détail de la mission": "Mission details",
@@ -7334,6 +7339,8 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Les points de base, un palier toutes les {x1}. Le premier coup vaut +{1} à tous les niveaux.": "Base points, one step every {x1}. First try is worth +{1} at every level.",
     "Les points de vitesse et de place comptent double, un palier toutes les {x1}. Le premier coup vaut +{1} à tous les niveaux.": "Speed and placement points count double, one step every {x1}. First try is worth +{1} at every level.",
     "Les points de vitesse et de place comptent quadruple, un palier toutes les {x1}. Le premier coup vaut +{1} à tous les niveaux.": "Speed and placement points count four times, one step every {x1}. First try is worth +{1} at every level.",
+    "Les points de vitesse et de place comptent {1} fois plus, un palier toutes les {2} min {3}. Le premier coup vaut +{4} à tous les niveaux.": "Speed and place points count {1} times, one step every {2} min {3} s. A first try is worth +{4} at every level.",
+    "Les points de vitesse et de place comptent {1} fois plus, un palier toutes les {x1}. Le premier coup vaut +{2} à tous les niveaux.": "Speed and place points count {1} times, one step every {x1}. A first try is worth +{2} at every level.",
     "Les points de vitesse et de place comptent double, un palier par minute. Le premier coup vaut +{1} à tous les niveaux.": "Speed and placement points count double, one step per minute. First try is worth +{1} at every level.",
     "Les points de vitesse et de place comptent quadruple, un palier par minute. Le premier coup vaut +{1} à tous les niveaux.": "Speed and placement points count four times, one step per minute. First try is worth +{1} at every level.",
     "{x1}, {x2} au classement": "{x1}, {x2} on the leaderboard",

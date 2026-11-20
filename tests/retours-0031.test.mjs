@@ -92,7 +92,7 @@ test('les mots : « Mes adversaires », « Créer ma partie », « À plusieurs 
 test('« Comment sont calculés les points ? » ouvre le barème du niveau choisi dans Jouer', () => {
   const vus = [];
   const ctx = vm.createContext({
-    JEU_NIV_X: { f: 1, m: 2, d: 4 }, jeuNiv: 'f', document: { getElementById: () => null }, setTimeout: () => {}, prefersReduceMotion: () => true
+    jeuX: (n, x) => Math.round(n * (x || 1)), jeuXDit: x => String(x).replace('.', ','), JEU_NIV_X: { f: 1, m: 2, d: 4 }, jeuNiv: 'f', document: { getElementById: () => null }, setTimeout: () => {}, prefersReduceMotion: () => true
   });
   const k = cut('  const k=JEU_NIV_X[defisReglesNiv]?', ';\n') + ';';
   ctx.defisOnglet = o => vus.push(o);
@@ -131,7 +131,7 @@ test('« Joue seul » s’accorde : « Joue seule », « Joue seul », « Joue s
       JEU_NIVL: { f: 'Facile', m: 'Moyen', d: 'Difficile' }, jeuNiv: 'd', jeuNb: 3, jeuVis: 'pub', jeuInvite: '', jeuNivUser: true, jeuMode: 'solo',
       jeuChallenges: () => [1, 2, 3], jeuNivAuto: () => 'f', accord: (f, h, n) => (genre === 'f' ? f : genre === 'h' ? h : n), DEF_CHEV_SVG: '', LQ_X_SVG: '',
       JEU_NOTE_HTML: '', lqStkSvg: k => `<svg data-stk="${k}"/>`, jeuNomField: () => '', jeuVisTexte: () => '', esc: s => String(s), DEFIS: { carte: '' },
-      JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_NIV_MANCHE: { f: 600000, m: 900000, d: 1200000 }, JEU_MAX: 6, document: { getElementById: () => null, querySelectorAll: () => [], body: null }
+      jeuX: (n, x) => Math.round(n * (x || 1)), jeuXDit: x => String(x).replace('.', ','), JEU_NIV_X: { f: 1, m: 2, d: 4 }, JEU_NIV_MANCHE: { f: 600000, m: 900000, d: 1200000 }, JEU_MAX: 6, document: { getElementById: () => null, querySelectorAll: () => [], body: null }
     });
     vm.runInContext(cut('const DX_CODE_MSG=', '\nfunction dxCodeEtat(') + '\n' + line('jeuNivBars') + fn('defisFeuilleHTML') + line('dxDureeMax') + line('jeuDureeMs'), ctx);
     const h = ctx.defisFeuilleHTML('seul');

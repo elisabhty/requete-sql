@@ -30,35 +30,36 @@ const salle = () => {
 const pur = x => JSON.parse(JSON.stringify(x));
 
 test('le barème : ×2 en Moyen, ×4 en Difficile, des paliers de 2 min et 2 min 30 (14 novembre ; 3 et 5 min avant) ; le Facile, des paliers de 1 min', () => {
-  assert.ok(app.includes('const JEU_NIV_X={f:1,m:2,d:4},JEU_NIV_DUREE={f:1,m:2,d:2.5};') && !app.includes('JEU_PTS_NIV'), 'plus de bonus de niveau');
+  /* 20 novembre, 9 h 43 (« Points ×2,5 ») : le Difficile compte ×2,5, comme la longueur de ses paliers ; arrondi à l’entier (jeuX) */
+  assert.ok(app.includes('const JEU_NIV_X={f:1,m:2,d:2.5},JEU_NIV_DUREE={f:1,m:2,d:2.5};') && !app.includes('JEU_PTS_NIV'), 'plus de bonus de niveau');
   assert.ok(app.includes('const JEU_PALIERS=[[60,200],[120,175],[180,150],[240,125],[300,100],[360,75]],JEU_PTS_MIN=50,JEU_PTS_ESSAI=25,JEU_PTS_RANG=[50,30,20,10];'), 'les paliers du 31 octobre, le dernier à 6 min (14 novembre)');
   const c = salle(), ev = x => pur(vm.runInContext(x, c));
   const val = (k, ...s) => s.map(t => ev(`jeuValeur(${t * 1000},'${k}')`));
   /* 14 novembre, 7 h 17 : six paliers par manche (6, 12 ou 15 min) */
   assert.deepEqual(val('f', 60, 61, 120, 300, 301, 360), [200, 175, 175, 100, 75, 75], 'le Facile : 01:00 vaut encore 200, jusqu’à 75 à 6 min');
   assert.deepEqual(val('m', 120, 121, 400, 600, 601, 720), [400, 350, 250, 200, 150, 150], 'le Moyen : 400, puis −50 toutes les 2 min, jusqu’à 12 min');
-  assert.deepEqual(val('d', 150, 151, 420, 700, 751, 900), [800, 700, 600, 400, 300, 300], 'le Difficile : 800, puis −100 toutes les 2 min 30, jusqu’à 15 min');
+  assert.deepEqual(val('d', 150, 151, 420, 700, 751, 900), [500, 438, 375, 250, 188, 188], 'le Difficile : 500, puis 438, 375… toutes les 2 min 30, jusqu’à 15 min (×2,5 depuis le 20 novembre)');
   /* 8 novembre, 9 h 17 : le premier coup vaut +25 à tous les niveaux (la vitesse et la place gardent ×2 et ×4) */
-  assert.deepEqual(['f', 'm', 'd'].map(k => ev(`jeuPts(30000,0,true,true,'${k}').pts`)), [225, 425, 825], 'la manche parfaite, seul');
-  assert.deepEqual(['f', 'm', 'd'].map(k => ev(`jeuPts(30000,0,false,true,'${k}').pts`)), [275, 525, 1025], 'la manche parfaite, entre amis');
+  assert.deepEqual(['f', 'm', 'd'].map(k => ev(`jeuPts(30000,0,true,true,'${k}').pts`)), [225, 425, 525], 'la manche parfaite, seul (×2,5 en Difficile depuis le 20 novembre)');
+  assert.deepEqual(['f', 'm', 'd'].map(k => ev(`jeuPts(30000,0,false,true,'${k}').pts`)), [275, 525, 650], 'la manche parfaite, entre amis');
   assert.deepEqual(['f', 'm', 'd'].map(k => ev(`jeuPts(30000,0,true,true,'${k}').essai`)), [25, 25, 25], 'le premier coup : +25 partout');
-  assert.deepEqual(ev("jeuPts(420000,2,false,false,'d')"), { val: 600, x: 4, essai: 0, rang: 80, pts: 680 }, 'Difficile à 7 min, 3e à trouver (le 3e palier depuis le 14 novembre)');
+  assert.deepEqual(ev("jeuPts(420000,2,false,false,'d')"), { val: 375, x: 2.5, essai: 0, rang: 50, pts: 425 }, 'Difficile à 7 min, 3e à trouver (le 3e palier depuis le 14 novembre)');
   assert.equal(ev('jeuPts(30000,0,true,true).pts'), 225, 'sans niveau : comme en Facile');
 });
 
 test('une manche compte le niveau de son défi (celui de la salle), sinon celui de la salle', () => {
   const c = salle();
   vm.runInContext("JEU={solo:false,niv:'f',rounds:[{cid:'d1',one:false,found:{a:30000,b:90000},first:{a:1}},{cid:'zz',one:true,found:{a:61000},first:{}}]}", c);
-  assert.deepEqual(pur(vm.runInContext('jeuRanking(0)', c)).map(x => [x.pid, x.k, x.x, x.pts]), [['a', 'd', 4, 1025], ['b', 'd', 4, 920]],
-    'un défi difficile : (200 + 50) × 4 + 25 pour le premier (le premier coup ne compte pas ×4 : 8 novembre, 9 h 17), (200 + 30) × 4 pour le deuxième');
+  assert.deepEqual(pur(vm.runInContext('jeuRanking(0)', c)).map(x => [x.pid, x.k, x.x, x.pts]), [['a', 'd', 2.5, 650], ['b', 'd', 2.5, 575]],
+    'un défi difficile : (200 + 50) × 2,5 + 25 pour le premier (le premier coup ne compte pas ×2,5), (200 + 30) × 2,5 pour le deuxième');
   assert.deepEqual(pur(vm.runInContext('jeuRanking(1)', c)).map(x => [x.k, x.x, x.pts]), [['f', 1, 175]], 'un défi inconnu : le niveau de la salle');
   assert.equal(vm.runInContext("JEU=null;jeuNivManche(0)", c), 'f');
 });
 
 test('ce qu’on voit : la valeur du niveau pendant la manche, « Difficile ×4 » dans le détail des points', () => {
   const c = salle();
-  assert.equal(vm.runInContext("jeuPtsDetail({val:700,x:4,k:'d',essai:25,rang:120,place:2})", c),
-    '<span class="jeu-pd"><i class="is-niv is-d">Difficile ×4</i><i>Défi 700</i><i class="is-essai">Du premier coup +25</i><i class="is-rang">2e +120</i></span>');
+  assert.equal(vm.runInContext("jeuPtsDetail({val:438,x:2.5,k:'d',essai:25,rang:75,place:2})", c),
+    '<span class="jeu-pd"><i class="is-niv is-d">Difficile ×2,5</i><i>Défi 438</i><i class="is-essai">Du premier coup +25</i><i class="is-rang">2e +75</i></span>');
   assert.equal(vm.runInContext("jeuPtsDetail({val:400,x:2,k:'m',essai:0,rang:0,place:1})", c), '<span class="jeu-pd"><i class="is-niv is-m">Moyen ×2</i><i>Défi 400</i></span>');
   assert.equal(vm.runInContext("jeuPtsDetail({val:150,x:1,k:'f',essai:0,rang:0,place:1})", c), '<span class="jeu-pd"><i>Défi 150</i></span>', 'en Facile, rien de plus');
   assert.ok(app.includes('<span id="jeu-val-n">${jeuValeur(Math.max(0,took0),jeuNivManche(n))}</span>') && app.includes('title="Si ta première requête est la bonne">+${JEU_PTS_ESSAI}</i>') && !app.includes('JEU_PTS_ESSAI*'), 'pendant la manche : la valeur du niveau, et le premier coup à +25');
@@ -88,15 +89,15 @@ test('« Comment sont calculés les points ? » : le barème du niveau choisi, s
   assert.ok(m.h.includes('<span>jusqu’à 400</span>') && m.h.includes('<b>✨ Du premier coup</b><span>+25</span>') && m.h.includes('<b>🥇 Premier à trouver</b><span>+100</span><small>À plusieurs : 2e +60 · 3e +40 · 4e +20.'));
   assert.ok(m.h.includes('<span>Manche parfaite en Moyen</span><b>425</b><small>seul</small><i aria-hidden="true">·</i><b>525</b><small>à plusieurs</small>'));
   const d = regles('d');
-  assert.deepEqual(d.marches, [[800, '≤ 2,5'], [700, '2,5–5'], [600, '5–7,5'], [500, '7,5–10'], [400, '10–12,5'], [300, '12,5–15']], 'le Difficile : six marches de 2 min 30 dans une manche de 15 min');
+  assert.deepEqual(d.marches, [[500, '≤ 2,5'], [438, '2,5–5'], [375, '5–7,5'], [313, '7,5–10'], [250, '10–12,5'], [188, '12,5–15']], 'le Difficile : six marches de 2 min 30 dans une manche de 15 min');
   assert.ok(d.h.includes('<em class="lq-sr"> points de 2'+NB+'min'+NB+'30 à 5'+NB+'min</em>'), 'lu à voix haute : « 2 min 30 »');
   assert.ok(d.h.includes('Le chrono part de 15&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.') && f.h.includes('Le chrono part de 6&nbsp;min&nbsp;; à 0, la manche s’arrête et la partie continue.'));
-  assert.ok(d.h.includes('<b>✨ Du premier coup</b><span>+25</span>') && d.h.includes('<span>Manche parfaite en Difficile</span><b>825</b><small>seul</small><i aria-hidden="true">·</i><b>1\u202f025</b>'), '1 025, avec l’espace des milliers');
-  assert.ok(d.h.includes('aria-checked="true" class="is-on" onclick="defisRulesNiv(\'d\')">Difficile<small>×4\u00a0pts</small></button>'));
+  assert.ok(d.h.includes('<b>✨ Du premier coup</b><span>+25</span>') && d.h.includes('<span>Manche parfaite en Difficile</span><b>525</b><small>seul</small><i aria-hidden="true">·</i><b>650</b>'), 'la manche parfaite en Difficile (×2,5)');
+  assert.ok(d.h.includes('aria-checked="true" class="is-on" onclick="defisRulesNiv(\'d\')">Difficile<small>×2,5\u00a0pts</small></button>'));
   /* 14 novembre, 7 h 39 : la ligne du niveau suit le niveau choisi (avant : « ×2 · ×4 » et le même texte partout) */
   assert.ok(f.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×1</span><small>Les points de base, un palier par minute. Le premier coup vaut +25 à tous les niveaux.</small></li>'), 'le Facile');
   assert.ok(m.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2</span><small>Les points de vitesse et de place comptent double, un palier toutes les 2'+NB+'min. Le premier coup vaut +25 à tous les niveaux.</small></li>'), 'le Moyen');
-  assert.ok(d.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×4</span><small>Les points de vitesse et de place comptent quadruple, un palier toutes les 2'+NB+'min'+NB+'30. Le premier coup vaut +25 à tous les niveaux.</small></li>'), 'le Difficile');
+  assert.ok(d.h.includes('<li class="room-rule-niv"><b>🎯 Niveau du défi</b><span>×2,5</span><small>Les points de vitesse et de place comptent 2,5 fois plus, un palier toutes les 2'+NB+'min'+NB+'30. Le premier coup vaut +25 à tous les niveaux.</small></li>'), 'le Difficile');
   assert.ok(!f.h.includes('×2 · ×4'));
   assert.ok(app.includes('<small>Vitesse, niveau, premier coup et place dans la salle</small>'));
   for (const r of ['html.lq .room-rules-niv{display:flex;', 'html.lq .room-rules-niv button.is-on{background:#fff;', '@media (prefers-reduced-motion:reduce){html.lq .room-rules-niv button{transition:none}}']) assert.ok(lq.includes(r), r);
@@ -109,7 +110,7 @@ test('le serveur compte de même : jeu_score_v2 multiplie la manche et allonge l
   assert.ok(m.includes("'v_pts > v_ok * (case when v_solo then 225 else 275 end) * (case v_niv when ''m'' then 2 when ''d'' then 4 else 1 end)'"), 'le plafond');
   assert.ok(m.includes("raise exception 'plafond de jeu_score introuvable';"), 'rien ne change si la fonction a changé de forme');
   const c = salle();
-  assert.deepEqual(['f', 'm', 'd'].map(k => [vm.runInContext(`JEU_NIV_X.${k}`, c), vm.runInContext(`JEU_NIV_DUREE.${k}`, c)]), [[1, 1], [2, 2], [4, 2.5]], 'les mêmes nombres que l’appli (14 novembre)');
+  assert.deepEqual(['f', 'm', 'd'].map(k => [vm.runInContext(`JEU_NIV_X.${k}`, c), vm.runInContext(`JEU_NIV_DUREE.${k}`, c)]), [[1, 1], [2, 2], [2.5, 2.5]], 'les mêmes nombres que l’appli (14 novembre ; ×2,5 le 20 novembre)');
   /* 14 novembre, 7 h 17 : des paliers de 1 min, 2 min, 2 min 30, le dernier à 6 sixièmes (20261114063120) */
   const m2 = lire('supabase/migrations/20261114063120_salle_manches_plus_courtes.sql');
   assert.ok(m2.includes("b3 constant text := $a$v_d:=case r.niv when 'm' then 2 when 'd' then 2.5 else 1 end;$a$;") && m2.includes('b4 constant text := $a$when floor(ms/1000.0)<=360*v_d then 75$a$;') && m2.includes('b1 constant text := $a$v_x integer; v_d numeric; res jsonb;$a$;'));
