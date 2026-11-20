@@ -73,3 +73,28 @@ test('toutes les variantes des textes du jour sont traduites', () => {
   assert.deepEqual(ko, []);
   assert.ok(T.size > 300);
 });
+
+/* 20 novembre (Elisa : « Comment ça 7, c’est scandaleux, chercher d’autres ») : les libellés lus à voix haute (VoiceOver) qui
+   restaient en français, et les clés à place libre départagées par tout leur texte fixe (« Regarder la vidéo · {x1} » passait devant
+   « {x1} : cours {x2} en plein écran »). */
+test('les libellés lus à voix haute, en anglais', () => {
+  const L = moteur();
+  const attendus = {
+    'Module verrouillé : Filtrer les lignes': 'Locked module: Filtering rows',
+    'Ouvrir la note Jointures': 'Open the note Joins',
+    'Ouvrir la note sans titre': 'Open the untitled note',
+    'Détail de la mission': 'Mission details',
+    'Révisions à J+1, J+3, J+7, J+21, J+60': 'Reviews on day 1, 3, 7, 21 and 60',
+    'Points des 10 dernières parties': 'Points from the last 10 games',
+    'Classement, 3 pages : glisse pour changer de page': 'Leaderboard, 3 pages: swipe to change page',
+    'Page 2 sur 3': 'Page 2 of 3',
+    'Pages des bases d’entraînement': 'Practice database pages',
+    'Pages des projets': 'Project pages',
+    'Pages de l’historique': 'History pages',
+    'Pages des confrontations': 'Head-to-head pages',
+    'Regarder la vidéo · 3 min 24 : cours DISTINCT en plein écran': 'Watch the video · 3 min 24: DISTINCT lesson in full screen',
+    'Revoir la vidéo · 3 min 24 : cours DISTINCT en plein écran': 'Watch the video again · 3 min 24: DISTINCT lesson in full screen',
+    'C’est le mien, je me connecte juste après': 'It’s mine, I’ll sign in next'
+  };
+  for (const [fr, en] of Object.entries(attendus)) assert.equal(L.t(fr), en, fr);
+});

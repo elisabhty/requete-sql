@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=395c3dc5" data-defis></script>
+<script src="langues.js?v=6abc065c" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -6819,7 +6819,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=390">
+<link rel="stylesheet" href="ludique.css?v=391">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=73">
 <style id="lesson-video-css">
@@ -29366,7 +29366,12 @@ function psAfficher(scope,etat,v,idees){
   const id=Array.isArray(idees)?idees.filter(x=>typeof x==='string'&&psForme(x)).map(psForme).slice(0,3):[];
   const ko=etat==='pris'||etat==='refuse';
   if(e){e.className='ps-etat'+(etat?' is-'+etat:'');e.innerHTML=etat&&PS_TXT[etat]?PS_TXT[etat](v,id.length):'';}
-  if(d)d.innerHTML=ko?id.map((x,i)=>`<button type="button" class="ps-idee" style="--i:${i}" data-v="${escAttr(x)}" onclick="psIdee('${scope}',this.dataset.v)">${esc(x)}</button>`).join(''):'';
+  /* 18 novembre, 12 h 22 (Elisa, capture : « J’ai supprimé l’application et il ne me reconnaît plus niveau pseudo », « @elisabhty est
+     déjà pris ») : le pseudo tient au compte, mais pendant l’onboarding on se connecte après la page du pseudo. Sans compte connecté,
+     sous les pseudos libres : « C’est le mien, je me connecte juste après » (psCestLeMien). */
+  const mien=etat==='pris'&&scope==='ob'&&!!(PS.page&&PS.page.garder)&&!(typeof csPret==='function'&&csPret());
+  if(d)d.innerHTML=ko?id.map((x,i)=>`<button type="button" class="ps-idee" style="--i:${i}" data-v="${escAttr(x)}" onclick="psIdee('${scope}',this.dataset.v)">${esc(x)}</button>`).join('')
+    +(mien?`<button type="button" class="ps-mien" style="--i:${id.length}" onclick="psCestLeMien()">C’est le mien, je me connecte juste après</button>`:''):'';
   if(inp){
     inp.classList.toggle('is-ok',etat==='libre'||etat==='mien');inp.classList.toggle('is-ko',ko||etat==='invalide');
     if(ko&&!prefersReduceMotion()){inp.classList.remove('is-shake');void inp.offsetWidth;inp.classList.add('is-shake');}
@@ -29439,6 +29444,16 @@ function obPseudoPlusTard(){
   /* Un pseudo tapé mais pas vérifié faute de réseau (« il sera vérifié dès ton retour en ligne ») : gardé, pas redemandé. */
   const n=psForme(draft&&draft.pseudo);if(n&&PS.etat.ob==='horsligne')s.psVoulu=n;
   save();psPageFin(false);
+}
+/* « C’est le mien » : la page se ferme sans rien réserver ; le pseudo est gardé (psVoulu), la fin de l’onboarding ne le redemande pas.
+   À la connexion, le compte reprend son joueur, son pseudo et ses points (csJoueur) ; sans connexion, il sera vérifié plus tard
+   (psVerifier) et, toujours pris, la page reviendra. */
+function psCestLeMien(){
+  const n=psForme(draft&&draft.pseudo),s=clsSalle();
+  if(n)s.psVoulu=n;s.psPage=1;save();
+  if(typeof buzz==='function')buzz('selection');
+  if(n&&typeof lqSay==='function')lqSay(`Connecte-toi juste après : ton compte retrouve ${n} et tes points.`);
+  psPageFin(false);
 }
 function psPageFin(ok){
   const root=document.getElementById('onboarding');
@@ -54384,7 +54399,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-19-module-v3126';
+  const SW_CACHE='requete-2026-11-20-module-v3127';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

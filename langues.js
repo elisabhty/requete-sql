@@ -41,7 +41,7 @@
   /* essai : la langue n'est proposée qu'aux iPhone en essai, tant que sa traduction n'est pas terminée. */
   var LANGUES = {
     fr: { nom: 'Français', locale: 'fr-FR' },
-    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=25d676ec', defis: 'langue-en-defis.js?v=45bd0376', entretien: 'langue-en-entretien.js?v=91e56a7f' }
+    en: { nom: 'English', locale: 'en-US', fichier: 'langue-en.js?v=9b34a312', defis: 'langue-en-defis.js?v=45bd0376', entretien: 'langue-en-entretien.js?v=91e56a7f' }
   };
   var CLE = 'requete-langue';
 
@@ -191,21 +191,22 @@
       /* 17 novembre (« Dès 19:00 les soirs de séance… iOS 26 » restait en français) : les nombres de la phrase sont numérotés dans
          l’ordre, ceux de la place libre compris (19 et 00 avant 26) ; une clé « … {x1} … iOS {1} » ne reconnaissait donc pas « iOS {3} ».
          Chaque nombre de la clé ({1}) reconnaît n’importe quel nombre du texte ; la traduction est renumérotée d’après eux (num). */
-      var noms = [], num = [], morceaux = k.split(/\{x(\d+)\}/), src = '', fixe = '', groupes = [];
+      var noms = [], num = [], morceaux = k.split(/\{x(\d+)\}/), src = '', fixe = '', groupes = [], total = 0;
       for (var i = 0; i < morceaux.length; i++) {
         if (i % 2) { noms.push(morceaux[i]); groupes.push('x'); src += '(.+?)'; }
         else {
           var bouts = morceaux[i].split(/\{(\d+)\}/);
           for (var b = 0; b < bouts.length; b++) {
             if (b % 2) { num.push(bouts[b]); groupes.push('n'); src += '\\{(\\d+)\\}'; }
-            else { src += bouts[b].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); if (bouts[b].length > fixe.length) fixe = bouts[b]; }
+            else { src += bouts[b].replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); total += bouts[b].length; if (bouts[b].length > fixe.length) fixe = bouts[b]; }
           }
         }
       }
-      xCache.push({ cle: k, re: new RegExp('^' + src + '$'), noms: noms, num: num, groupes: groupes, debut: fixe });
+      xCache.push({ cle: k, re: new RegExp('^' + src + '$'), noms: noms, num: num, groupes: groupes, debut: fixe, total: total });
     }
-    /* Les plus précises d'abord (le plus de texte fixe) */
-    xCache.sort(function (a, b) { return b.debut.length - a.debut.length; });
+    /* Les plus précises d'abord : le plus de texte fixe en tout (20 novembre : « Regarder la vidéo · {x1} » passait devant
+       « {x1} : cours {x2} en plein écran », et la fin restait en français), puis le plus long morceau */
+    xCache.sort(function (a, b) { return (b.total - a.total) || (b.debut.length - a.debut.length); });
     return xCache;
   }
   /* Du SQL affiché (un décor, un exemple) n'est pas un texte à traduire. */
