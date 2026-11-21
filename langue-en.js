@@ -313,6 +313,7 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Autoriser les rappels": "Allow reminders",
     "Autoriser": "Allow",
     "Modifiable à tout moment dans Mon compte.": "You can change this anytime in My account.",
+    "Je t’enverrai tes rappels de séance, et parfois un petit mot de motivation. Modifiable à tout moment dans Mon compte.": "I’ll send you your session reminders, and now and then a little motivational note. You can change this anytime in My account.",
     "Me rappeler à {1} h": "Remind me at {1}:00",
     "Comment tes adversaires vont-ils t’appeler ?": "What will your opponents call you?",
     "Choisis ton<1/> <2>pseudo</2>.": "Choose your<1/> <2>username</2>.",
