@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=a12ee8a0" data-defis></script>
+<script src="langues.js?v=4ddea1e1" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -21003,7 +21003,7 @@ async function boot(){
     if(document.visibilityState!=='hidden'){rappelVu();if(typeof rappelPlusTardAnnuler==='function')rappelPlusTardAnnuler();}   // ouverte aujourd’hui : pas de rappel aujourd’hui (22 h 04)
     tickRappel();
     setInterval(tickRappel,30000);
-    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ rappelVu(); if(typeof rappelPlusTardAnnuler==='function')rappelPlusTardAnnuler(); tickRappel(); rappelAuto(400); } });   // un nouveau jour : les rappels glissent (21 h 41) ; l’appli ouverte : pas de rappel ce jour-là (22 h 04)
+    document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'){ rappelVu(); if(typeof rappelPlusTardAnnuler==='function')rappelPlusTardAnnuler(); tickRappel(); rappelAuto(400); } else if(typeof relanceAuto==='function'){ try{relanceAuto();}catch(e){} } });   // en partant : les relances repartent de maintenant (21 novembre) ; un nouveau jour : les rappels glissent (21 h 41) ; l’appli ouverte : pas de rappel ce jour-là (22 h 04)
     initSpotlight();
     initStudyClock();
     demarrageOk=true;
@@ -51740,6 +51740,7 @@ function paintOb(){
   root.classList.toggle('ob-compte-feuille',slide==='account'&&!obLegalMode&&!(typeof obConnexionMasquee==='function'&&obConnexionMasquee()));
   root.classList.toggle('ob-feuille-seule',slide==='account'&&!obLegalMode&&authReady&&!(typeof obConnexionMasquee==='function'&&obConnexionMasquee()));
   root.classList.toggle('ob-paywall-step',slide==='paywall'&&!obLegalMode);
+  if(slide==='paywall'&&!obLegalMode&&typeof relancePwVu==='function')relancePwVu();   // les relances : passé par le paywall (21 novembre)
   root.classList.toggle('ob-sortie-step',slide==='paywall'&&!obLegalMode&&obPwSortie);
   root.classList.toggle('ob-garde',slide==='paywall'&&typeof obGarde!=='undefined'&&!!obGarde);
   root.classList.toggle('ob-auth-ready',authReady);
@@ -52778,6 +52779,57 @@ function rappelPlusTardAnnuler(){
    annulé, abonnement arrêté), l’app le sait (« non » sûr de RevenueCat, la garde du paywall) : plus de rappels. Sans réponse (hors
    ligne), on les garde. L’abonnement revenu, ils sont reprogrammés (rappelSig vidé). */
 function rappelAbonne(){try{return !(typeof obGardeEtat==='function'&&obGardeEtat()==='non');}catch(e){return true;}}
+/* 21 novembre, 8 h 01 (Elisa) : « Notification par jour pour ceux qui ont accepté les notifs mais ne sont pas rentrés dans le paywall
+   […] Pour quelqu’un qui n’a pas ouvert l’appli depuis 3 jours mais qui a un abonnement […] Traduction en anglais également, et une
+   notif ne doit pas revenir la même semaine. » Ses textes, mot pour mot (titre, puis texte).
+   - Les relances : passé par le paywall (rq-pw-vu), sans abonnement (onboarding pas fini, ou un « non » sûr de RevenueCat), le rappel
+     accepté (l’autorisation d’iOS et requete-rappel). Une par jour, à l’heure du rappel, pendant 28 jours à partir de la dernière
+     ouverture ; le message du jour suit le numéro du jour : chacun revient tous les 14 jours, jamais deux fois la même semaine.
+   - L’absence : abonné (« oui » sûr), le rappel accepté : 3, 4 et 5 jours après la dernière ouverture, à l’heure du rappel, un message
+     chacun ; chaque ouverture repousse les trois.
+   Des notifications de l’iPhone (LocalNotifications), comme les rappels : rien sur le serveur. Abonné, les relances sont retirées ;
+   sans abonnement, l’absence aussi. */
+const RELANCE_IDS=Array.from({length:28},(_,i)=>300+i),ABSENCE_IDS=[400,401,402];
+const RELANCE_MSG=[["👀 SELECT * FROM excuses","On a cherché pourquoi tu n’as pas terminé ton abonnement. 0 résultat."],["💔 C’est un LEFT JOIN ?","Parce qu’on a l’impression que tu nous as laissés tout seuls…"],["🐱 Requête a tout vu","Tu étais à deux clics de devenir une légende du SQL…"],["😏 C’est le prix qui t’a fait peur ?","Promis, les requêtes SQL sont plus effrayantes."],["💜 On ne juge pas…","Mais ton abonnement inachevé, lui, te juge un peu."],["🫢 C’est un date ou pas ?","Parce que ton abonnement attend toujours une réponse."],["🐾 Le chat perd patience","Il a eu le temps d’apprendre trois jointures pendant que tu hésitais."],["🍿 Le suspense est insoutenable","Vas-tu terminer ton abonnement ? Réponse au prochain épisode."],["🏃 Record de vitesse !","Tu as quitté la page d’abonnement plus vite qu’une requête optimisée."],["😏 Tu joues avec nos sentiments ?","Tu ouvres l’abonnement, tu repars… C’est quoi cette relation ?"],["🚨 Suspicion de procrastination","Ton abonnement attend toujours. Les preuves sont accablantes."],["🍿 Saison 2 : le retour ?","Dans le dernier épisode, tu abandonnais ton abonnement. Et maintenant ?"],["😭 Tu nous fais une sous-requête ?","Parce qu’on attend toujours le résultat de ton abonnement."],["🤨 On doit s’inquiéter ?","Tu étais à un clic de t’abonner. Depuis, silence radio."]];
+const ABSENCE_MSG=[["🚩 Red flag détecté","Commencer un abonnement et disparaître ? C’est suspect."],["🤨 Tu comptes revenir ?","C’est pour savoir si on garde la lumière allumée."],["👻 Tu nous as ghostés","On avait déjà imaginé notre avenir ensemble… en SQL."]];
+let relanceSig='',relanceFile=null;
+function relancePwVu(){try{if(!/^\d{4}-\d\d-\d\d$/.test(localStorage.getItem('rq-pw-vu')||''))localStorage.setItem('rq-pw-vu',dstr(auj()));}catch(e){}}   // le jour du premier passage : le 1er message part le lendemain
+function relanceQui(){
+  let etat='inconnu';try{etat=typeof obGardeEtat==='function'?obGardeEtat():'inconnu';}catch(e){}
+  let pwVu=false;try{pwVu=!!localStorage.getItem('rq-pw-vu');}catch(e){}
+  const onb=!!(typeof state!=='undefined'&&state&&state.onboarded),on=typeof rappelOn==='function'&&rappelOn();
+  return {relance:on&&pwVu&&(onb?etat==='non':etat!=='oui'),absence:on&&onb&&etat==='oui'};
+}
+function relanceJours(deb,n,h,m){
+  const out=[];
+  for(let d=0;d<n;d++){const at=new Date(deb);at.setDate(at.getDate()+d);at.setHours(h,m,0,0);out.push(at);}
+  return out;
+}
+function relanceMessageDu(at){
+  /* Compté depuis le lendemain du premier passage au paywall : « SELECT * FROM excuses » d’abord, puis dans l’ordre d’Elisa */
+  let v='';try{v=localStorage.getItem('rq-pw-vu')||'';}catch(e){}
+  const jour=d=>Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5),a=/^\d{4}-\d\d-\d\d$/.test(v)?jour(parseD(v))+1:0,n=RELANCE_MSG.length;
+  return RELANCE_MSG[(((jour(at)-a)%n)+n)%n];
+}
+function relanceAuto(){
+  const C=window.Capacitor,LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;
+  if(!LN)return;
+  const q=relanceQui(),H=rappelHeure(),L=(window.REQUETE_LANGUE&&window.REQUETE_LANGUE.code)||'fr',auj0=dstr(auj());
+  const sig=[q.relance?'r':'',q.absence?'a':'',auj0,H,L].join('|');
+  if(sig===relanceSig)return;
+  relanceSig=sig;
+  const go=async()=>{
+    try{await LN.cancel({notifications:RELANCE_IDS.concat(ABSENCE_IDS).map(id=>({id}))});}catch(e){}
+    if(!q.relance&&!q.absence)return;
+    try{const p=await LN.checkPermissions();if(!p||p.display!=='granted')return;}catch(e){return;}
+    const T=typeof natifT==='function'?natifT:(x=>x),[h,m]=H.split(':').map(Number),demain=new Date();demain.setDate(demain.getDate()+1);
+    const n=q.relance
+      ?relanceJours(demain,28,h,m).map((at,i)=>{const [t,b]=relanceMessageDu(at);return {id:RELANCE_IDS[i],title:T(t),body:T(b),schedule:{at,allowWhileIdle:true}};})
+      :relanceJours(new Date(Date.now()+3*864e5),3,h,m).map((at,i)=>({id:ABSENCE_IDS[i],title:T(ABSENCE_MSG[i][0]),body:T(ABSENCE_MSG[i][1]),schedule:{at,allowWhileIdle:true}}));
+    try{if(n.length)await LN.schedule({notifications:n});}catch(e){}
+  };
+  relanceFile=(relanceFile||Promise.resolve()).then(go,go);
+}
 function rappelTousAnnuler(){
   try{
     const C=window.Capacitor,LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;
@@ -52789,6 +52841,7 @@ function rappelAuto(ms){
     if(typeof flammeDirectAuto==='function')flammeDirectAuto(ms);   // ta flamme en direct suit les mêmes changements (7 novembre)
     clearTimeout(rappelAutoT);
     rappelAutoT=setTimeout(()=>{
+      try{if(typeof relanceAuto==='function')relanceAuto();}catch(e){}   // les relances et l’absence (21 novembre)
       try{
         const C=window.Capacitor;if(!(C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications))return;
         const ob=document.getElementById('onboarding');
@@ -54455,7 +54508,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-20-module-v3132';
+  const SW_CACHE='requete-2026-11-21-module-v3133';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

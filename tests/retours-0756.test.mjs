@@ -91,5 +91,5 @@ test('le téléchargement et la planche passent par le même dessin', () => {
 });
 
 test('la nouvelle version arrive sur les iPhone', () => {
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-20-module-v3132';") && app.includes("const SW_CACHE='requete-2026-11-20-module-v3132';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-21-module-v3133';") && app.includes("const SW_CACHE='requete-2026-11-21-module-v3133';"));
 });
