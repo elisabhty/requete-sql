@@ -17,9 +17,10 @@ const ctx = (pwVu) => {
   return c;
 };
 
-test('les textes d’Elisa : 14 relances, 3 pour l’absence, titre puis texte', () => {
+test('les textes d’Elisa : 15 relances (le 15e à 8 h 08), 3 pour l’absence, titre puis texte', () => {
   const c = ctx('2026-11-21');
-  assert.equal(c.R.length, 14); assert.equal(c.A.length, 3);
+  assert.equal(c.R.length, 15);
+  assert.deepEqual([...c.R[14]], ['💍 Peur de l’engagement ?', 'C’est juste un abonnement, pas une demande en mariage.']); assert.equal(c.A.length, 3);
   assert.deepEqual([...c.R[0]], ['👀 SELECT * FROM excuses', 'On a cherché pourquoi tu n’as pas terminé ton abonnement. 0 résultat.']);
   assert.deepEqual([...c.R[13]], ['🤨 On doit s’inquiéter ?', 'Tu étais à un clic de t’abonner. Depuis, silence radio.']);
   assert.deepEqual([...c.A[2]], ['👻 Tu nous as ghostés', 'On avait déjà imaginé notre avenir ensemble… en SQL.']);
@@ -27,7 +28,7 @@ test('les textes d’Elisa : 14 relances, 3 pour l’absence, titre puis texte',
 test('une par jour, le 1er message le lendemain du paywall, jamais deux fois la même semaine', () => {
   const c = ctx('2026-11-21'), jours = Array.from({ length: 60 }, (_, d) => c.f(new Date(2026, 10, 22 + d))[0]);
   assert.equal(jours[0], '👀 SELECT * FROM excuses');
-  assert.equal(new Set(jours.slice(0, 14)).size, 14, 'les 14 en 14 jours');
+  assert.equal(new Set(jours.slice(0, 15)).size, 15, 'les 15 en 15 jours');
   for (let i = 0; i < jours.length; i++) for (let j = i + 1; j < Math.min(jours.length, i + 7); j++) assert.notEqual(jours[i], jours[j], `jours ${i} et ${j}`);
 });
 test('qui les reçoit : le rappel accepté ; passé par le paywall sans abonnement, ou abonné absent', () => {
@@ -38,5 +39,5 @@ test('qui les reçoit : le rappel accepté ; passé par le paywall sans abonneme
 });
 test('en anglais', () => {
   for (const k of ['"On a cherché pourquoi tu n’as pas terminé ton abonnement. {1} résultat.": "We looked for the reason you didn’t finish subscribing. {1} rows returned."',
-    '"💔 C’est un LEFT JOIN ?": "💔 Is this a LEFT JOIN?"', '"👻 Tu nous as ghostés": "👻 You ghosted us"', '"🍿 Saison {1} : le retour ?": "🍿 Season {1}: the comeback?"']) assert.ok(en.includes(k), k);
+    '"💔 C’est un LEFT JOIN ?": "💔 Is this a LEFT JOIN?"', '"👻 Tu nous as ghostés": "👻 You ghosted us"', '"💍 Peur de l’engagement ?": "💍 Afraid of commitment?"', '"🍿 Saison {1} : le retour ?": "🍿 Season {1}: the comeback?"']) assert.ok(en.includes(k), k);
 });

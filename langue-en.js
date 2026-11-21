@@ -843,6 +843,8 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Parce qu’on attend toujours le résultat de ton abonnement.": "Because we’re still waiting for your subscription’s result.",
     "🤨 On doit s’inquiéter ?": "🤨 Should we be worried?",
     "Tu étais à un clic de t’abonner. Depuis, silence radio.": "You were one tap away from subscribing. Radio silence ever since.",
+    "💍 Peur de l’engagement ?": "💍 Afraid of commitment?",
+    "C’est juste un abonnement, pas une demande en mariage.": "It’s just a subscription, not a marriage proposal.",
     "🚩 Red flag détecté": "🚩 Red flag detected",
     "Commencer un abonnement et disparaître ? C’est suspect.": "Starting a subscription and vanishing? That’s suspicious.",
     "🤨 Tu comptes revenir ?": "🤨 Planning to come back?",
