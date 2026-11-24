@@ -94,7 +94,7 @@ test('dans l’app : la carte monte avec le clavier annoncé ; la page rétréci
   assert.deepEqual([b.el.style.height, b.k()], ['852px', '0px']);
   assert.equal(cap.plugins.Keyboard.resize, 'native');
   const ecoute = cut("window.addEventListener('keyboardWillShow',e=>{dxClavierApp=", '\n}\n');
-  assert.ok(ecoute.includes("dxClavierApp=Math.max(0,Math.round(+(e&&e.keyboardHeight)||0));dxFeuilleCaler();") && ecoute.includes("window.addEventListener('keyboardWillHide',()=>{dxClavierApp=0;") && ecoute.includes("window.addEventListener('resize',"));
+  assert.ok(ecoute.includes("dxClavierApp=typeof kbHauteurNative==='function'?kbHauteurNative(e):Math.max(0,Math.round(+(e&&e.keyboardHeight)||0));dxFeuilleCaler();") && ecoute.includes("window.addEventListener('keyboardWillHide',()=>{dxClavierApp=0;") && ecoute.includes("window.addEventListener('resize',"));
 });
 
 test('le focus : un instant tout en haut (Safari ne fait rien défiler), la carte monte ; le clavier part, elle redescend ; refermée, plus de clavier', () => {

@@ -36,6 +36,8 @@ const info = await evaluer(`(async () => ({
   anim: await fetch('/assets/anim/as.html').then(r => r.status).catch(e => String(e)),
   lecture: await new Promise(fin => { const a = new Audio(${JSON.stringify('/' + process.env.ESSAI_VOIX)}); a.preload = 'auto';
     a.oncanplaythrough = () => fin('prête, ' + Math.round(a.duration * 10) / 10 + ' s'); a.onerror = () => fin('erreur ' + (a.error && a.error.code)); a.load(); setTimeout(() => fin('délai dépassé'), 10000); }),
+  fond: [document.querySelector('#onboarding.on'), document.body, document.documentElement].filter(Boolean).map(e => getComputedStyle(e).backgroundColor).find(c => !/rgba\\(0, 0, 0, 0\\)|transparent/.test(c)) || 'transparent',
+  sombre: matchMedia('(prefers-color-scheme: dark)').matches,
   texte: document.body.innerText.replace(/\\s+/g, ' ').slice(0, 160)
 }))()`);
 console.log(JSON.stringify(info, null, 1));
@@ -47,8 +49,12 @@ verifier('voix servie depuis son paquet', info.voix.statut === 200 && info.voix.
 verifier('voix lisible', /^prête/.test(info.lecture), info.lecture);
 verifier('animations de cours', info.anim === 200);
 if (erreurs.length) console.log('\nErreurs de la page :\n  ' + erreurs.slice(0, 12).join('\n  '));
-verifier('aucune erreur au démarrage', erreurs.length === 0, erreurs.length + ' erreur(s)');
-if (process.env.ESSAI_BORDS === '1') verifier('marges des bords (Android 15, plein écran)', parseFloat(info.marge) > 0, info.marge);
+// Capacitor essaie d’écrire les marges des bords avant que la page existe, puis y arrive : ce message-là est sans suite.
+const vraies = erreurs.filter(e => !/^Error injecting safe area CSS/.test(e));
+verifier('aucune erreur au démarrage', vraies.length === 0, vraies.length + ' erreur(s)');
+verifier('rien sous la barre d’état', Number(process.env.ESSAI_HAUT) > 0 || parseFloat(info.marge) > 0, 'vue à ' + process.env.ESSAI_HAUT + ' px, marge ' + info.marge);
+// Le thème de l’appli est clair (styles.xml) : Android ne l’assombrit pas, même téléphone en mode sombre. Pour information :
+console.log('Fond de l’écran affiché : ' + info.fond + (info.sombre ? ' (téléphone en mode sombre)' : ''));
 const cap = await envoyer('Page.captureScreenshot', {format: 'png'});
 if (cap.result?.data) writeFileSync('captures/page.png', Buffer.from(cap.result.data, 'base64'));
 console.log('\nOK :\n  ' + ok.join('\n  ') + (ko.length ? '\nÉCHEC :\n  ' + ko.join('\n  ') : '\nTout est bon.'));

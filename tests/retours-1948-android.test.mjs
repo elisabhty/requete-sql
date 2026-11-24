@@ -109,3 +109,16 @@ test('l’anglais des textes Android', () => {
     '"Sur ton téléphone": "On your phone"', '"Aucun abonnement à restaurer sur ce compte Google.": "No subscription to restore on this Google account."'])
     assert.ok(en.includes(k), k);
 });
+
+test('Android : le clavier, la vue rétrécit d’elle-même (pas de double recul), réglages propres à iOS évités', () => {
+  const h = lire('index.html');
+  const f = h.slice(h.indexOf('function kbHauteurNative(e)'), h.indexOf('\n', h.indexOf('function kbHauteurNative(e)')));
+  const android = vm.runInNewContext(f + ';kbHauteurNative', {appAndroid: () => true, Math});
+  const ios = vm.runInNewContext(f + ';kbHauteurNative', {appAndroid: () => false, Math});
+  assert.equal(android({keyboardHeight: 300}), 0);
+  assert.equal(ios({keyboardHeight: 300.4}), 300);
+  assert.ok(h.includes('const h=kbHauteurNative(e);') && h.includes('dxClavierApp=typeof kbHauteurNative===\'function\'?kbHauteurNative(e)'));
+  assert.ok(h.includes('var kbScroll=!appAndroid()&&P.Keyboard') && h.includes('var kbMode=!appAndroid()&&P.Keyboard'));
+  const conf = JSON.parse(lire('capacitor.config.json'));
+  assert.deepEqual(conf.plugins.SystemBars, {style: 'LIGHT', initialViewportFitValueHint: 'cover'}, 'icônes foncées sur le fond clair, même téléphone en mode sombre');
+});

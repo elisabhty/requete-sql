@@ -25,7 +25,7 @@ test('l’ouverture : le chat en grilles de 4 × 3, décodé avant de partir et 
 test('la vue de l’appli ne défile plus (iOS) : ce qui défile dans la page défile toujours', () => {
   assert.equal(cap.ios.scrollEnabled, false, 'capacitor.config.json');
   const natif = cut('(function(){\n  var C=window.Capacitor;\n  if(!C||!C.isNativePlatform||!C.isNativePlatform())return;', '  var H=P.Haptics;');
-  assert.ok(natif.includes("var kbScroll=P.Keyboard&&P.Keyboard.setScroll&&P.Keyboard.setScroll({isDisabled:true});if(kbScroll&&kbScroll.catch)kbScroll.catch(function(){});"));
+  assert.ok(natif.includes("var kbScroll=!appAndroid()&&P.Keyboard&&P.Keyboard.setScroll&&P.Keyboard.setScroll({isDisabled:true});if(kbScroll&&kbScroll.catch)kbScroll.catch(function(){});"));
 });
 
 test('le clavier ouvert sur un champ : ob-clavier ; la phrase s’efface, le pied se pose sur le clavier', () => {

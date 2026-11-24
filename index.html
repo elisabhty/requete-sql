@@ -6678,13 +6678,14 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
      l’en-tête passait sous l’heure ; aucune remise à zéro en JavaScript ne l’atteignait (pour la page, rien n’avait bougé). La vue de
      l’appli ne défile plus du tout (capacitor.config.json, ios.scrollEnabled à false, et ici pour une appli installée avant) : le
      plugin Keyboard la ramène à zéro dès qu’elle bouge. Ce qui défile dans la page (écrans, feuilles, onboarding) défile toujours. */
-  try{var kbScroll=P.Keyboard&&P.Keyboard.setScroll&&P.Keyboard.setScroll({isDisabled:true});if(kbScroll&&kbScroll.catch)kbScroll.catch(function(){});}catch(e){}
+  try{var kbScroll=!appAndroid()&&P.Keyboard&&P.Keyboard.setScroll&&P.Keyboard.setScroll({isDisabled:true});if(kbScroll&&kbScroll.catch)kbScroll.catch(function(){});}catch(e){}
   /* 13 novembre, 14 h 24 (Elisa : « des sauts au niveau des champs à clavier / flash », le pseudo, le prénom, « Contacte-nous »).
      En mode « native », le plugin Keyboard rétrécit la vue de l’appli 0,45 s APRÈS l’apparition du clavier (la durée de son animation
      + 0,2 s), et la rend 10 ms après l’annonce de son départ : la page se remettait en place une deuxième fois, en retard, et une image
      passait entre la vue changée et la page recalée (le flash). La vue garde maintenant toujours sa taille (mode « none ») : l’appli se
      cale sur le clavier dès qu’il s’annonce (--app-h, --kb), une seule fois, et suit son mouvement (ludique.css, « Le clavier qui monte »). */
-  try{var kbMode=P.Keyboard&&P.Keyboard.setResizeMode&&P.Keyboard.setResizeMode({mode:'none'});if(kbMode&&kbMode.catch)kbMode.catch(function(){});}catch(e){}
+  /* Sur Android, ces deux réglages n’existent pas (propres à iOS) : la vue rétrécit d’elle-même au-dessus du clavier. */
+  try{var kbMode=!appAndroid()&&P.Keyboard&&P.Keyboard.setResizeMode&&P.Keyboard.setResizeMode({mode:'none'});if(kbMode&&kbMode.catch)kbMode.catch(function(){});}catch(e){}
   var H=P.Haptics;
   if(H){
     /* Elisa, 5 novembre, 19 h 41 : « je n’ai pas de haptique dans l’application ». Les coups de moins de 10 ms (le toucher de chaque
@@ -24191,9 +24192,12 @@ let kbNatH=0,kbNatBase=typeof window!=='undefined'?(window.innerHeight||0):0;
    kbAnimFin : la fin du mouvement en cours. Pendant ce temps, rien ne se remesure ni ne défile (une fois, à la fin). */
 const KB_ANIM_MS=260;let kbAnimFin=0;
 function kbEnMouvement(){return Date.now()<kbAnimFin;}
+function kbHauteurNative(e){ return typeof appAndroid==='function'&&appAndroid()?0:Math.max(0,Math.round(+(e&&e.keyboardHeight)||0)); }
 function kbNatif(){ return kbNatH?Math.max(0,Math.round(kbNatH-Math.max(0,kbNatBase-window.innerHeight))):0; }
 if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
-  window.addEventListener('keyboardWillShow',e=>{ if(!kbNatH)kbNatBase=Math.max(kbNatBase,window.innerHeight); const h=Math.max(0,Math.round(+(e&&e.keyboardHeight)||0)); if(h!==kbNatH)kbAnimFin=Date.now()+KB_ANIM_MS; kbNatH=h; });
+  /* Android (24 novembre) : la vue de l’appli rétrécit d’elle-même au-dessus du clavier (Capacitor 8) ; sa hauteur ne doit pas
+     être retirée une deuxième fois. Seul iOS (vue de taille fixe, Keyboard en mode « none ») compte sur elle. */
+  window.addEventListener('keyboardWillShow',e=>{ if(!kbNatH)kbNatBase=Math.max(kbNatBase,window.innerHeight); const h=kbHauteurNative(e); if(h!==kbNatH)kbAnimFin=Date.now()+KB_ANIM_MS; kbNatH=h; });
   window.addEventListener('keyboardWillHide',()=>{ if(kbNatH)kbAnimFin=Date.now()+KB_ANIM_MS; kbNatH=0; });
   window.addEventListener('keyboardDidHide',()=>{ kbNatH=0; });
   window.addEventListener('resize',()=>{ if(!kbNatH)kbNatBase=window.innerHeight; });
@@ -29048,7 +29052,7 @@ function dxClavierPrevu(el){
   el._prevuT=setTimeout(()=>{if(el._prevu){el._prevu=0;dxFeuilleCaler();}},900);
 }
 if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
-  window.addEventListener('keyboardWillShow',e=>{dxClavierApp=Math.max(0,Math.round(+(e&&e.keyboardHeight)||0));dxFeuilleCaler();});
+  window.addEventListener('keyboardWillShow',e=>{dxClavierApp=typeof kbHauteurNative==='function'?kbHauteurNative(e):Math.max(0,Math.round(+(e&&e.keyboardHeight)||0));dxFeuilleCaler();});
   window.addEventListener('keyboardWillHide',()=>{dxClavierApp=0;const el=typeof document!=='undefined'&&document.getElementById('dx-feuille');if(el)el._ferme=Date.now();dxFeuilleCaler();});
   window.addEventListener('resize',()=>{if(typeof document!=='undefined'&&document.getElementById('dx-feuille'))dxFeuilleCaler();});
 }

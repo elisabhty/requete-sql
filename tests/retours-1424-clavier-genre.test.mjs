@@ -71,7 +71,7 @@ test('une page ouverte par un bouton ou par la barre du bas s’ouvre en haut ; 
 });
 
 test('le clavier : la vue garde sa taille, l’appli suit son mouvement une seule fois', () => {
-  assert.ok(app.includes("var kbMode=P.Keyboard&&P.Keyboard.setResizeMode&&P.Keyboard.setResizeMode({mode:'none'});"), 'mode « none » au démarrage');
+  assert.ok(app.includes("var kbMode=!appAndroid()&&P.Keyboard&&P.Keyboard.setResizeMode&&P.Keyboard.setResizeMode({mode:'none'});"), 'mode « none » au démarrage');
   assert.ok(app.includes('const KB_ANIM_MS=260;let kbAnimFin=0;'));
   assert.ok(app.includes("if(h!==kbNatH)kbAnimFin=Date.now()+KB_ANIM_MS; kbNatH=h;"), 'le clavier qui monte');
   assert.ok(app.includes("window.addEventListener('keyboardWillHide',()=>{ if(kbNatH)kbAnimFin=Date.now()+KB_ANIM_MS; kbNatH=0; });"), 'le clavier qui descend');
