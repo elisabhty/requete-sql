@@ -183,7 +183,7 @@ test('pseudo — une salle entre amis a besoin du pseudo réservé ; à l’ouve
   assert.equal(b.ctx.ran, 1); assert.equal(b.calls.length, 0, 'déjà réservé : tout de suite');
   assert.equal(pseudoCtx({ name: 'Zoé' }).ev('jeuSavedNom()'), '', 'le prénom n’est jamais un pseudo');
   /* À l’ouverture de l’appli */
-  for (const o of [{ onboarded: false }, { online: false }, { salle: { pseudo: 'Léa', pseudoVu: Date.now() - 3600e3 } }, { salle: { psPage: 1 } }]) {
+  for (const o of [{ onboarded: false }, { online: false }, { salle: { pseudo: 'Léa', pseudoVu: Date.now() - 3600e3 } }]) {
     const v = pseudoCtx(o); v.ev('psVerifier()'); await flush();
     assert.equal(v.calls.length, 0, JSON.stringify(o)); assert.ok(!v.root.classList.contains('on'), JSON.stringify(o));
   }
@@ -195,8 +195,12 @@ test('pseudo — une salle entre amis a besoin du pseudo réservé ; à l’ouve
   const none = pseudoCtx();
   none.ev('psVerifier()');
   assert.ok(none.root.classList.contains('on'), 'jamais de pseudo : la mini-page');
-  assert.equal(none.ctx.state.salle.psPage, 1, 'une seule fois');
-  none.ev('obPseudoPlusTard();psVerifier()'); assert.ok(!none.root.classList.contains('on'), 'elle ne revient pas toute seule');
+  assert.equal(none.ctx.state.salle.psPage, 1);
+  assert.equal(none.ev('PS.page.obligatoire'), true, 'obligatoire : sans « Plus tard »');
+  /* 24 novembre, 17 h 18 (« j’ai pu m’inscrire sans pseudo c’est pas normal ») : sans pseudo, elle revient à chaque ouverture */
+  none.ev('psPageFin(false);psVerifier()'); assert.ok(none.root.classList.contains('on'), 'elle revient');
+  const deja = pseudoCtx({ salle: { psPage: 1 } }); deja.ev('psVerifier()');
+  assert.ok(deja.root.classList.contains('on') && deja.ev('PS.page.obligatoire') === true, 'même déjà montrée');
   /* Salle entre amis : le pseudo de l’onboarding gardé sans réseau est réservé sans rien demander, puis la salle s’ouvre */
   const w = pseudoCtx({ salle: { psVoulu: '@léa' }, reply: (f, b) => ({ ok: true, pseudo: b.p_pseudo }) });
   w.ctx.ran = 0; w.ctx.go = () => { w.ctx.ran++; };
@@ -254,7 +258,7 @@ test('pseudo — l’onboarding demande le prénom ; la mini-page du pseudo suit
   assert.ok(back.includes("if(obStep===0||OB_SLIDES[obStep]==='pseudo')return;"), 'pas de retour depuis la mini-page');
   /* La fin de l’onboarding : la mini-page, puis l’appli */
   const fin = app.slice(app.lastIndexOf('function finishOnboard(action){'), app.indexOf('function obTerminer(action){'));
-  assert.ok(fin.includes("if(!psMien()&&!clsSalle().psVoulu&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),obligatoire:true,suite:()=>obTerminer(action)});return;}"))   // 4 novembre, 17 h 27 : obligatoire, redemandée tant qu’il n’y en a pas (ni gardé hors ligne);
+  assert.ok(fin.includes("if(!psMien()&&typeof psPage==='function'){psExiger(()=>obTerminer(action));return;}"))   // 4 novembre, 17 h 27 : obligatoire, redemandée tant qu’il n’y en a pas (ni gardé hors ligne);
   assert.ok(!fin.includes("localStorage.setItem('rq-jeu-nom'"), 'le prénom ne devient plus le pseudo des salles');
   /* Mon compte */
   const ctx = vm.createContext({ PS_LOCK_SVG: '<svg data-k="lock"></svg>', ACCT_CHEV: '<svg data-k="chev"></svg>', esc, mien: '' });
@@ -457,4 +461,30 @@ test('Supabase — le pseudo unique (jeu_pseudo), sans ménage : il reste à la 
   assert.ok(ios.includes('n’est jamais\n  libéré tout seul (pas de ménage)') && ios.includes("delete from jeu_pseudo where pseudo = '") && !ios.includes('jeu-pseudo-menage'), 'IOS.md');
   assert.equal(app.split('et reste à toi&nbsp;: «&nbsp;Supprimer mon compte&nbsp;», dans Mon compte, le libère avec tes scores. Ton prénom, lui, reste sur cet appareil.').length - 1, 2, 'les deux textes « Confidentialité » de l’appli');
   assert.ok(!app.includes('libéré après 12&nbsp;mois'));
+});
+
+/* 24 novembre, 17 h 18 (Elisa, capture de Mon compte, « Choisis ton pseudo » : « j’ai pu m’inscrire sans pseudo c’est pas normal ») */
+test('la fin de l’onboarding exige un pseudo réservé : le pseudo gardé est réservé ; pris, la page revient, obligatoire', async () => {
+  const fin = app.slice(app.lastIndexOf('function finishOnboard(action){'), app.indexOf('function obTerminer(action){'));
+  assert.ok(fin.includes("if(!psMien()&&typeof psPage==='function'){psExiger(()=>obTerminer(action));return;}"));
+  const essai = async o => { const p = pseudoCtx(o); p.ctx.fini = 0; p.ctx.suite = () => { p.ctx.fini++; }; p.ev('psExiger(suite)'); for (let i = 0; i < 6; i++) await flush(); return p; };
+  let p = await essai({ salle: { pseudo: '@léa' } });
+  assert.equal(p.ctx.fini, 1); assert.equal(p.calls.length, 0, 'déjà réservé : tout de suite');
+  p = await essai({ salle: { psVoulu: '@léa' }, reply: (f, b) => ({ ok: true, pseudo: b.p_pseudo }) });
+  assert.equal(p.ctx.fini, 1); assert.equal(p.ctx.state.salle.pseudo, '@léa'); assert.ok(!p.root.classList.contains('on'), 'le pseudo gardé, réservé sans rien demander');
+  p = await essai({ salle: { psVoulu: '@léa' }, reply: () => ({ ok: false, raison: 'pris', idees: ['@léa_sql'] }) });
+  assert.equal(p.ctx.fini, 0, 'pris : on n’entre pas');
+  assert.ok(p.root.classList.contains('on') && p.ev('PS.page.obligatoire') === true && p.ev('PS.page.raison') === 'pris', 'la page revient, obligatoire, avec des pseudos libres');
+  assert.equal(p.ctx.state.salle.psVoulu, undefined, 'le pseudo pris n’est plus gardé');
+  p = await essai({});
+  assert.equal(p.ctx.fini, 0); assert.ok(p.root.classList.contains('on') && p.ev('PS.page.obligatoire') === true, 'aucun pseudo : la page, obligatoire');
+  p = await essai({ salle: { psVoulu: '@léa' }, online: false });
+  assert.equal(p.ctx.fini, 1, 'sans réseau : il sera réservé au retour en ligne (psVerifier)');
+  p = await essai({ salle: { psVoulu: '@léa' }, reply: () => new TypeError('Failed to fetch') });
+  assert.equal(p.ctx.fini, 1, 'le réseau tombe : pareil');
+  /* Le compte relié rend son pseudo pendant que la page le réclame : elle se ferme ; un compte sans pseudo : la page, obligatoire */
+  const rep = app.slice(app.indexOf('async function csJoueurReprendre('), app.indexOf('/* Ce que cet appareil a joué'));
+  assert.ok(rep.includes("if(!pseudo&&state.onboarded&&typeof psPage==='function'){") && rep.includes("if(!ouvert&&!garde){try{psPage({obligatoire:true});}catch(e){}}"));
+  assert.ok(rep.includes("if(pseudo&&typeof PS!=='undefined'&&PS.page&&PS.page.obligatoire&&typeof psPageOuverte==='function'&&psPageOuverte()&&typeof OB_SLIDES!=='undefined'&&OB_SLIDES[obStep]==='pseudo'){\n    try{psPageFin(true);}catch(e){}"));
+  assert.ok(app.includes('const p=csJoueur(user);CJ.cours=p;'), 'la fin de l’onboarding peut attendre le compte');
 });

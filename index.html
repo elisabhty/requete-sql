@@ -29466,6 +29466,29 @@ function psPageFin(ok){
   if(a)a();if(b)b();
 }
 function psPageOuverte(){const r=document.getElementById('onboarding');return !!(r&&r.classList.contains('on'));}
+/* 24 novembre, 17 h 18 (Elisa, capture de Mon compte, « Choisis ton pseudo » : « j’ai pu m’inscrire sans pseudo c’est pas normal »).
+   La fin de l’onboarding laissait passer un pseudo seulement « voulu » (psVoulu), jamais réservé : « C’est le mien, je me connecte
+   juste après » puis pas de connexion, ou un compte sans ce pseudo ; un pseudo pris pendant ce temps. Maintenant, sans pseudo
+   réservé, rien ne passe : le compte qui vient d’être relié a d’abord le temps de rendre le sien (csJoueur) ; puis le pseudo voulu
+   est réservé sans rien demander ; pris ou refusé, la page du pseudo revient, obligatoire (sans « Plus tard »). Seul le cas sans
+   réseau passe encore : le pseudo tapé est réservé au retour en ligne (psVerifier), et la page revient s’il est pris. */
+function psExiger(suite){
+  if(psMien()){suite();return;}
+  const ouvrir=o=>{const s=clsSalle();s.psPage=1;save();psPage(Object.assign({voulu:psAncien(),obligatoire:true,suite},o||{}));};
+  if(!clsSalle().psVoulu){ouvrir();return;}
+  const cs=typeof csPret==='function'?csPret():null;
+  const compte=cs&&typeof CJ!=='undefined'&&CJ.fait!==cs.user?(CJ.cours||(typeof CS!=='undefined'&&CS.cours)||(typeof csSync==='function'?csSync():null)):null;
+  Promise.race([Promise.resolve(compte).catch(()=>null),new Promise(r=>setTimeout(r,8000))]).then(()=>{
+    if(psMien()){suite();return;}
+    if(typeof navigator!=='undefined'&&navigator.onLine===false){suite();return;}
+    psReserverSansDemander().then(r=>{
+      if((r&&r.ok)||psMien()){suite();return;}
+      if(r&&(r.raison==='pris'||r.raison==='refuse')){const s=clsSalle();delete s.psVoulu;save();ouvrir({raison:r.raison,idees:r.idees,voulu:r.voulu});return;}
+      if(r&&r.raison==='aucun'){ouvrir();return;}
+      suite();
+    },()=>suite());
+  });
+}
 /* À l’ouverture de l’appli : sans pseudo, la mini-page (une seule fois) ; avec, sa réservation vérifiée une fois par jour (pris par
    quelqu’un d’autre, par exemple après une suppression : la mini-page). */
 function psVerifier(){
@@ -29476,17 +29499,18 @@ function psVerifier(){
       if(psVouluConnu()){
         psReserverSansDemander().then(r=>{
           if(r.ok){if(typeof renderDefis==='function'&&activeTab==='defis')renderDefis();return;}
-          if((r.raison==='pris'||r.raison==='refuse')&&!psPageOuverte())psPage({raison:r.raison,idees:r.idees,voulu:r.voulu});
+          if((r.raison==='pris'||r.raison==='refuse')&&!psPageOuverte()){const s2=clsSalle();delete s2.psVoulu;save();psPage({raison:r.raison,idees:r.idees,voulu:r.voulu,obligatoire:true});}
         },()=>{});
         return;
       }
-      if(!s.psPage&&!psPageOuverte()){clsSalle().psPage=1;save();psPage({voulu:psAncien()});}
+      /* 24 novembre (« j’ai pu m’inscrire sans pseudo c’est pas normal ») : sans pseudo, la page revient à chaque ouverture, obligatoire. */
+      if(!psPageOuverte()){clsSalle().psPage=1;save();psPage({voulu:psAncien(),obligatoire:true});}
       return;
     }
     if(s.pseudoVu&&Date.now()-s.pseudoVu<20*3600e3)return;
     psPrendre(mien).then(r=>{
       if(r&&r.ok)return;
-      if(r&&(r.raison==='pris'||r.raison==='refuse')){const s2=clsSalle();delete s2.pseudo;delete s2.pseudoVu;save();if(!psPageOuverte())psPage({raison:r.raison,idees:r.idees,voulu:mien});}
+      if(r&&(r.raison==='pris'||r.raison==='refuse')){const s2=clsSalle();delete s2.pseudo;delete s2.pseudoVu;save();if(!psPageOuverte())psPage({raison:r.raison,idees:r.idees,voulu:mien,obligatoire:true});}
     },()=>{});
   }catch(e){}
 }
@@ -50573,7 +50597,8 @@ function cjN(v){return Number.isFinite(+v)?+v:0;}
 function csJeuLibre(){return !(typeof JEU!=='undefined'&&JEU);}
 async function csJeu(user){
   if(!user)return;
-  await csJoueur(user);
+  const p=csJoueur(user);CJ.cours=p;   // la fin de l’onboarding l’attend avant de réclamer un pseudo (psExiger)
+  try{await p;}finally{if(CJ.cours===p)CJ.cours=null;}
   await csStats(false);
 }
 /* 14 novembre, 15 h 07 (Elisa : « je fais Continuer sans compte, je mets mon pseudo, je me connecte… et je veux me connecter dans un
@@ -50641,9 +50666,14 @@ async function csJoueurReprendre(cle,ancienne,dUnCompte){
   try{if(typeof renderCompte==='function')renderCompte();if(typeof activeTab!=='undefined'&&activeTab==='defis'&&typeof renderDefis==='function')renderDefis();}catch(e){}
   /* Un compte qui n’a pas encore de joueur (et ne reprend pas le pseudo d’un autre compte) choisit le sien, comme à l’inscription */
   /* (pas par-dessus une autre page de l’onboarding ni le paywall : sinon le pseudo se demandera à la première salle, jeuAvecPseudo) */
-  if(!pseudo&&dUnCompte&&state.onboarded&&typeof psPage==='function'){
+  /* 24 novembre (« j’ai pu m’inscrire sans pseudo ») : obligatoire, et aussi pour un appareil jamais connecté dont le compte n’en a pas. */
+  if(!pseudo&&state.onboarded&&typeof psPage==='function'){
     const ob=document.getElementById('onboarding'),ouvert=!!(ob&&ob.classList.contains('on')),garde=typeof obGardeBloque==='function'&&obGardeBloque();
-    if(!ouvert&&!garde){try{psPage({});}catch(e){}}
+    if(!ouvert&&!garde){try{psPage({obligatoire:true});}catch(e){}}
+  }
+  /* Le compte rend son pseudo alors que la page le réclamait (pris : c’était le sien) : elle se ferme, la suite continue. */
+  if(pseudo&&typeof PS!=='undefined'&&PS.page&&PS.page.obligatoire&&typeof psPageOuverte==='function'&&psPageOuverte()&&typeof OB_SLIDES!=='undefined'&&OB_SLIDES[obStep]==='pseudo'){
+    try{psPageFin(true);}catch(e){}
   }
   return {cle,pseudo,ancien};
 }
@@ -52332,7 +52362,7 @@ function finishOnboard(action){
   save();
   try{rappelNativeSync();}catch(e){}   // le rappel suit les jours du parcours créé (11 h 08)
   /* Première connexion : la mini-page du pseudo (Elisa, 31 octobre, 17 h 53), puis l’appli. */
-  if(!psMien()&&!clsSalle().psVoulu&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),obligatoire:true,suite:()=>obTerminer(action)});return;}
+  if(!psMien()&&typeof psPage==='function'){psExiger(()=>obTerminer(action));return;}
   obTerminer(action);
 }
 function obTerminer(action){
@@ -54533,7 +54563,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-24-module-v3137';
+  const SW_CACHE='requete-2026-11-24-module-v3138';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

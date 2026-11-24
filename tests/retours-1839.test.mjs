@@ -43,6 +43,7 @@ test('« Plus tard » sur la mini-page du pseudo tient d’un lancement à l’a
   vm.runInContext(cut('function jeuNom(v)', '/* Le pseudo des salles et du classement') + cut('function normalizeState(raw){', 'function normalize('), ns);
   assert.equal(vm.runInContext('normalizeState({salle:{psPage:1}}).salle.psPage', ns), 1, 'gardé au rechargement');
   assert.equal(vm.runInContext('normalizeState({salle:{}}).salle.psPage', ns), undefined, 'pas encore proposée : elle s’ouvrira une fois');
-  /* psVerifier ne rouvre la mini-page que si elle n’a jamais été proposée */
-  assert.ok(app.includes('if(!s.psPage&&!psPageOuverte()){clsSalle().psPage=1;save();psPage({voulu:psAncien()});}'));
+  /* 24 novembre, 17 h 18 (« j’ai pu m’inscrire sans pseudo c’est pas normal ») : plus de « Plus tard » qui tienne ; sans pseudo,
+     psVerifier rouvre la mini-page à chaque ouverture, obligatoire. */
+  assert.ok(app.includes('if(!psPageOuverte()){clsSalle().psPage=1;save();psPage({voulu:psAncien(),obligatoire:true});}'));
 });

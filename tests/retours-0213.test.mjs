@@ -63,7 +63,7 @@ test('le pseudo passe avant « Ton parcours est prêt », qui reste la dernière
   /* 4 novembre, 17 h 27 : « pas de Plus tard pour Choisis ton pseudo (obligatoire) » : sans pseudo réservé ni gardé hors ligne, la fin
      de l’onboarding le demande encore, même si la page a déjà été montrée (une reprise après fermeture de l’app, par exemple).
      14 novembre, 20 h 09 (« Pas de plus tard pour le pays et le pseudo !!!! ») : de nouveau, après une heure facultative. */
-  assert.ok(fin.includes("if(!psMien()&&!clsSalle().psVoulu&&typeof psPage==='function'){const s=clsSalle();s.psPage=1;save();psPage({voulu:psAncien(),obligatoire:true,suite:()=>obTerminer(action)});return;}"),
+  assert.ok(fin.includes("if(!psMien()&&typeof psPage==='function'){psExiger(()=>obTerminer(action));return;}"),
     'obligatoire : redemandée à la fin tant qu’il n’y a pas de pseudo');
   assert.ok(fnLast('obTerminer').includes("if(action==='plan-ready'){\n    switchTab('planning');"), '« Voir mon parcours » : le Planning');
 });

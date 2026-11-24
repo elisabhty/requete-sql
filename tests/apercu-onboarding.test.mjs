@@ -49,5 +49,5 @@ test('l’aperçu part d’un brouillon vierge et se referme à la fin sans rien
   /* La fin de l’onboarding : en aperçu, on referme avant d’écrire le planning, le profil ou le pseudo */
   const fin = fn('finishOnboard', 'function obTerminer(');
   const garde = fin.indexOf("if(typeof obApercu!=='undefined'&&obApercu){obApercuFermer();return;}");
-  assert.ok(garde > 0 && garde < fin.indexOf('state.plan=') && garde < fin.indexOf('save();') && garde < fin.indexOf('psPage('), 'avant toute écriture');
+  assert.ok(garde > 0 && garde < fin.indexOf('state.plan=') && garde < fin.indexOf('save();') && garde < fin.indexOf('psExiger('), 'avant toute écriture');
 });

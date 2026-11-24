@@ -72,7 +72,7 @@ test('sans compte → compte X → un autre compte : le pseudo de X et sa clé r
   assert.equal(S.pseudos[KX], '@compte_x', 'le pseudo de X reste à X');
   assert.match(S.comptes.u2, /^NEUVE/); assert.equal(I.s().cle, S.comptes.u2);
   assert.equal(S.pseudos[S.comptes.u2], undefined, 'Y ne prend pas le pseudo de X'); assert.equal(I.s().pseudo, undefined);
-  assert.deepEqual(j(I.ctx.pages), [{}], 'la page du pseudo s’ouvre');
+  assert.deepEqual(j(I.ctx.pages), [{obligatoire: true}], 'la page du pseudo s’ouvre, obligatoire (24 novembre, 17 h 18 : « j’ai pu m’inscrire sans pseudo c’est pas normal »)');
   assert.equal(I.s().pts, 0, 'Mes stats repart de celles de Y'); assert.notEqual(I.s().appareil, 'IPHONE0001', 'un nouveau nom d’appareil');
   assert.equal(S.stats.u1.IPHONE0001.pts, 100, 'la part de X n’est pas touchée');
   /* 3. puis un compte Z qui a déjà un joueur : Z, sans rien libérer */

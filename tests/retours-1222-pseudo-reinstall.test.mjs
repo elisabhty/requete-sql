@@ -16,7 +16,9 @@ test('« C’est le mien » : seulement pendant l’onboarding, pseudo pris, san
 test('il ferme la page sans rien réserver et garde le pseudo pour la fin de l’onboarding', () => {
   const f = app.slice(app.indexOf('function psCestLeMien(){'), app.indexOf('function psPageFin(ok){'));
   assert.ok(f.includes('if(n)s.psVoulu=n;s.psPage=1;save();') && f.includes('psPageFin(false);') && !f.includes('psPrendre'));
-  assert.ok(app.includes("if(!psMien()&&!clsSalle().psVoulu&&typeof psPage==='function')"), 'la fin de l’onboarding ne le redemande pas');
+  /* 24 novembre, 17 h 18 (« j’ai pu m’inscrire sans pseudo c’est pas normal ») : la fin de l’onboarding ne laisse plus passer un pseudo
+     seulement gardé ; elle attend le compte relié, puis le réserve, et la page revient s’il est pris (retours-1649, psExiger). */
+  assert.ok(app.includes("if(!psMien()&&typeof psPage==='function'){psExiger(()=>obTerminer(action));return;}"), 'la fin de l’onboarding exige un pseudo réservé');
   assert.ok(app.includes('s.cle=cle;s.cleCompte=1;delete s.clsId;delete s.clsRefus;delete s.psVoulu;'), 'à la connexion, le joueur du compte');
 });
 test('le lien et le message, en anglais aussi', () => {
