@@ -120,7 +120,7 @@ test('Mon compte : l’icône de l’app au choix, cachée pour l’instant ; mo
   /* Dans Mon compte */
   const rc = fn('renderCompte');
   assert.ok(rc.includes('if(!ICN.charge&&typeof ilePont===\'function\'&&ilePont())iconesCharger();') && rc.includes('const surIphone=widgetsVus||iconesIci();'));
-  assert.ok(rc.includes('<p class="account-settings-group-title">Sur ton iPhone</p>\n          <div class="account-settings-list">\n            ${iconeLigneHTML(CHEV)}'));
+  assert.ok(rc.includes('<p class="account-settings-group-title">${natifTexte(\'Sur ton iPhone\')}</p>\n          <div class="account-settings-list">\n            ${iconeLigneHTML(CHEV)}'));
   assert.ok(rc.includes('${langueReglageHTML()}\n    ${iconeReglageHTML()}'));
   for (const k of ['Icône de l’app', 'Classique', 'Noël', 'Nouvel An', 'Saint-Valentin', 'Pâques', 'Été', 'Halloween', 'L’icône n’a pas changé',
     'L’icône change sur ton écran d’accueil, et ton iPhone te le confirme.']) assert.ok(en.includes(`"${k}":`), k);
@@ -130,7 +130,7 @@ test('Mon compte : l’icône de l’app au choix, cachée pour l’instant ; mo
 
 test('« Noter l’application » : la page « Écrire un avis » de l’App Store, dans Compte et assistance', () => {
   const rc = fn('renderCompte');
-  assert.ok(rc.includes('<button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg(\'etoile\')}</span><span><b>Noter l’application</b><small>Ton avis sur l’App Store aide d’autres à nous trouver</small></span>'));
+  assert.ok(rc.includes('<button class="account-setting-row" type="button" onclick="noterAppli()"><span class="plus-row-icon is-stk">${lqStkSvg(\'etoile\')}</span><span><b>Noter l’application</b><small>${natifTexte(\'Ton avis sur l’App Store aide d’autres à nous trouver\')}</small></span>'));
   const i = rc.indexOf('onclick="noterAppli()"');
   assert.ok(i > rc.indexOf('<p class="account-settings-group-title">Compte et assistance</p>') && i < rc.indexOf("onclick=\"openPlusDetails('plus-data')\""), 'avant « Tes données, tes choix »');
   assert.ok(fn('noterAppli').includes('?action=write-review'));

@@ -3015,7 +3015,7 @@ test('boutons retour en pastille ronde : Safari ne coupe plus leur relief (overf
   assert.ok(/html\.lq #app \.home-back svg\{[^}]*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour des écrans : relief entier');
   assert.ok(/html\.lq #scr-lesson \.navbar \.back svg\{\s*overflow:visible;[^}]*box-shadow:0 3px 0 var\(--lip\)/.test(lq), 'retour de la leçon (« ‹ Accueil ») : relief entier');
   assert.ok(html.includes('.tab svg{overflow:visible;'), 'onglets : l’ombre de l’onglet actif n’est pas coupée non plus');
-  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=391">'), 'la feuille de style du thème est rechargée');
+  assert.ok(html.includes('<link rel="stylesheet" href="ludique.css?v=392">'), 'la feuille de style du thème est rechargée');
 });
 
 test('arrêt « toucher » sur un bouton : un doigt seul qui monte et descend, sans bulle ; le bouton s’enfonce dès l’appui et remonte au relâcher', () => {
@@ -3253,7 +3253,7 @@ test('cours en vidéo : tout tient en un écran, la vignette rapetisse du dépas
   const slide = cut('function lessonVideoSlide(l){', 'function openLessonVideo(fin){');
   assert.ok(slide.includes('<div class="ls-main lv-main">'), 'la diapositive du cours en vidéo est repérable');
   assert.ok(html.includes('#lesson-body .ls-main.lv-main{padding-bottom:0}'), 'pas de réserve en plus sous la vignette : la barre du bas (collante) est déjà dans le flux');
-  assert.ok(html.includes('width:min(100%,420px,max(230px,min(calc(100svh - 430px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)),var(--lv-fit,9999px))));'),
+  assert.ok(html.includes('width:min(100%,420px,max(230px,min(calc(100svh - 430px - var(--safe-area-inset-top,env(safe-area-inset-top,0px)) - var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))),var(--lv-fit,9999px))));'),
     'la largeur suit --lv-fit, sans descendre sous 230 px');
   const flow = cut('function renderLessonFlow(){', 'function qfConfetti(anchor){');
   assert.ok(flow.includes('if(lessonStep===0&&lessonHasVideo(l))lvCardFit();'), 'mesurée au rendu du cours');

@@ -248,7 +248,7 @@ test('reçue d’un autre : de son avatar et le long de l’écran ; la carte «
 });
 
 test('le style : « Réagir », la pastille de verre à contour soleil posée en bas à droite ; effacé quand on écrit ; au-dessus de « Un coup de patte ? »', () => {
-  for (const r of ['html.lq .jeu-reagir{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(var(--safe-bottom,0px) + 22px);z-index:91;',
+  for (const r of ['html.lq .jeu-reagir{position:fixed;right:max(16px,var(--safe-area-inset-right,env(safe-area-inset-right)));bottom:calc(var(--safe-bottom,0px) + 22px);z-index:91;',
     'html.lq .jeu-reagir.is-ecrit{opacity:0;visibility:hidden;translate:0 18px;pointer-events:none;',
     'html.lq .jeu-reagir.is-haut:not(.is-ecrit){translate:0 -58px}', 'html.lq body:has(.viz.on) .jeu-reagir{opacity:0;visibility:hidden;pointer-events:none}',
     'html.lq body:has(>.jeu-reagir) #jeu-root{padding-bottom:76px}',
@@ -266,7 +266,7 @@ test('le style : « Réagir », la pastille de verre à contour soleil posée en
     'html.lq .jeu-reagir.is-ouvert .jeu-reagir-l{display:flex;transform-origin:right center;animation:jeuReagirTray .32s cubic-bezier(.3,1.35,.5,1) backwards}',
     'html.lq .jeu-reagir.is-neuf .jeu-reagir-b>svg:first-child{animation:jeuReagirSalut 1.3s ease-in-out .9s 2}',
     '@media (prefers-reduced-motion:reduce){html.lq .jeu-reagir,html.lq .jeu-reagir *{transition:none!important;animation:none!important}}',
-    'html.lq .jeu-rl{position:fixed;top:64%;right:max(16px,env(safe-area-inset-right));z-index:8990;width:0;height:0;pointer-events:none}',
+    'html.lq .jeu-rl{position:fixed;top:64%;right:max(16px,var(--safe-area-inset-right,env(safe-area-inset-right)));z-index:8990;width:0;height:0;pointer-events:none}',
     'translate:var(--x,0px) var(--y,0px);\n  animation:jeuRl 2.8s cubic-bezier(.22,.7,.3,1) both}',
     'html.lq .jeu-rl-n[data-c="3"]{background:hsl(338 70% 52%)}', '@keyframes jeuRl{0%{opacity:0;transform:translateY(16px) scale(.35)}',
     '@media (prefers-reduced-motion:reduce){html.lq .jeu-rl-b{animation:jeuRlCalme 2.8s ease both}}', 'html.lq[data-motion="reduce"] .jeu-rl-b{animation:jeuRlCalme 2.8s ease both}'])

@@ -55,7 +55,7 @@ test('« En continuant… » juste sous le bouton jaune, avec ses deux liens', (
 });
 
 test('« Encore un effort ! » : sur téléphone, le voile couvre tout l’écran, sous l’heure et la barre d’accueil', () => {
-  assert.ok(app.includes('@media (max-width:599.98px){\n  .lv-end{position:fixed;inset:0;padding:calc(env(safe-area-inset-top,0px) + 16px) calc(env(safe-area-inset-right,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 16px) calc(env(safe-area-inset-left,0px) + 16px)}\n}'));
+  assert.ok(app.includes('@media (max-width:599.98px){\n  .lv-end{position:fixed;inset:0;padding:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px)) + 16px) calc(var(--safe-area-inset-right,env(safe-area-inset-right,0px)) + 16px) calc(var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)) + 16px) calc(var(--safe-area-inset-left,env(safe-area-inset-left,0px)) + 16px)}\n}'));
   assert.ok(app.includes('.lv-end{position:absolute;inset:0;display:flex;'), 'sur ordinateur, il reste dans le cadre du lecteur');
   assert.ok(app.includes('.lv-close{position:absolute;z-index:4;'), 'la croix reste au-dessus du voile');
 });

@@ -102,6 +102,10 @@
   /* La clé publique iOS de RevenueCat (Projet Requête › Apps & providers › App Store › Public API key).
      Elle est faite pour être dans l'app : ce n'est pas un secret. */
   var RC_CLE_IOS = 'appl_qLAPPmCbplIcNyriYbILgTzVYYQ';
+  /* 24 novembre (Elisa : « pousser la version Android ») : la clé publique Android de RevenueCat (Apps & providers › Google Play ›
+     Public API key, « goog_… »), à mettre quand l'appli Google Play sera créée et reliée à RevenueCat. Vide : sur Android, pas
+     d'achat branché (le paywall se passe, comme avant le branchement sur iPhone) ; à ne pas publier pour tous ainsi. */
+  var RC_CLE_ANDROID = '';
   var DROIT = 'premium';
   var GARDE = 'requete-premium';
   var GARDE_VU = 'requete-premium-vu';
@@ -110,7 +114,8 @@
   var C = window.Capacitor;
   var natif = !!(C && typeof C.isNativePlatform === 'function' && C.isNativePlatform());
   var P = natif && C.Plugins && C.Plugins.Purchases;
-  if (!RC_CLE_IOS || !P) return;
+  var CLE = typeof C.getPlatform === 'function' && C.getPlatform() === 'android' ? RC_CLE_ANDROID : RC_CLE_IOS;
+  if (!CLE || !P) return;
 
   /* Ce qu'on sait : true (abonnée), false (pas abonnée), null (jamais eu de réponse). Et la date de la réponse qui l'a dit. */
   var su = null, vu = '';
@@ -224,7 +229,7 @@
 
   /* 13 novembre, 2 h 41 : les prix se lisent en même temps que l'abonnement, dès que RevenueCat a démarré ; acheter, restaurer et
      vérifier n'attendent plus la lecture des prix (elle pouvait durer). */
-  var demarre = P.configure({apiKey: RC_CLE_IOS});
+  var demarre = P.configure({apiKey: CLE});
   var pret = demarre
     .then(function(){
       /* RevenueCat rend d'abord ce qu'il a en mémoire, puis interroge son serveur : la vraie réponse arrive ici, un peu plus tard.

@@ -59,7 +59,7 @@ test('réf. 2 et 3 : la suppression du compte dit ce qui part, en deux blocs, pu
   /* lqAsk prend un corps (du HTML écrit par l’app) sous le bandeau, que le lecteur d’écran lit aussi */
   const ask = cut('function lqAsk(o){', '/* Elisa, 31 octobre, 8 h 37 (Réf 10)');
   assert.ok(ask.includes("${o.corps?`<div class=\"lq-ask-corps\" id=\"lq-ask-c\">${o.corps}</div>`:''}") && ask.includes("aria-describedby=\"lq-ask-p${o.corps?' lq-ask-c':''}\""));
-  for (const k of ['html.lq .lq-ask-sheet.has-corps{max-height:calc(100% - var(--safe-top,0px) - 16px - env(safe-area-inset-bottom,0px));overflow-x:hidden;overflow-y:auto;',
+  for (const k of ['html.lq .lq-ask-sheet.has-corps{max-height:calc(100% - var(--safe-top,0px) - 16px - var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)));overflow-x:hidden;overflow-y:auto;',
     'html.lq .lq-del-i{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink)}',
     'html.lq .lq-del-warn{display:flex;align-items:flex-start;gap:10px;', 'html[data-motion="reduce"].lq .lq-ask.on .lq-ask-corps{animation:none}',
     'html.lq .lq-ask-sheet.has-corps .lq-ask-btns{position:sticky;bottom:-20px;z-index:2;margin:0 -20px -20px;padding:12px 20px 20px;background:#fff}', '@media (max-height:760px){'])
@@ -219,7 +219,7 @@ test('le site : « Contacte-nous », le sujet, l’exemple qui suit le sujet, «
 });
 
 test('les versions', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=391">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=73">') && sw.includes("'./onboarding-vitrine.css?v=73',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=392">') && app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=73">') && sw.includes("'./onboarding-vitrine.css?v=73',"));
   const cache = sw.match(/const CACHE = '([^']+)';/)[1];
-  assert.ok(cache === 'requete-2026-11-24-module-v3139' && app.includes(`const SW_CACHE='${cache}';`));
+  assert.ok(cache === 'requete-2026-11-24-module-v3140' && app.includes(`const SW_CACHE='${cache}';`));
 });

@@ -103,7 +103,7 @@ test('achat.js : l’écouteur de RevenueCat, verifier(), suivre() et le retour 
 function appli({etat = 'non', onboarded = true, apercu = false, branche = true, ouvert = false, jeu = null} = {}) {
   const appels = [], timers = [], cls = new Set(ouvert ? ['on'] : []), R = {etat, suivis: [], verifs: 0};
   const A = {acheter() {}, actif: () => R.etat === 'oui', etat: () => R.etat, suivre: f => R.suivis.push(f), verifier: () => { R.verifs++; return Promise.resolve(R.etat); }};
-  const ctx = vm.createContext({appels, state: {onboarded}, obApercu: apercu, JEU: jeu, window: branche ? {REQUETE_ACHAT: A} : {}, Promise,
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, appels, state: {onboarded}, obApercu: apercu, JEU: jeu, window: branche ? {REQUETE_ACHAT: A} : {}, Promise,
     document: {getElementById: id => (id === 'onboarding' ? {classList: {contains: c => cls.has(c)}} : null)},
     setTimeout: (f, d) => { timers.push({f, d}); return timers.length; }, clearTimeout() {}, jeuFromUrl() {}});
   vm.runInContext('let obPwSortie=false,obPwBusy=false;' + cut('function obAchatPret(){', '\n') + '\n' + cut('let obGarde=false,obGardePrete=false', '/* Ce que le compte a rapporté')
@@ -169,7 +169,7 @@ test('aucune sortie : ni « Retour », ni glissé, ni Échap ; la page n’a pas
   assert.ok(i > 0 && i < back.indexOf('closeOnboardingAuth();return;}'), 'avant la ligne qui referme une page ouverte depuis l’appli');
   const essai = (garde, sortie) => {
     const appels = [];
-    const ctx = vm.createContext({obLegalMode: null, obStep: 1, OB_SLIDES: ['bonjour', 'paywall'], obEntry: 'paywall', state: {onboarded: true}, obGarde: garde, obPwSortie: sortie,
+    const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, obLegalMode: null, obStep: 1, OB_SLIDES: ['bonjour', 'paywall'], obEntry: 'paywall', state: {onboarded: true}, obGarde: garde, obPwSortie: sortie,
       obSortieRefuser: () => appels.push('offres'), closeOnboardingAuth: () => appels.push('ferme'), obGoto: k => appels.push(k), obCompteVisible: () => true, draft: {}, OB_FIN_SLIDES: []});
     vm.runInContext(back + ';obBack();', ctx);
     return appels;
@@ -217,7 +217,7 @@ test('« Mon compte » sur le paywall de la garde : se déconnecter, supprimer s
   const fn = cut('async function obGardeCompte(){', '\n}\n') + '\n}';
   const essai = async (st, reponse, busy = false) => {
     const appels = [], demandes = [];
-    const ctx = vm.createContext({state: st, obPwBusy: busy, lqAsk: async o => { demandes.push(o); return reponse; }, chatBonusHtml: k => `<img data-k="${k}">`,
+    const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, state: st, obPwBusy: busy, lqAsk: async o => { demandes.push(o); return reponse; }, chatBonusHtml: k => `<img data-k="${k}">`,
       seDeconnecter: () => appels.push('deconnexion'), compteSupprimer: () => appels.push('suppression'), startOnboarding: k => appels.push(['onboarding', k])});
     await vm.runInContext(fn + ';obGardeCompte()', ctx);
     return {appels, o: demandes[0]};
@@ -258,7 +258,7 @@ test('« Gérer mon abonnement » dans Mon compte : la feuille d’Apple par le 
   const essai = async ({pret = true, natif = true, feuille = true} = {}) => {
     const appels = [];
     const C = {nativePromise: (p, k, d) => { appels.push([p, k, d && d.url].filter(Boolean).join(' ')); return k === 'abonnementGerer' ? (feuille === 'erreur' ? Promise.reject(new Error('x')) : Promise.resolve({ok: feuille})) : Promise.resolve({}); }};
-    const ctx = vm.createContext({obAchatPret: () => pret, ilePont: () => (natif ? C : null), obGardeVoir: () => appels.push('garde'),
+    const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, obAchatPret: () => pret, ilePont: () => (natif ? C : null), obGardeVoir: () => appels.push('garde'),
       window: {REQUETE_ACHAT: {verifier: () => { appels.push('relu'); return Promise.resolve('oui'); }}}});
     const ici = vm.runInContext(src + ';abonnementIci()', ctx);
     await vm.runInContext('abonnementGerer()', ctx);

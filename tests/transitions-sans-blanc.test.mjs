@@ -17,12 +17,12 @@ const video = lire('decouvrir/video.html'), cx = lire('decouvrir/connexion.html'
 const cut = (s, a, b) => { const i = s.indexOf(a); assert.ok(i >= 0, a); const j = s.indexOf(b, i + a.length); assert.ok(j > i, b); return s.slice(i, j); };
 
 test('vidéo du métier : le cadre a sa taille dans le CSS, avec le même calcul que fit()', () => {
-  assert.ok(video.includes('#frame{--vh:100vh;--fw:min(calc(100vw - 24px),880px,calc((var(--vh) - 116px - max(10px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom))) * .8));'));
+  assert.ok(video.includes('#frame{--vh:100vh;--fw:min(calc(100vw - 24px),880px,calc((var(--vh) - 116px - max(10px,var(--safe-area-inset-top,env(safe-area-inset-top))) - max(12px,var(--safe-area-inset-bottom,env(safe-area-inset-bottom)))) * .8));'));
   assert.ok(video.includes('width:var(--fw);height:calc(var(--fw) * 1.25);border-radius:max(16px,calc(var(--fw) * .04444))}'));
   assert.ok(video.includes('@supports (height:100dvh){#frame{--vh:100dvh}}'));
   /* Les barres font 62 px et 68 px hors zones sûres : 116 px = 52 + 56 + 8 (l’air autour du cadre) */
   assert.ok(video.includes('.bar{width:100%;max-width:880px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;flex:none}'));
-  assert.ok(video.includes('.bar.top{padding-top:max(10px,env(safe-area-inset-top))}') && video.includes('.bar.bottom{padding-bottom:max(12px,env(safe-area-inset-bottom))}'));
+  assert.ok(video.includes('.bar.top{padding-top:max(10px,var(--safe-area-inset-top,env(safe-area-inset-top)))}') && video.includes('.bar.bottom{padding-bottom:max(12px,var(--safe-area-inset-bottom,env(safe-area-inset-bottom)))}'));
   assert.ok(video.includes('min-height:42px;padding:0 15px') && video.includes('.ctl{flex:none;width:46px;height:46px;'));
 });
 

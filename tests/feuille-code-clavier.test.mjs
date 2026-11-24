@@ -36,7 +36,7 @@ function bac({ natif = false, vv = { offsetTop: 0, height: 852 }, h = 852, stock
 
 test('une carte posée en bas qui monte avec le clavier ; plus de feuille pleine hauteur ni en haut', () => {
   assert.ok(lq.includes('html.lq .dx-feuille[data-k="code"] .dx-f-boite{translate:0 calc(-1 * var(--dx-clavier,0px));max-height:calc(100% - var(--dx-clavier,0px) - var(--safe-top,0px) - 16px);'));
-  assert.ok(lq.includes('margin-bottom:calc(8px + max(0px, env(safe-area-inset-bottom,0px) - var(--dx-clavier,0px)));transition:transform .36s cubic-bezier(.32,.72,0,1),translate .3s cubic-bezier(.2,.8,.2,1)}'), 'au-dessus du clavier, plus de marge pour la barre d’accueil');
+  assert.ok(lq.includes('margin-bottom:calc(8px + max(0px, var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)) - var(--dx-clavier,0px)));transition:transform .36s cubic-bezier(.32,.72,0,1),translate .3s cubic-bezier(.2,.8,.2,1)}'), 'au-dessus du clavier, plus de marge pour la barre d’accueil');
   assert.ok(lq.includes('html.lq .dx-feuille[data-k="code"]{transition:none}'), 'le cadre ne glisse plus : seule la carte monte');
   for (const k of ['height:calc(100% - var(--safe-top,0px) - 12px)', '.dx-feuille.on[data-k="code"]::after', '.dx-feuille[data-k="code"]{align-items:flex-start}', 'translateY(calc(-100% - 40px))'])
     assert.ok(!lq.includes(k), `ni pleine hauteur ni en haut : ${k}`);

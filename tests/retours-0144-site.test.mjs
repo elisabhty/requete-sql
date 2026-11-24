@@ -163,7 +163,7 @@ test('confidentialité : l’appli sur iPhone, le compte, l’abonnement par l�
   assert.ok(abo.includes('<a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">politique de confidentialité de RevenueCat</a>'));
   assert.ok(abo.includes('Supprimer ton compte Requête ne résilie pas l’abonnement&nbsp;: il se gère depuis Mon compte › «&nbsp;Gérer mon abonnement&nbsp;», ou dans les réglages de ton identifiant Apple.'));
   const achat = lire('achat.js');
-  assert.ok(achat.includes('var demarre = P.configure({apiKey: RC_CLE_IOS});') && !/logIn\(|setEmail\(|setAttributes\(|appUserID/.test(achat), 'un achat sans identifiant de compte');
+  assert.ok(achat.includes('var demarre = P.configure({apiKey: CLE});') && !/logIn\(|setEmail\(|setAttributes\(|appUserID/.test(achat), 'un achat sans identifiant de compte');
   assert.ok(!/\b(sera|passera|recevrons|seront)\b/.test(texte(abo)), 'au présent : l’abonnement existe');
   /* Les cookies, les droits */
   assert.ok(p.includes('ni outil de mesure d’audience d’un tiers, ni pixel de suivi. La seule mesure est celle que Requête fait elle-même, et seulement si tu l’acceptes&nbsp;: les écrans de l’accueil et les statistiques d’usage anonymes (voir plus haut), demandées une fois, au premier lancement. Ce site ne dépose aucun cookie. Dans l’appli, le stockage utilisé'));

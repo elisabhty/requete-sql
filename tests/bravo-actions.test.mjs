@@ -153,7 +153,7 @@ test('« Recommencer cette leçon ? » : une feuille dans le style de l’app, p
   assert.equal((await run(b => b['lq-ask-non'].onclick())).v, false, '« Annuler »');
   assert.equal((await run(b => b['lq-ask-back'].onclick())).v, false, 'toucher le fond');
   assert.equal((await run((b, key) => key({key: 'Escape', preventDefault() {}, stopPropagation() {}}))).v, false, 'Échap');
-  for (const part of ['html.lq .lq-ask{position:fixed;inset:0;z-index:2600;', 'margin:0 0 calc(8px + env(safe-area-inset-bottom,0px));',
+  for (const part of ['html.lq .lq-ask{position:fixed;inset:0;z-index:2600;', 'margin:0 0 calc(8px + var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px)));',
     'html.lq .lq-ask.on .lq-ask-sheet{transform:none}', 'html[data-motion="reduce"] .lq-ask-back,html[data-motion="reduce"] .lq-ask-sheet{transition:none!important}'])
     assert.ok(lq.includes(part), part);
 });

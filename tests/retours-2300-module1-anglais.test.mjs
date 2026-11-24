@@ -366,7 +366,7 @@ test('l’onboarding entier en anglais : le paywall, l’offre de bienvenue, le 
     "`<b class=\"pw-sans\"${obNt()}>${obPh('{essai}, puis {prix} {par} à partir du {date}.',",
     "const zero=(ba&&obDevise(0,ba.devise,true))||(obLangue()?obEuros(0):'0&nbsp;€');",
     "try{return new Intl.NumberFormat(obLoc(),Object.assign({style:'currency',currency:devise}",
-    "<span class=\"pw-confiance\"${obNt()}><span>${PW_ICO.cadenas}${obPh('Paiement Apple')}</span>",
+    "<span class=\"pw-confiance\"${obNt()}><span>${PW_ICO.cadenas}${obPh(natifTexte('Paiement Apple'))}</span>",
     "${obLangue()?obPh('Conditions d’utilisation'):'Conditions'}</a>",
     "const t=n.length>1?obPh('{a} et {b}',{a:n.slice(0,-1).join(', '),b:n[n.length-1]}):(n[0]||'');",
     "if(L&&L.code&&L.code!=='fr'&&L.locale)return [0,1,2,3,4,5,6].map(d=>new Date(2024,0,7+d).toLocaleDateString(L.locale,{weekday:'narrow'}));",

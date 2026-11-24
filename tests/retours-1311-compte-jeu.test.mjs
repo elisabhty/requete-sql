@@ -23,7 +23,7 @@ function serveur() {
 function appareil(S, {cle = 'CLEAPPAREIL' + 'A'.repeat(20), pseudo = '', salle = {}, enPartie = false, connecte = true} = {}) {
   const st = {salle: Object.assign({cle, pts: 0, parties: 0, best: 0}, pseudo ? {pseudo} : {}, salle)};
   let n = 0;
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, 
     state: st, JEU: enPartie ? {} : null, JEU_HIST_MAX: 500, JEU_ADV_MAX: 100, CS: {}, CLS: {data: {x: 1}, at: 5}, DEFIS: {cls: {cle: 'x', rangs: []}},
     window: {REQUETE_JEU_ID: {pid: 'p'}}, localStorage: {setItem() {}, removeItem() {}}, activeTab: 'learn', dits: [],
     clsSalle: () => st.salle, clsCle: () => st.salle.cle, save() {}, jeuRand: k => 'NEUVE' + String(++n).padStart(k - 5, 'N'),

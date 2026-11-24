@@ -35,7 +35,7 @@ const state = ctx => vm.runInContext('state', ctx);
 
 const rendreCompte = ({ authReady = false, obAuthBusy = false, obAuthMessage = '', practiceDone = true, obAuthQui = '', obAuthFait = false } = {}) => {
   const pied = [];
-  const ctx = vm.createContext({ slide: 'account', authReady, obAuthBusy, obAuthMessage, obAuthQui, obAuthFait, draft: { practiceDone }, MASCOT_IMG: 'mascotte.png',
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false,  slide: 'account', authReady, obAuthBusy, obAuthMessage, obAuthQui, obAuthFait, draft: { practiceDone }, MASCOT_IMG: 'mascotte.png',
     obFlowHeader: s => `<header data-etape="${s}"></header>`, esc: s => String(s), escAttr: s => String(s), legalUrl: k => `decouvrir/${k}.html`,
     obSetFooter: (...a) => pied.push(a), obPasserConnexion() {}, state: {}, obEntry: 'welcome' });
   vm.runInContext(fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS='), ctx);
@@ -47,7 +47,7 @@ const rendreCompte = ({ authReady = false, obAuthBusy = false, obAuthMessage = '
 test('la page de connexion est toujours là, après « Ton parcours est prêt » (10 novembre), avec ou sans fournisseur branché', () => {
   const fin = cut('const OB_FIN_SLIDES=', '/* « Me rappeler de m’entraîner »');
   for (const pret of [false, true]) {
-    const ctx = vm.createContext({ OB_PROFILE_SLIDES: ['name', 'practice'], obAuthReady: () => pret, window: {} });
+    const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false,  OB_PROFILE_SLIDES: ['name', 'practice'], obAuthReady: () => pret, window: {} });
     vm.runInContext(fin, ctx);
     assert.deepEqual([...ctx.obFinFlux()], ['practice', 'source'], pret ? 'fournisseur branché' : 'sans fournisseur');
     assert.deepEqual([...ctx.obFlowSteps()], ['name', 'practice', 'source'], 'hors du compte des étapes : elle vient après la dernière page');
@@ -58,7 +58,7 @@ test('la page de connexion est toujours là, après « Ton parcours est prêt »
   assert.ok(app.includes("  else if(slide==='account')obPasserConnexion();") && !app.includes('function obChooseGuest('));
   for (const pret of [false, true]) {
     const vers = [];
-    const ctx = vm.createContext({ obAuthReady: () => pret, buzz() {}, state: {}, obEntry: 'welcome', obApresCompte: () => vers.push('paywall') });
+    const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false,  obAuthReady: () => pret, buzz() {}, state: {}, obEntry: 'welcome', obApresCompte: () => vers.push('paywall') });
     vm.runInContext(cut('function obPasserConnexion(){', '/* Les fournisseurs,'), ctx);
     vm.runInContext('obPasserConnexion()', ctx);
     assert.deepEqual(vers, pret ? [] : ['paywall'], pret ? 'connexion branchée : le compte seul' : 'pas encore de connexion : on passe, vers le paywall');
@@ -105,7 +105,7 @@ test('sans fournisseur, toucher un bouton ne connecte à rien : la page le dit, 
   const msg = element(), btn = element(), stk = element(), racine = element();
   racine.classList.add('ob-enter');
   const appels = [], minuteurs = [];
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, 
     window: {}, state: { accountMode: null }, draft: {}, OB_SLIDES: ['account'], obStep: 0, obAuthBusy: false, obAuthMessage: '',
     buzz: k => appels.push('buzz ' + k), prefersReduceMotion: () => false, obFitSoon: () => appels.push('ajuste'), obCtaWake: () => appels.push('réveil'),
     paintOb: () => appels.push('repeint'), save: () => appels.push('enregistre'),
@@ -134,7 +134,7 @@ test('sans fournisseur, toucher un bouton ne connecte à rien : la page le dit, 
 
 test('avec un fournisseur branché, les mêmes boutons connectent pour de vrai, puis le paywall (10 novembre)', async () => {
   const vers = [];
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, 
     window: { REQUETE_AUTH: { signIn: async p => ({ email: `elisa@${p}.test` }) } }, state: {}, draft: { finVoulue: 'home' }, obEntry: 'welcome', obAuthBusy: false, obAuthMessage: '',
     paintOb() {}, save() {}, obGoto: t => vers.push(t), obApresCompte: () => vers.push('paywall'), buzz() {}, closeOnboardingAuth() {}, renderCompte() {}, toast() {},
   });
@@ -147,7 +147,7 @@ test('avec un fournisseur branché, les mêmes boutons connectent pour de vrai, 
      2 h 41 : « quand on se connecte sur l’appli on va toujours pas sur l’accueil » ; c’était Mon compte), après le paywall s’il y en a un ; un compte vide (une nouvelle personne) reste connecté et enchaîne sur les questions, son prénom déjà là */
   for (const [connu, attendu] of [[true, ['paywall']], [false, ['questions']]]) {
     const v = [], bandeaux = [];
-    const c = vm.createContext({
+    const c = vm.createContext({natifTexte: x => x, appAndroid: () => false, 
       window: { REQUETE_AUTH: { signIn: async () => ({ email: 'lea@apple.test', prenom: 'Léa' }) } }, state: {}, draft: {}, obEntry: 'welcome', obAuthBusy: false, obAuthMessage: '',
       paintOb() {}, save() {}, obGoto: t => v.push(t), obApresCompte: () => v.push('paywall'), buzz() {}, obTypo: x => x, obBandeau: t => bandeaux.push(t),
       setTimeout: (f, ms) => (ms < 1000 ? f() : 0), obDraftDepuisEtat() {},

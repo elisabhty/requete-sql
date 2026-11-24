@@ -23,7 +23,7 @@ const serveur = () => ({comptes: {}, pseudos: {}, stats: {}, appels: [], qui: 'u
 function iphone(S, salle) {
   const st = {onboarded: true, salle: Object.assign({pts: 0, parties: 0, best: 0}, salle)};
   let n = 0;
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, 
     state: st, JEU: null, JEU_HIST_MAX: 500, JEU_ADV_MAX: 100, CS: {}, CLS: {data: null, at: 0}, DEFIS: {cls: {cle: '', rangs: null}},
     window: {}, localStorage: {setItem() {}, removeItem() {}}, activeTab: 'learn', dits: [], pages: [],
     document: {getElementById: () => ({classList: {contains: () => false}})}, obGardeBloque: () => false, psPage: o => ctx.pages.push(o),

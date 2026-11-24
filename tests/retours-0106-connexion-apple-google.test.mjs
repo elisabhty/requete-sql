@@ -124,7 +124,7 @@ test('l’appli : la page ne montre que les fournisseurs du crochet ; le jeton d
   ctx.window.REQUETE_AUTH = {fournisseurs: ['apple', 'google']};
   assert.equal(ctx.obFournisseurOk('google'), true); assert.equal(ctx.obFournisseurOk('email'), false);
   assert.match(app, /\$\{obFournisseurOk\('email'\)\?`<p class="ob-divider"/, 'le champ e-mail et son « ou » disparaissent');
-  assert.match(app, /<script src="connexion\.js\?v=3"><\/script>/);
+  assert.match(app, /<script src="connexion\.js\?v=4"><\/script>/);
   const vus = [];
   const c2 = vm.createContext({window: {REQUETE_AUTH: {jeton: () => Promise.resolve('acces')}}, JEU_SB: 'https://x', JEU_SB_KEY: 'k', Promise, JSON, Object,
     fetch: (u, o) => { vus.push(o.headers); return Promise.resolve({ok: true, status: 200, json: () => Promise.resolve({ok: true})}); }});

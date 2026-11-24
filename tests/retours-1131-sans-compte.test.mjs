@@ -23,7 +23,7 @@ test('« Continuer sans compte » : pendant l’onboarding, le paywall ; depuis 
   const src = cut('function obSansCompte(){', '\nfunction obPasserConnexion(){');
   const run = (onboarded, entree, draft = {finVoulue: 'home'}) => {
     const appels = [];
-    const ctx = vm.createContext({appels, state: {onboarded}, obEntry: entree, draft, obAuthBusy: false, buzz() {},
+    const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, appels, state: {onboarded}, obEntry: entree, draft, obAuthBusy: false, buzz() {},
       closeOnboardingAuth: () => appels.push('ferme'), obApresCompte: () => appels.push('paywall'), obGoto: k => appels.push('page ' + k)});
     vm.runInContext(src + ';this.f=obSansCompte;this.h=obSansCompteHTML;', ctx);
     return {ctx, appels};
@@ -68,7 +68,7 @@ test('le pseudo (obligatoire : de nouveau le 14 novembre, 20 h 09), puis le comp
 
 test('se déconnecter : on reste dans l’appli, sans compte (plus de page de connexion qui s’ouvre)', async () => {
   const appels = [];
-  const ctx = vm.createContext({state: {accountMode: 'connected', accountProvider: 'apple', accountLabel: 'x'}, lqAsk: async () => true, save: () => appels.push('enregistre'),
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, state: {accountMode: 'connected', accountProvider: 'apple', accountLabel: 'x'}, lqAsk: async () => true, save: () => appels.push('enregistre'),
     obAuthReady: () => true, closePlusDetails: () => appels.push('feuilles'), startOnboarding: k => appels.push('onboarding ' + k), renderCompte: () => appels.push('mon compte'),
     lqAuRevoir: () => appels.push('au revoir'), chatBonusHtml: () => '', window: {REQUETE_AUTH: {signOut: async () => appels.push('signOut')}}});
   vm.runInContext(cut('async function seDeconnecter(){', '\n/* Après la déconnexion'), ctx);

@@ -1,5 +1,5 @@
 /* =====================================================================
-   CONNEXION.JS : le compte de l'app iPhone, avec Apple et Google
+   CONNEXION.JS : le compte de l'app (iPhone : Apple et Google ; Android : Google)
    ---------------------------------------------------------------------
    En bref : ce fichier définit window.REQUETE_AUTH, le crochet que la page
    « Garde ta progression » (index.html, obStartAuth) et Mon compte
@@ -61,13 +61,19 @@
   if (!CLE) return;
 
   var avecGoogle = !!(GOOGLE_IOS && GOOGLE_WEB);
-  var fournisseurs = avecGoogle ? ['apple', 'google'] : ['apple'];
+  /* 24 novembre (Elisa : « pousser la version Android ») : sur Android, Google seulement. « Se connecter avec Apple » y demanderait une
+     page web et un identifiant de services Apple à part ; Google Play n'exige pas Apple. Google y passe par le gestionnaire
+     d'identifiants d'Android, avec le client « Web application » (le jeton a la même audience que sur iPhone : Supabase l'accepte) ;
+     il faut aussi un client « Android » (fr.requete.app et l'empreinte SHA-1 de la clé de signature), dans Google Cloud. */
+  var android = typeof C.getPlatform === 'function' && C.getPlatform() === 'android';
+  var fournisseurs = android ? (avecGoogle ? ['google'] : []) : (avecGoogle ? ['apple', 'google'] : ['apple']);
+  if (!fournisseurs.length) return;
   var pret = null, renouvel = null;
 
   function initialiser(){
     if (!pret) {
-      var o = {apple: {clientId: APP_ID}};
-      if (avecGoogle) o.google = {iOSClientId: GOOGLE_IOS, iOSServerClientId: GOOGLE_WEB, mode: 'online'};
+      var o = android ? {} : {apple: {clientId: APP_ID}};
+      if (avecGoogle) o.google = android ? {webClientId: GOOGLE_WEB, mode: 'online'} : {iOSClientId: GOOGLE_IOS, iOSServerClientId: GOOGLE_WEB, mode: 'online'};
       pret = Promise.resolve(SL.initialize(o)).catch(function(e){ pret = null; throw e; });
     }
     return pret;

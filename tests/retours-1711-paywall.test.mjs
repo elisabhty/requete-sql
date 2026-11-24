@@ -14,7 +14,7 @@ const fin = cut('function obCompteVisible(){', '/* ---------- Le paywall');
 
 const monter = ({ achat = null, offre, name = 'Elisa' } = {}) => {
   const vers = [], pied = [];
-  const ctx = vm.createContext({ window: achat ? { REQUETE_ACHAT: achat } : {}, draft: { name, offre, finVoulue: 'plan-ready' }, state: {}, TOTAL: 71, CHALLENGES: { length: 477 },
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false,  window: achat ? { REQUETE_ACHAT: achat } : {}, draft: { name, offre, finVoulue: 'plan-ready' }, state: {}, TOTAL: 71, CHALLENGES: { length: 477 },
     OB_COMMUNAUTE: 1000, OB_STK_AVIS: '<svg></svg>', esc: s => String(s), escAttr: s => String(s), legalUrl: k => k, mascotReduced: () => false,
     obPlanInfo: () => ({ goal: 'Progresser en SQL', endLabel: '3 décembre', minutes: 20 }), obBackButton: () => '<button class="ob-back"></button>',
     obSetFooter: (...a) => pied.push(a), buzz() {}, finishOnboard: a => vers.push(a), obGoto: t => vers.push('→' + t), obConnexionMasquee: () => false,

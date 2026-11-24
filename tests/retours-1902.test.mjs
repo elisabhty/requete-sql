@@ -15,7 +15,7 @@ const nb = x => x.replace(/&nbsp;/g, ' ').replace(/[  ]/g, ' ');
 
 const monter = ({ achat = null, live = null } = {}) => {
   const vers = [], timers = [];
-  const ctx = vm.createContext({ window: achat ? { REQUETE_ACHAT: achat } : {}, draft: { name: 'Elisa', finVoulue: 'home' }, state: {}, TOTAL: 71, CHALLENGES: { length: 477 },
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false,  window: achat ? { REQUETE_ACHAT: achat } : {}, draft: { name: 'Elisa', finVoulue: 'home' }, state: {}, TOTAL: 71, CHALLENGES: { length: 477 },
     OB_COMMUNAUTE: 1000, esc: s => String(s), escAttr: s => String(s), legalUrl: k => k, mascotReduced: () => false,
     obPlanInfo: () => ({ goal: 'Progresser en SQL', endLabel: '14 décembre', minutes: 20 }), obBackButton: () => '',
     obSetFooter() {}, buzz() {}, stat() {}, finishOnboard: a => vers.push(a), obGoto() {}, obConnexionMasquee: () => false,

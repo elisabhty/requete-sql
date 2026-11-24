@@ -23,7 +23,7 @@ const slide = (name, next) => cut(`}else if(slide==='${name}'){`, next);
 const fn = (name, next) => { const i = app.lastIndexOf(`function ${name}(`); assert.ok(i > 0, name); return app.slice(i, app.indexOf(next, i)); };
 const fin = cut('const OB_FIN_SLIDES=', '/* « Me rappeler de m’entraîner »');
 const flux = (globals = {}) => {
-  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', OB_PROFILE_SLIDES: ['name', 'practice'], obAuthReady: () => false, window: {}, ...globals});
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', OB_PROFILE_SLIDES: ['name', 'practice'], obAuthReady: () => false, window: {}, ...globals});
   vm.runInContext(fin, ctx);
   return ctx;
 };
@@ -61,7 +61,7 @@ test('le tunnel de fin : sources, rappel (s’il peut être demandé) ; le compt
 });
 
 test('« Comment as-tu connu Requête ? » : dix réponses en tuiles, « Continuer » au choix, gardée dans le profil', () => {
-  const sources = vm.runInNewContext(app.match(/const OB_SOURCES=(\[[\s\S]*?\]);/)[1]);
+  const sources = vm.runInNewContext(app.match(/const OB_SOURCES=(\[[\s\S]*?\]);/)[1], {natifTexte: x => x});
   assert.deepEqual(Array.from(sources, s => s[1]), ['TikTok', 'Instagram', 'YouTube', 'LinkedIn', 'Famille ou amis', 'App Store', 'Recherche Google', 'Article ou blog', 'École ou formation', 'Autre']);
   const s = slide('source', "}else if(slide==='rappel'){");
   assert.ok(s.includes('<h1 class="ob-title" id="ob-title">Comment as-tu <em>connu</em> Requête&nbsp;?</h1>'));
@@ -87,7 +87,7 @@ test('le rappel : la fenêtre d’iOS en aperçu au centre de l’écran, la fl�
   const demande = cut('/* Le rappel seul, après « J’ai déjà un compte »', '/* La fenêtre en aperçu au centre');   // 16 novembre : avec obRappelSuite
   const essai = async ({reponse = 'granted', apercu = false} = {}) => {
     const appels = [], store = {};
-    const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', obLock: false, obApercu: apercu, document: {getElementById: () => ({disabled: false})},
+    const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', obLock: false, obApercu: apercu, document: {getElementById: () => ({disabled: false})},
       window: {Capacitor: {isNativePlatform: () => true, Plugins: {LocalNotifications: {requestPermissions: async () => { appels.push('demande'); return {display: reponse}; }}}}},
       localStorage: {setItem: (k, v) => { store[k] = v; }}, rappelNativeSync: () => appels.push('programme'), buzz: () => {},
       obGoto: t => appels.push('vers ' + t), obFinSuivante: () => 'widget', draft: {rappelHeure: '08:00'}, rappelHeure: () => '19:00'});
@@ -115,7 +115,7 @@ test('le widget : l’écran d’accueil avec ses exemples (13 novembre, 9 h 19 
   assert.ok(app.includes('<span class="ob-ph-edit">+</span><span class="ob-ph-ok">OK</span>') && app.includes('<span class="ob-ph-menu"><span>Ajouter un widget</span><span>Personnaliser</span><span>Modifier le fond d’écran</span><span>Modifier les pages</span></span>'));
   /* La boucle, exécutée seule avec des minuteries factices */
   const timers = [], box = {dataset: {}}, bulle = {textContent: ''};
-  const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', OB_SLIDES: ['widgetTuto'], obStep: 0, obDemoTimers: [], OB_WT_TEXTES: textes,
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', OB_SLIDES: ['widgetTuto'], obStep: 0, obDemoTimers: [], OB_WT_TEXTES: textes,
     document: {getElementById: id => id === 'ob-wt' ? box : bulle, body: {contains: () => true}}, setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; }});
   vm.runInContext(cut('function obTypo(s){', '\n'), ctx);   // 8 h 19 : la ponctuation ne part pas seule à la ligne
   vm.runInContext(cut('function obWidgetTutoJouer(){', '/* ---------- Le widget de l’app iPhone'), ctx);
@@ -135,7 +135,7 @@ test('la série part vers le widget : au démarrage et en passant en arrière-pl
   const src = cut('let widgetDernier=', 'if(typeof document!==');
   const essai = ({plugin = true, actif = true} = {}) => {
     const appels = [];
-    const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', window: {Capacitor: {isNativePlatform: () => true, isPluginAvailable: n => plugin && n === 'RequeteWidget',
+    const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', window: {Capacitor: {isNativePlatform: () => true, isPluginAvailable: n => plugin && n === 'RequeteWidget',
       nativePromise: (p, m, o) => { appels.push([p, m, JSON.stringify(o)]); return Promise.resolve(); }}},
       auj: () => new Date(2026, 10, 7), dstr: d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`,
       addJ: (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; },

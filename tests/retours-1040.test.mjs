@@ -24,7 +24,7 @@ const ANDROID = 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KH
 /* Les fonctions de « Évaluer l’application », exécutées : un iPhone ou non, l’app ou Safari, sortie ou pas. */
 function monde({ ua = IPHONE, natif = false, pont = null } = {}) {
   const vu = { info: [], ouvert: [], natif: [], href: null };
-  const ctx = vm.createContext({
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, 
     navigator: ua == null ? undefined : { userAgent: ua },
     document: { documentElement: { classList: { contains: c => c === 'is-native' && natif } } },
     ilePont: () => pont && { nativePromise: (p, m, o) => { vu.natif.push([p, m, o.url]); return Promise.resolve(); } },
@@ -40,7 +40,7 @@ test('Mon compte : le groupe « Sur ton iPhone » se voit aussi dans Safari sur 
   assert.ok(compte.includes("const widgetsIci=typeof obWidgetPossible==='function'&&obWidgetPossible();"), 'l’app et son widget');
   assert.ok(compte.includes('const widgetsVus=widgetsIci||(!appliNative()&&iphoneWeb());'), 'les widgets : l’app qui les a, ou Safari sur iPhone');
   assert.ok(compte.includes('const surIphone=widgetsVus||iconesIci();'), 'le groupe : les widgets, dans l’app ou Safari sur iPhone (11 novembre, 12 h 25 : plus d’« Évaluer ») ; l’icône de l’app (16 novembre)');
-  assert.ok(compte.includes('${surIphone?`<div class="account-settings-group">\n          <p class="account-settings-group-title">Sur ton iPhone</p>'), 'le groupe');
+  assert.ok(compte.includes('${surIphone?`<div class="account-settings-group">\n          <p class="account-settings-group-title">${natifTexte(\'Sur ton iPhone\')}</p>'), 'le groupe');
   assert.ok(compte.includes("${widgetsVus?`<button class=\"account-setting-row\" type=\"button\" onclick=\"openPlusDetails('plus-widget-accueil')\">"), 'les lignes des widgets');
   assert.ok(compte.includes('${widgetsVus?`<details class="plus-details plus-widget" id="plus-widget-accueil" ontoggle="wtuToggle(this)">'), 'leurs feuilles');
   assert.ok(!compte.includes('${widgetsIci||appliNative()?'), 'plus l’ancienne condition, qui cachait tout dans Safari');
@@ -53,7 +53,7 @@ test('Mon compte : le groupe « Sur ton iPhone » se voit aussi dans Safari sur 
 });
 
 test('« Évaluer l’application » : retirée de Mon compte (11 novembre, 12 h 25), noterAppli reste prête ; le texte de l’app publiée', () => {
-  const g = compte.slice(compte.indexOf('Sur ton iPhone</p>'), compte.indexOf('Compte et assistance</p>'));
+  const g = compte.slice(compte.indexOf('Sur ton iPhone\')}</p>'), compte.indexOf('Compte et assistance</p>'));
   assert.ok(!g.includes('noterAppli()') && !app.includes('<b>Évaluer l’application</b>'), 'plus de ligne : Apple ne la demande pas');
   assert.ok(!app.includes('<b>Noter Requête</b>'), 'le nom de la capture de référence');
   assert.ok(app.includes("    etoile:['<path d=\"M24 4.6l5.7 11.5"), 'l’autocollant étoile, en deux couches comme les autres');
@@ -61,7 +61,7 @@ test('« Évaluer l’application » : retirée de Mon compte (11 novembre, 12 h
   assert.doesNotMatch(app, /Bientôt sur l’App Store|arrive bientôt sur l’App Store|appStoreEnLigne/);
   assert.ok(!app.includes("'⭐':'etoile'"), 'plus de mot « Bientôt » à illustrer');
   /* des fonctions, pas des constantes : Mon compte peut se dessiner avant que le script n’arrive à leur ligne */
-  assert.ok(app.includes("function appStoreFiche(){return 'https://apps.apple.com/app/id6830361256';}") && app.includes('function iphoneWeb(){'), 'hissées');
+  assert.ok(app.includes("function appStoreFiche(){return appAndroid()?playFiche():'https://apps.apple.com/app/id6830361256';}") && app.includes('function iphoneWeb(){'), 'hissées');
   assert.ok(app.includes("const APP_STORE_ID='6830361256';"), 'la fiche et « Écrire un avis » : le même identifiant');
   assert.ok(!/const (appStoreFiche|iphoneWeb)\b/.test(app));
 });

@@ -30,7 +30,7 @@ test('le site : le badge de l’App Store mène à la fiche ; « Bientôt sur Go
   for (const t of ['Oui, sur iPhone : Requête est une application à part entière, à télécharger dans l’App Store. La version Android arrive bientôt, sur Google Play.',
     'Oui, sur iPhone&nbsp;: Requête est une application à part entière, à télécharger dans l’App Store. La version Android arrive bientôt, sur Google Play.'])
     assert.ok(h.includes(t), 'la FAQ le dit aussi (données structurées et à l’écran)');
-  assert.ok(lire('index.html').includes(`function appStoreFiche(){return '${FICHE}';}`), 'la même fiche que dans l’app');
+  assert.ok(lire('index.html').includes(`function appStoreFiche(){return appAndroid()?playFiche():'${FICHE}';}`), 'la même fiche que dans l’app');
 });
 
 test('la section « mobile » : « Requête, dans ta poche », l’iPhone seulement (13 novembre : plus de navigateur pour les autres téléphones)', () => {

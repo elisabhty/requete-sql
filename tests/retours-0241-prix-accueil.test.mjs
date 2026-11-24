@@ -104,7 +104,7 @@ test('achat.js : restaurer et vérifier n’attendent plus la lecture des prix',
   assert.equal(gagne, 'vérifié');
   assert.equal(await Promise.race([b.A.restaurer(), dormir(100).then(() => 'trop long')]), true);
   assert.equal(b.A.prixEtat(), 'attente', 'les prix arrivent de leur côté');
-  assert.match(src, /var demarre = P\.configure\(\{apiKey: RC_CLE_IOS\}\);/);
+  assert.match(src, /var demarre = P\.configure\(\{apiKey: CLE\}\);/);
   assert.match(src, /demarre\.then\(chargerOffres, function\(\)\{ prixRate = true; direPrix\(\); \}\);/);
 });
 
@@ -118,7 +118,7 @@ function paywall({etatPrix, prix = null, ouvert = true, slide = 'paywall'} = {})
   if (etatPrix !== undefined) Object.assign(achat, {prixEtat: () => R.etatPrix, prixConnus: () => R.etatPrix === 'oui', suivrePrix: f => suivis.push(f),
     rechargerPrix: () => { R.recharges++; R.etatPrix = 'attente'; return Promise.resolve('attente'); }});
   const racine = {classList: {contains: c => c === 'on' && ouvert}, dataset: {}};
-  const ctx = vm.createContext({window: {REQUETE_ACHAT: achat}, draft: {name: 'Elisa', finVoulue: 'home'}, state: {onboarded: true}, TOTAL: 71, CHALLENGES: {length: 477},
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, window: {REQUETE_ACHAT: achat}, draft: {name: 'Elisa', finVoulue: 'home'}, state: {onboarded: true}, TOTAL: 71, CHALLENGES: {length: 477},
     OB_COMMUNAUTE: 1000, esc: s => String(s), escAttr: s => String(s), legalUrl: k => k, mascotReduced: () => false, obApercu: false,
     obPlanInfo: () => ({goal: 'Progresser en SQL', endLabel: '14 décembre', minutes: 20}), obBackButton: () => '',
     obSetFooter: (...a) => pieds.push(a), buzz() {}, stat() {}, finishOnboard() {}, obGoto() {}, obConnexionMasquee: () => false, startOnboarding() {},
@@ -183,9 +183,9 @@ test('la carte d’attente a son style, son anneau ne tourne pas en mouvement r�
     assert.ok(css.includes(r), r);
   const i = css.indexOf('html:not([data-motion="reduce"]) #onboarding.ob-vitrine .pw-att-rond{animation:obvSpin .9s linear infinite}');
   assert.ok(i > css.indexOf('@media (prefers-reduced-motion:no-preference){') && i < css.indexOf('@keyframes obvSpin{'), 'dans le média « no-preference »');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=73">') && app.includes('<script src="achat.js?v=7"></script>'));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=73">') && app.includes('<script src="achat.js?v=8"></script>'));
   const sw = lire('sw.js');
-  assert.ok(sw.includes("'./onboarding-vitrine.css?v=73',") && sw.includes("'./achat.js?v=7',"));
+  assert.ok(sw.includes("'./onboarding-vitrine.css?v=73',") && sw.includes("'./achat.js?v=8',"));
 });
 
 /* ---------- La connexion mène à l’accueil ---------- */
@@ -193,7 +193,7 @@ test('toute connexion mène à l’accueil : reconnexion, connexion derrière le
   const auth = cut('function obVersAccueil(){', '\n  }catch(e){');
   const monter = ({onboarded, bloque = false, connu = true, finVoulue} = {}) => {
     const appels = [], positions = {learn: 480, compte: 600};
-    const ctx = vm.createContext({window: {REQUETE_AUTH: {signIn: async () => ({email: 'elisa@exemple.test', prenom: 'Elisa'})}}, state: {onboarded: !!onboarded}, draft: finVoulue ? {finVoulue} : {},
+    const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, window: {REQUETE_AUTH: {signIn: async () => ({email: 'elisa@exemple.test', prenom: 'Elisa'})}}, state: {onboarded: !!onboarded}, draft: finVoulue ? {finVoulue} : {},
       obEntry: onboarded ? 'account' : 'welcome', obAuthBusy: false, obAuthMessage: '', obAuthQui: '', obAuthFait: false, obGarde: false, tabScrollPositions: positions,
       paintOb() {}, save() {}, stat() {}, buzz() {}, obTypo: x => x, obGoto: t => appels.push('page ' + t), obApresCompte: () => appels.push('suite'), obGardeBloque: () => bloque,
       closeOnboardingAuth: () => appels.push('ferme'), closePlusDetails: () => appels.push('feuille fermée'), switchTab: t => appels.push('onglet ' + t), renderCompte() {},

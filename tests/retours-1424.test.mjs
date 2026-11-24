@@ -26,7 +26,7 @@ const SQL = await createRequire(import.meta.url)(path.join(ROOT, 'vendor/sqljs/s
 
 test('seule dans la salle : le +25 du premier coup reste, le bonus de place ne compte pas, et la règle le dit', () => {
   /* Le calcul, inchangé : seul (Joue seul, ou seul dans la salle au lancement de la manche) */
-  const ctx = vm.createContext({});
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, });
   vm.runInContext(cut('const JEU_PALIERS=', '\n') + '\n' + cut('const JEU_NIV_X=', '\n') + '\n' + fn('jeuValeur') + fn('jeuPts') + fn('jeuRanking') + 'var JEU={solo:false,rounds:[]};', ctx);
   vm.runInContext("JEU.rounds[0]={one:true,found:{a:30000},first:{a:1}};JEU.rounds[1]={one:false,found:{a:30000,b:40000},first:{a:1,b:1}};", ctx);
   assert.deepEqual(JSON.parse(JSON.stringify(ctx.jeuRanking(0))), [{ pid: 'a', ms: 30000, place: 1, k: 'f', val: 200, x: 1, essai: 25, rang: 0, pts: 225 }]);
@@ -56,7 +56,7 @@ test('réf. 2 et 3 : Pratiquer, la salle de défi lance une partie ; Mes stats s
   assert.ok(app.includes("const JOURNEY_STK={defis:'trophy',"), 'le trophée pour la progression');
   /* pratiquerDefis('stats') : Mes stats ; « Relever un défi » : Jouer, même si Mes stats était resté ouvert */
   const vus = [];
-  const ctx = vm.createContext({ DEFIS: { onglet: 'jouer' }, switchTab: t => vus.push([t, ctx.DEFIS.onglet, vm.runInContext('defisVersStats', ctx)]) });
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false,  DEFIS: { onglet: 'jouer' }, switchTab: t => vus.push([t, ctx.DEFIS.onglet, vm.runInContext('defisVersStats', ctx)]) });
   vm.runInContext(cut('let defisVersStats=false;', '/* L’entrée Stickers'), ctx);
   ctx.pratiquerDefis('stats'); ctx.pratiquerDefis('jouer');
   assert.deepEqual(vus, [['defis', 'stats', true], ['defis', 'jouer', false]]);
@@ -69,7 +69,7 @@ test('réf. 2 et 3 : Pratiquer, la salle de défi lance une partie ; Mes stats s
 test('réf. 4 : personne de classé → le message, plus « 1 à 0 sur 0 »', () => {
   const charger = fn('clsPageCharger');
   assert.ok(charger.includes('if(sc&&c.total>0&&sc.children.length===clsPagesNb())clsPagerRemplir();else clsPagerPeindre();'));
-  const el = { textContent: '' }, ctx = vm.createContext({ DEFIS: { cls: { total: 0, page: 0 } }, CLS_PAR_PAGE: 5, CLS_PAGES_MAX: 20, clsPts: n => String(n),
+  const el = { textContent: '' }, ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false,  DEFIS: { cls: { total: 0, page: 0 } }, CLS_PAR_PAGE: 5, CLS_PAGES_MAX: 20, clsPts: n => String(n),
     state: { salle: {} }, document: { getElementById: id => (id === 'dx-range' ? el : null) } });
   /* 14 novembre, 18 h : le compte retire les joueurs masqués ou bloqués (clsTotalVu) */
   vm.runInContext(fn('clsPagesNb') + cut('function clsCache(x){', 'function clsMoiSuiteHTML(l){') + fn('clsCompteEcrire') + fn('clsNavPeindre'), ctx);   // le compte « 5 joueurs classés » s’écrit avec (refonte du 7 novembre)
@@ -85,7 +85,7 @@ test('la suppression du compte retire aussi des classements, et la liste le dit'
   const mig = lire('supabase/migrations/20261104224931_compte_supprimer.sql'), cls = lire('supabase/migrations/20261031143437_classement_general.sql');
   assert.ok(mig.includes('delete from public.jeu_joueur where cle = v_cle;') && cls.includes('joueur uuid not null references public.jeu_joueur (id) on delete cascade'), 'ses parties partent avec lui');
   /* 14 novembre, 18 h (l’audit App Review) : abonné, la fenêtre dit que la facturation d’Apple continue et où l’arrêter */
-  const ctx = vm.createContext({ esc: x => x, DEL_SVG: { nuage: '', tel: '', alerte: '' }, obAbonne: () => true });
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false,  esc: x => x, DEL_SVG: { nuage: '', tel: '', alerte: '' }, obAbonne: () => true });
   vm.runInContext(cut('function compteSupprimerHTML(', '\nasync function compteSupprimer(){'), ctx);
   assert.ok(ctx.compteSupprimerHTML('@lea', true).includes('<p class="lq-del-abo">Ton abonnement Requête Premium n’est pas résilié pour autant&nbsp;: Apple continue de le facturer tant que tu ne l’arrêtes pas, dans Mon compte › Gérer mon abonnement ou dans les réglages de ton identifiant Apple.</p>'));
   ctx.obAbonne = () => false;
@@ -93,7 +93,7 @@ test('la suppression du compte retire aussi des classements, et la liste le dit'
 });
 
 test('import : l’en-tête sous un titre fusionné, les lignes par requête préparée avec la progression, le bouton occupé', async () => {
-  const ctx = vm.createContext({});
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false, });
   vm.runInContext(fn('ligneEnTete'), ctx);
   const titre = 'Générateur de code produit ameublement barème 2025';
   assert.equal(ctx.ligneEnTete([Array(12).fill(titre), ['Remplissez les cellules jaunes'], [], ['Catégorie', 'Type de produit', 'Matériau', 'Code produit'], ['Cat 0', 'Type 0', 'Bois', '0101']]), 3, 'le titre fusionné ne fixe plus la largeur');
@@ -103,7 +103,7 @@ test('import : l’en-tête sous un titre fusionné, les lignes par requête pr�
   /* Les lignes : une requête préparée, et la main rendue à l’écran avec la progression */
   const db = new SQL.Database(), suivis = [];
   let maintenant = 0;
-  const ictx = vm.createContext({ safeIdent: s => String(s).replace(/[^A-Za-z0-9_]/g, '_'), quoteIdent: s => '"' + s + '"', setTimeout: f => f(), performance: { now: () => (maintenant += 30) } });
+  const ictx = vm.createContext({natifTexte: x => x, appAndroid: () => false,  safeIdent: s => String(s).replace(/[^A-Za-z0-9_]/g, '_'), quoteIdent: s => '"' + s + '"', setTimeout: f => f(), performance: { now: () => (maintenant += 30) } });
   vm.runInContext(cut('async function createImportedTables(', '/* Le bouton de la feuille d’import'), ictx);
   const rows = Array.from({ length: 30 }, (_, i) => [String(i), 'n' + i, i % 2 ? '1,5' : '2']);
   await ictx.createImportedTables(db, [{ name: 'grille', cols: ['id', 'nom', 'prix'], types: ['INTEGER', 'TEXT', 'REAL'], rows }], f => suivis.push(+f.toFixed(2)));
@@ -130,7 +130,7 @@ test('les projets dans IndexedDB : un gros projet s’enregistre, se recharge, e
   big.run('CREATE TABLE grille (code TEXT, prix REAL)'); big.run('BEGIN');
   const st = big.prepare('INSERT INTO grille VALUES (?,?)'); for (let i = 0; i < 25000; i++) st.run(['c' + i, i / 10]); st.free(); big.run('COMMIT');
   big.run('CREATE TABLE eco (code TEXT)'); big.run("INSERT INTO eco VALUES ('e1'),('e2')");
-  const ctx = vm.createContext({ indexedDB, SQL, setTimeout, Uint8Array, JSON, Date, Error, Promise, Object, Math, String, Number, Array,
+  const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false,  indexedDB, SQL, setTimeout, Uint8Array, JSON, Date, Error, Promise, Object, Math, String, Number, Array,
     localStorage: { getItem: k => (ls.has(k) ? ls.get(k) : null), setItem: (k, v) => ls.set(k, v), removeItem: k => ls.delete(k) },
     DBS_KEY: 'requete-sql-dbs-v1', isDemoDb: () => false, attachDateFns: d => d, lqInfo: (...a) => avis.push(a[0]),
     quoteIdent: s => '"' + s + '"', quoteSqlText: s => "'" + s + "'", u8ToB64: () => 'b64', b64ToU8: () => new Uint8Array(),
@@ -168,6 +168,6 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 });
 
 test('versions : ludique.css v155, cache du service worker', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=391">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-24-module-v3139';") && app.includes("const SW_CACHE='requete-2026-11-24-module-v3139';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=392">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-24-module-v3140';") && app.includes("const SW_CACHE='requete-2026-11-24-module-v3140';"));
 });
