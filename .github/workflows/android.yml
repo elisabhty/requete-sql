@@ -78,8 +78,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download -R google/bundletool --pattern 'bundletool-all-*.jar' -O "$RUNNER_TEMP/bundletool.jar"
+          # Une clé jetable, juste pour installer l’essai sur l’émulateur (rien à voir avec la clé d’envoi à Google Play).
+          keytool -genkeypair -keystore "$RUNNER_TEMP/essai.jks" -storepass essai1234 -keypass essai1234 -alias essai \
+            -keyalg RSA -keysize 2048 -validity 30 -dname "CN=Essai Requete" -noprompt
           java -jar "$RUNNER_TEMP/bundletool.jar" build-apks --bundle essai/requete-essai.aab --output essai/requete-essai.apks \
-            --ks ~/.android/debug.keystore --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android
+            --ks "$RUNNER_TEMP/essai.jks" --ks-pass pass:essai1234 --ks-key-alias essai --key-pass pass:essai1234
           echo "Taille au téléchargement depuis Google Play (octets, sans le paquet des voix) :"
           java -jar "$RUNNER_TEMP/bundletool.jar" get-size total --apks essai/requete-essai.apks || true
       - name: Vérification de la taille pour Google Play (partie principale sous 200 Mo)
