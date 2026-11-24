@@ -58,11 +58,23 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug bundleRelease
           mkdir -p ../sortie
+          # L’APK d’essai : tout dedans, voix comprises (pas de limite de taille pour un fichier installé à la main).
+          ./gradlew --no-daemon assembleDebug
           cp app/build/outputs/apk/debug/app-debug.apk ../sortie/requete-test.apk
+          # L’AAB pour Google Play : les voix passent dans leur paquet (android/voix), livré à l’installation.
+          mkdir -p voix/src/main/assets/public/assets
+          mv app/src/main/assets/public/assets/voix voix/src/main/assets/public/assets/voix
+          ./gradlew --no-daemon bundleRelease
           cp app/build/outputs/bundle/release/app-release.aab ../sortie/requete.aab
           ls -la ../sortie
+      - name: Vérification de la taille pour Google Play (partie principale sous 200 Mo)
+        run: |
+          unzip -l sortie/requete.aab | awk 'NF>=4 && $4 ~ /\// {split($4,a,"/"); t[a[1]]+=$1} END {for (k in t) printf "%-12s %6.1f Mo\n", k, t[k]/1048576}' | sort
+          base=$(unzip -l sortie/requete.aab | awk 'NF>=4 && $4 ~ /^base\// {s+=$1} END {print int(s/1048576)}')
+          voix=$(unzip -l sortie/requete.aab | awk 'NF>=4 && $4 ~ /^voix\/assets\/public\/assets\/voix\// {n++} END {print n+0}')
+          echo "Partie principale : $base Mo ; voix dans leur paquet : $voix fichiers"
+          test "$base" -lt 190 && test "$voix" -gt 2000
       - uses: actions/upload-artifact@v4
         with:
           name: requete-android-${{ github.run_number }}

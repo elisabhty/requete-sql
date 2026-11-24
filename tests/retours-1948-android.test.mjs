@@ -86,6 +86,9 @@ test('le projet Android et sa fabrication sur GitHub', () => {
   assert.equal(pkg.scripts.android, 'npm run build:www && npx cap sync android');
   const g = lire('android/app/build.gradle');
   assert.ok(g.includes('applicationId "fr.requete.app"') && g.includes('System.getenv("ANDROID_VERSION_CODE")') && g.includes('if (System.getenv("ANDROID_KEYSTORE_PATH")) signingConfig signingConfigs.envoi'));
+  assert.ok(g.includes('assetPacks = [":voix"]') && lire('android/settings.gradle').includes("include ':voix'"), 'les voix dans leur paquet');
+  const pv = lire('android/voix/build.gradle');
+  assert.ok(pv.includes("id 'com.android.asset-pack'") && pv.includes('packName = "voix"') && pv.includes('deliveryType = "install-time"'));
   const m = lire('android/app/src/main/AndroidManifest.xml');
   assert.ok(m.includes('<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />'));
   const s = lire('android/app/src/main/res/values/styles.xml');
@@ -94,7 +97,7 @@ test('le projet Android et sa fabrication sur GitHub', () => {
   assert.ok(fs.existsSync(new URL('../android/app/src/main/res/drawable/ic_stat_requete.xml', import.meta.url)));
   assert.ok(lire('android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml').includes('@mipmap/ic_launcher_foreground'));
   const w = lire('.github/workflows/android.yml');
-  for (const k of ['workflow_dispatch:', 'npm run build:www && npx cap sync android', './gradlew --no-daemon assembleDebug bundleRelease', 'ANDROID_VERSION_CODE: ${{ github.run_number }}',
+  for (const k of ['workflow_dispatch:', 'npm run build:www && npx cap sync android', './gradlew --no-daemon assembleDebug', './gradlew --no-daemon bundleRelease', 'mv app/src/main/assets/public/assets/voix voix/src/main/assets/public/assets/voix', 'ANDROID_VERSION_CODE: ${{ github.run_number }}',
     'secrets.ANDROID_KEYSTORE_BASE64', 'requete-test.apk', 'requete.aab', 'actions/upload-artifact@v4'])
     assert.ok(w.includes(k), k);
   assert.ok(!/\.jks|\.keystore/.test(fs.readdirSync(new URL('../android/app', import.meta.url)).join(' ')), 'aucune clé dans le dépôt');
