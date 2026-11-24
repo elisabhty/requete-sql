@@ -68,6 +68,20 @@ jobs:
           ./gradlew --no-daemon bundleRelease
           cp app/build/outputs/bundle/release/app-release.aab ../sortie/requete.aab
           ls -la ../sortie
+          # Pour l’essai sur émulateur (travail « essai » plus bas) : le même paquet en version inspectable.
+          sed -i 's/"webContentsDebuggingEnabled": *false/"webContentsDebuggingEnabled": true/' app/src/main/assets/capacitor.config.json
+          ./gradlew --no-daemon bundleDebug
+          mkdir -p ../essai
+          cp app/build/outputs/bundle/debug/app-debug.aab ../essai/requete-essai.aab
+      - name: Bundletool (l’outil de Google qui découpe l’AAB comme Google Play)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download -R google/bundletool --pattern 'bundletool-all-*.jar' -O "$RUNNER_TEMP/bundletool.jar"
+          java -jar "$RUNNER_TEMP/bundletool.jar" build-apks --bundle essai/requete-essai.aab --output essai/requete-essai.apks \
+            --ks ~/.android/debug.keystore --ks-pass pass:android --ks-key-alias androiddebugkey --key-pass pass:android
+          echo "Taille au téléchargement depuis Google Play (octets, sans le paquet des voix) :"
+          java -jar "$RUNNER_TEMP/bundletool.jar" get-size total --apks essai/requete-essai.apks || true
       - name: Vérification de la taille pour Google Play (partie principale sous 200 Mo)
         run: |
           unzip -l sortie/requete.aab | awk 'NF>=4 && $4 ~ /\// {split($4,a,"/"); t[a[1]]+=$1} END {for (k in t) printf "%-12s %6.1f Mo\n", k, t[k]/1048576}' | sort
@@ -79,4 +93,52 @@ jobs:
         with:
           name: requete-android-${{ github.run_number }}
           path: sortie/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: essai
+          path: essai/requete-essai.apks
+          retention-days: 3
+
+  # L’essai : l’appli installée comme depuis Google Play sur un téléphone Android simulé, puis vérifiée de l’intérieur
+  # (tools/android/essai.sh et essai.mjs). Les captures d’écran sont dans l’artefact « captures-android ».
+  essai:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/download-artifact@v4
+        with:
+          name: essai
+          path: essai
+      - name: Bundletool
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download -R google/bundletool --pattern 'bundletool-all-*.jar' -O "$RUNNER_TEMP/bundletool.jar"
+      - name: Accélération de l’émulateur
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash tools/android/essai.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: captures-android
+          path: captures/
           retention-days: 30
