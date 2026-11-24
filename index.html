@@ -43,7 +43,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=b6978749" data-defis></script>
+<script src="langues.js?v=7e7558a5" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -24814,6 +24814,7 @@ function normalizeState(raw){
   if(salleSrc.pseudoVu)salle.pseudoVu=salleBig(salleSrc.pseudoVu);
   /* Le pseudo tapé dans l’onboarding sans réseau : réservé plus tard, sans le redemander (psReserverSansDemander). */
   if(typeof salleSrc.psVoulu==='string'){const p=psForme(salleSrc.psVoulu);if(p)salle.psVoulu=p;}
+  if(salleSrc.psMienDit&&salle.psVoulu)salle.psMienDit=1;   // « C’est le mien » touché (24 novembre : compteProposerAutre)
   /* « Plus tard » sur la mini-page du pseudo : gardé d’un lancement à l’autre, sinon elle revenait à chaque ouverture. */
   if(salleSrc.psPage)salle.psPage=1;
   /* Les défis en trois onglets (4 novembre, 19 h 10) : le drapeau masqué, le pays déjà envoyé avec le pseudo, les amis ajoutés par
@@ -29450,7 +29451,7 @@ function obPseudoPlusTard(){
    (psVerifier) et, toujours pris, la page reviendra. */
 function psCestLeMien(){
   const n=psForme(draft&&draft.pseudo),s=clsSalle();
-  if(n)s.psVoulu=n;s.psPage=1;save();
+  if(n){s.psVoulu=n;s.psMienDit=1;}s.psPage=1;save();
   if(typeof buzz==='function')buzz('selection');
   if(n&&typeof lqSay==='function')lqSay(`Connecte-toi juste après : ton compte retrouve ${n} et tes points.`);
   psPageFin(false);
@@ -29482,8 +29483,15 @@ function psExiger(suite){
     if(psMien()){suite();return;}
     if(typeof navigator!=='undefined'&&navigator.onLine===false){suite();return;}
     psReserverSansDemander().then(r=>{
-      if((r&&r.ok)||psMien()){suite();return;}
-      if(r&&(r.raison==='pris'||r.raison==='refuse')){const s=clsSalle();delete s.psVoulu;save();ouvrir({raison:r.raison,idees:r.idees,voulu:r.voulu});return;}
+      if((r&&r.ok)||psMien()){const s=clsSalle();if(s.psMienDit){delete s.psMienDit;save();}suite();return;}
+      if(r&&(r.raison==='pris'||r.raison==='refuse')){
+        const s=clsSalle(),mienDit=!!s.psMienDit;delete s.psVoulu;delete s.psMienDit;save();
+        /* « C’est le mien », puis connecté à un compte qui ne l’a pas : le pseudo est peut-être sur le compte de l’autre fournisseur
+           (24 novembre, 17 h 45 : Elisa, inscrite avec Google, s’était reconnectée avec Apple). */
+        const prov=state.accountProvider,autreF=r.raison==='pris'&&mienDit&&cs&&typeof compteAutreFournisseur==='function'?compteAutreFournisseur(prov):'';
+        if(autreF){compteProposerAutre(prov,autreF,r.voulu).then(ok=>{if(ok){suite();compteRelierAutre(autreF);}else ouvrir({raison:r.raison,idees:r.idees,voulu:r.voulu});});return;}
+        ouvrir({raison:r.raison,idees:r.idees,voulu:r.voulu});return;
+      }
       if(r&&r.raison==='aucun'){ouvrir();return;}
       suite();
     },()=>suite());
@@ -51182,6 +51190,39 @@ function obVersAccueil(){
   try{if(typeof tabScrollPositions!=='undefined')tabScrollPositions.learn=0;}catch(e){}
   try{switchTab('learn');}catch(e){}
 }
+/* ---------- Le bon compte (Elisa, 24 novembre, 17 h 45 : inscrite avec Google, elle s’était reconnectée avec Apple ; « Corrige pour
+   tous ») : pour l’appli, Apple et Google sont deux comptes différents. Un compte neuf derrière « J’ai déjà un compte », ou un compte
+   qui n’a pas le pseudo de « C’est le mien » : on propose de se connecter avec l’autre fournisseur, sans rien imposer. */
+const FOURNISSEUR_NOMS={apple:'Apple',google:'Google'};
+function compteAutreFournisseur(p){
+  const a=p==='apple'?'google':p==='google'?'apple':'';
+  return a&&(typeof obFournisseurOk!=='function'||obFournisseurOk(a))?a:'';
+}
+function compteProposerAutre(p,a,pseudo){
+  if(typeof lqAsk!=='function')return Promise.resolve(false);
+  const P=FOURNISSEUR_NOMS[p]||p,A=FOURNISSEUR_NOMS[a]||a;
+  return lqAsk(pseudo
+    ?{ico:'🔑',titre:'Ce pseudo est sur un autre compte',texte:`${pseudo} n’est pas sur ce compte ${P}. Si tu avais utilisé ${A} la première fois, connecte-toi avec ${A} pour retrouver ton pseudo et ta progression.`,oui:`Me connecter avec ${A}`,non:'Choisir un autre pseudo'}
+    :{ico:'🔑',titre:'Ce compte est nouveau',texte:`Aucune progression n’est enregistrée sur ce compte ${P}. Si tu avais utilisé ${A} la première fois, connecte-toi avec ${A} pour tout retrouver.`,oui:`Me connecter avec ${A}`,non:'Continuer avec ce compte'})
+    .then(ok=>!!ok,()=>false);
+}
+async function compteQuitterNeuf(){
+  try{if(window.REQUETE_AUTH&&typeof window.REQUETE_AUTH.signOut==='function')await window.REQUETE_AUTH.signOut();}catch(e){}
+  state.accountMode='guest';delete state.accountProvider;delete state.accountLabel;save();
+  if(draft&&typeof draft==='object')draft.accountMode='guest';
+}
+/* Dans l’onboarding (page du compte) : le compte neuf est quitté, l’autre fournisseur s’ouvre tout de suite. */
+async function compteChangerFournisseur(a){
+  await compteQuitterNeuf();
+  obAuthBusy=false;obAuthFait=false;obAuthMessage='';
+  return obStartAuth(a,null);
+}
+/* À la fin de l’onboarding : l’appli s’ouvre, puis la page du compte, et l’autre fournisseur. Son compte rend le pseudo (csJoueur). */
+async function compteRelierAutre(a){
+  await compteQuitterNeuf();
+  if(typeof startOnboarding==='function')startOnboarding('account');
+  setTimeout(()=>{try{obStartAuth(a,null);}catch(e){}},450);
+}
 async function obStartAuth(provider,btn){
   if(obAuthBusy)return;
   const adapter=window.REQUETE_AUTH;
@@ -51270,6 +51311,10 @@ async function obStartAuth(provider,btn){
         if(typeof obRappelSeulVoulu==='function'&&obRappelSeulVoulu()){draft.rappelSeul=true;obGoto('rappel');}
         else obApresCompte();
       }else{
+        /* 24 novembre, 17 h 45 (Elisa, inscrite avec Google, reconnectée avec Apple : « il me reconnaît plus ») : un compte neuf
+           derrière « J’ai déjà un compte » est peut-être le mauvais fournisseur ; on propose l’autre avant les questions. */
+        const autreF=typeof compteAutreFournisseur==='function'?compteAutreFournisseur(provider):'';
+        if(autreF&&await compteProposerAutre(provider,autreF)){compteChangerFournisseur(autreF);return;}
         /* 12 h 24 (« pas de texte notifié noir ») : plus de bandeau par-dessus la page des questions, qui le dit déjà */
         obGoto('questions');
       }
@@ -54563,7 +54608,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-24-module-v3138';
+  const SW_CACHE='requete-2026-11-24-module-v3139';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
