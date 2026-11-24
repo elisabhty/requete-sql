@@ -12,7 +12,10 @@ ws.onmessage = m => {
   const d = JSON.parse(m.data);
   if (d.id && attente.has(d.id)) { attente.get(d.id)(d); attente.delete(d.id); }
   if (d.method === 'Runtime.exceptionThrown') erreurs.push(d.params.exceptionDetails.exception?.description || d.params.exceptionDetails.text);
-  if (d.method === 'Runtime.consoleAPICalled' && d.params.type === 'error') erreurs.push(d.params.args.map(a => a.value ?? a.description).join(' '));
+  if (d.method === 'Runtime.consoleAPICalled' && d.params.type === 'error') {
+    const lieu = d.params.stackTrace?.callFrames?.[0], ou = lieu ? ' @' + lieu.url.replace(/^https?:\/\/localhost/, '') + ':' + (lieu.lineNumber + 1) : '';
+    erreurs.push(d.params.args.map(a => a.value ?? (a.preview ? '{' + a.preview.properties.map(p => p.name + ': ' + p.value).join(', ') + '}' : a.description)).join(' ') + ou);
+  }
 };
 const envoyer = (method, params = {}) => new Promise(ok => { const id = ++n; attente.set(id, ok); ws.send(JSON.stringify({id, method, params})); });
 const evaluer = async expr => { const r = await envoyer('Runtime.evaluate', {expression: expr, awaitPromise: true, returnByValue: true}); if (r.result.exceptionDetails) throw new Error(expr + ' → ' + r.result.exceptionDetails.text); return r.result.result.value; };
@@ -43,7 +46,9 @@ verifier('bouton Retour branché', info.retour);
 verifier('voix servie depuis son paquet', info.voix.statut === 200 && info.voix.octets === Number(process.env.ESSAI_TAILLE), JSON.stringify(info.voix));
 verifier('voix lisible', /^prête/.test(info.lecture), info.lecture);
 verifier('animations de cours', info.anim === 200);
-verifier('aucune erreur au démarrage', erreurs.length === 0, erreurs.slice(0, 5).join(' | '));
+if (erreurs.length) console.log('\nErreurs de la page :\n  ' + erreurs.slice(0, 12).join('\n  '));
+verifier('aucune erreur au démarrage', erreurs.length === 0, erreurs.length + ' erreur(s)');
+if (process.env.ESSAI_BORDS === '1') verifier('marges des bords (Android 15, plein écran)', parseFloat(info.marge) > 0, info.marge);
 const cap = await envoyer('Page.captureScreenshot', {format: 'png'});
 if (cap.result?.data) writeFileSync('captures/page.png', Buffer.from(cap.result.data, 'base64'));
 console.log('\nOK :\n  ' + ok.join('\n  ') + (ko.length ? '\nÉCHEC :\n  ' + ko.join('\n  ') : '\nTout est bon.'));
