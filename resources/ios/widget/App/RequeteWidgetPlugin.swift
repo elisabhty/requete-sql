@@ -293,7 +293,8 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "partagerFichiers", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "widgetImages", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "icones", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "iconeChoisir", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "iconeChoisir", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "ileServeur", returnType: CAPPluginReturnPromise)
     ]
 
     override public func load() {
@@ -325,6 +326,16 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         // Le petit miaou de la salle dans l’île (les alertes poussées par le serveur), rangé là où iOS le cherche.
         RequeteSon.installer()
+        // 24 novembre (Elisa : « la fermer 5 min après avoir fermé complètement l’appli ») : on quitte l’app, le serveur fermera
+        // l’île de la leçon ou de l’onboarding dans 5 minutes ; on revient avant, c’est annulé (RequeteIleFermeture).
+        if #available(iOS 16.2, *) {
+            _ = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { _ in
+                RequeteIleFermeture.quitter()
+            }
+            _ = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { _ in
+                RequeteIleFermeture.revenir()
+            }
+        }
     }
 
     @objc private func fichierRecu() {
@@ -667,6 +678,23 @@ public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {
 
     /// L’onboarding se ferme : { fini }. Fini, le parcours prêt reste cinq minutes sur l’écran verrouillé, les étoiles plein les
     /// yeux du chat ; sinon, l’activité s’en va tout de suite.
+    /// L’adresse de la fonction ile-fermer et la clé publique de Supabase, données par la page (gardées sur l’appareil). Sa
+    /// présence dans la liste des méthodes dit aussi à la page que cette version sait fermer l’île 5 minutes après.
+    @objc func ileServeur(_ call: CAPPluginCall) {
+        guard #available(iOS 16.2, *) else {
+            call.resolve(["ok": false])
+            return
+        }
+        let url: String = call.getString("url") ?? ""
+        let cle: String = call.getString("cle") ?? ""
+        guard url.hasPrefix("https://"), URL(string: url) != nil, !cle.isEmpty else {
+            call.resolve(["ok": false])
+            return
+        }
+        RequeteIleFermeture.serveur(url: url, cle: cle)
+        call.resolve(["ok": true])
+    }
+
     @objc func accueilFin(_ call: CAPPluginCall) {
         guard #available(iOS 16.2, *) else {
             call.resolve()
@@ -931,15 +959,20 @@ enum RequeteLeconPont {
     static func debut(titre: String, module: String, etat: RequeteLecon.ContentState) async -> Bool {
         await toutArreter()
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return false }
+        let attributs = RequeteLecon(titre: titre, module: module)
+        let contenu = ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600))
+        // Un jeton de push, pour que le serveur ferme l’île 5 minutes après qu’on a quitté l’app (RequeteIleFermeture) ; sans,
+        // elle démarre quand même.
         do {
-            _ = try Activity<RequeteLecon>.request(
-                attributes: RequeteLecon(titre: titre, module: module),
-                content: ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600)),
-                pushType: nil
-            )
+            _ = try Activity<RequeteLecon>.request(attributes: attributs, content: contenu, pushType: .token)
             return true
         } catch {
-            return false
+            do {
+                _ = try Activity<RequeteLecon>.request(attributes: attributs, content: contenu, pushType: nil)
+                return true
+            } catch {
+                return false
+            }
         }
     }
 
@@ -1040,15 +1073,19 @@ enum RequeteAccueilPont {
     static func debut(_ etat: RequeteAccueil.ContentState) async -> Bool {
         await toutArreter()
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return false }
+        let attributs = RequeteAccueil(app: "Requête")
+        let contenu = ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600))
+        // Comme la leçon : un jeton de push pour la fermeture 5 minutes après (RequeteIleFermeture), sinon sans.
         do {
-            _ = try Activity<RequeteAccueil>.request(
-                attributes: RequeteAccueil(app: "Requête"),
-                content: ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600)),
-                pushType: nil
-            )
+            _ = try Activity<RequeteAccueil>.request(attributes: attributs, content: contenu, pushType: .token)
             return true
         } catch {
-            return false
+            do {
+                _ = try Activity<RequeteAccueil>.request(attributes: attributs, content: contenu, pushType: nil)
+                return true
+            } catch {
+                return false
+            }
         }
     }
 
@@ -1111,6 +1148,93 @@ enum RequeteAccueilPont {
     static func arreterEnCours() async {
         for a in Activity<RequeteAccueil>.activities where !a.content.state.fini {
             await a.end(nil, dismissalPolicy: .immediate)
+        }
+    }
+}
+
+// MARK: - L’île de la leçon ou de l’onboarding, fermée 5 minutes après avoir quitté l’app
+//
+// Elisa, 24 novembre, 16 h 48 : « Tu peux pousser pour tout le monde de la fermer 5 min après avoir fermé complètement l’appli ».
+// L’app balayée, iOS ne la prévient pas : sans le serveur, l’île restait jusqu’à 8 heures. Dès qu’on quitte l’app (arrière-plan,
+// écran verrouillé ou app balayée ensuite, iOS ne fait pas la différence), chaque île en cours envoie son jeton de push et son
+// dernier état à la fonction ile-fermer, qui la ferme par Apple 5 minutes plus tard (supabase/functions/ile-fermer). On revient
+// avant : c’est annulé. La carte d’une leçon réussie et le parcours prêt partent déjà seuls ; ils ne sont pas concernés.
+
+@available(iOS 16.2, *)
+enum RequeteIleFermeture {
+    static let delai: Int = 300
+    private static let cleUrl: String = "requete.ile.fermer.url"
+    private static let cleCle: String = "requete.ile.fermer.cle"
+
+    struct Cible {
+        let jeton: String
+        let etat: Data
+    }
+
+    static func serveur(url: String, cle: String) {
+        UserDefaults.standard.set(url, forKey: cleUrl)
+        UserDefaults.standard.set(cle, forKey: cleCle)
+    }
+
+    static func hex(_ d: Data) -> String {
+        return d.map { String(format: "%02x", $0) }.joined()
+    }
+
+    /// Les îles en cours qui ont un jeton : la leçon pas encore réussie, l’onboarding pas encore fini.
+    static func enCours() -> [Cible] {
+        var liste: [Cible] = []
+        let codeur = JSONEncoder()
+        for a in Activity<RequeteLecon>.activities where !a.content.state.fini {
+            guard a.activityState == .active || a.activityState == .stale else { continue }
+            guard let j = a.pushToken, let e = try? codeur.encode(a.content.state) else { continue }
+            liste.append(Cible(jeton: hex(j), etat: e))
+        }
+        for a in Activity<RequeteAccueil>.activities where !a.content.state.fini {
+            guard a.activityState == .active || a.activityState == .stale else { continue }
+            guard let j = a.pushToken, let e = try? codeur.encode(a.content.state) else { continue }
+            liste.append(Cible(jeton: hex(j), etat: e))
+        }
+        return liste
+    }
+
+    static func quitter() {
+        envoyer(annuler: false)
+    }
+
+    static func revenir() {
+        envoyer(annuler: true)
+    }
+
+    /// Une tâche de fond garde l’app éveillée le temps des envois (quelques secondes au plus).
+    private static func envoyer(annuler: Bool) {
+        guard let url = UserDefaults.standard.string(forKey: cleUrl), let adresse = URL(string: url) else { return }
+        guard let cle = UserDefaults.standard.string(forKey: cleCle), !cle.isEmpty else { return }
+        let cibles: [Cible] = enCours()
+        guard !cibles.isEmpty else { return }
+        let fond = RequeteTacheDeFond()
+        fond.debut()
+        let groupe = DispatchGroup()
+        for c in cibles {
+            var corps: [String: Any] = ["jeton": c.jeton]
+            if annuler {
+                corps["annuler"] = true
+            } else {
+                corps["dans"] = delai
+                corps["etat"] = (try? JSONSerialization.jsonObject(with: c.etat)) ?? [String: Any]()
+            }
+            guard let donnees = try? JSONSerialization.data(withJSONObject: corps) else { continue }
+            var demande = URLRequest(url: adresse, timeoutInterval: 15)
+            demande.httpMethod = "POST"
+            demande.httpBody = donnees
+            demande.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            demande.setValue(cle, forHTTPHeaderField: "apikey")
+            groupe.enter()
+            URLSession.shared.dataTask(with: demande) { _, _, _ in
+                groupe.leave()
+            }.resume()
+        }
+        groupe.notify(queue: .main) {
+            fond.fin()
         }
     }
 }

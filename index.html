@@ -49197,6 +49197,14 @@ function ileFermetureOk(){
     return !!(h&&Array.isArray(h.methods)&&h.methods.some(m=>m&&m.name==='ileServeur'));
   }catch(e){return false;}
 }
+/* L’adresse de la fonction ile-fermer et la clé publique, données une fois par lancement à l’app, qui les garde : c’est elle qui
+   prévient le serveur en arrière-plan, quand la page ne tourne plus. */
+let ileServeurDonne=false;
+function ileServeurDonner(){
+  if(ileServeurDonne||typeof JEU_SB==='undefined'||typeof JEU_SB_KEY==='undefined')return;
+  ileServeurDonne=true;
+  ileAppel('ileServeur',{url:JEU_SB+'/functions/v1/ile-fermer?forceFunctionRegion=eu-west-3',cle:JEU_SB_KEY});
+}
 function ileProgression(){ const V=LV&&LV.video,d=V&&V.duration||0; return d?Math.max(0,Math.min(1,(V.currentTime||0)/d)):0; }
 function ileAllumee(){ try{ return !!jourActif(dstr(auj())); }catch(e){ return false; } }
 /* Les moments de la leçon, dès que la vidéo les a donnés : { reussis (du premier coup, comme l’écran de fin), moments, objectif }. */
@@ -49207,6 +49215,7 @@ function ileMoments(){
 }
 function ileDebut(l){
   if(!l||!ilePont()||!ileFermetureOk())return;
+  ileServeurDonner();
   const m=typeof moduleDeLecon==='function'?moduleDeLecon(l.id):null,mi=m&&typeof MODULES!=='undefined'?MODULES.indexOf(m):-1;
   ileEtat={id:l.id,pas:-1,seuil:typeof lvSeuil==='function'?lvSeuil(l):0,vus:null,pause:ilePause()};
   const data={titre:String(natifT(l.titre||'Leçon')),module:m?`Module ${mi+1} · ${natifT(m.titre)}`:natifT('Cours'),progression:ileProgression(),allumee:ileAllumee(),pause:ilePause()},mo=ileMoments();
@@ -49263,6 +49272,7 @@ function ileObSync(){
   const data=ileObEtat(),k=JSON.stringify(data);
   if(ileOb&&ileOb.k===k)return;
   const m=ileOb?'accueilMaj':'accueilDebut';
+  if(!ileOb)ileServeurDonner();
   ileOb={k,etape:data.etape,vue:ileOb?ileOb.vue:data.etape};   // vue : l’étape que l’île montrait la dernière fois qu’on a quitté l’app
   ileAppel(m,data);
 }
@@ -54523,7 +54533,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-24-module-v3136';
+  const SW_CACHE='requete-2026-11-24-module-v3137';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -68,7 +68,7 @@ test('la Live Activity dans le widget : l’écran verrouillé, la Dynamic Islan
 test('le pont : leconDebut, leconMaj, leconFin (iOS 16.2), et rien de resté à la relance de l’app', () => {
   const noms = [...pont.matchAll(/CAPPluginMethod\(name: "(\w+)", returnType: CAPPluginReturnPromise\)/g)].map(m => m[1]);
   assert.deepEqual(noms, ['maj', 'raccourcis', 'fond', 'leconDebut', 'leconMaj', 'leconFin', 'partager', 'ouvrir', 'flammeProgrammer', 'flammeAllumee', 'flammeArreter',
-    'salleDebut', 'salleMaj', 'salleFin', 'partagerTexte', 'accueilDebut', 'accueilMaj', 'accueilFin', 'notifAutoriser', 'notifJeton', 'abonnementGerer', 'noter', 'widgetsPoses', 'fichierFini', 'partagerFichiers', 'widgetImages', 'icones', 'iconeChoisir'],
+    'salleDebut', 'salleMaj', 'salleFin', 'partagerTexte', 'accueilDebut', 'accueilMaj', 'accueilFin', 'notifAutoriser', 'notifJeton', 'abonnementGerer', 'noter', 'widgetsPoses', 'fichierFini', 'partagerFichiers', 'widgetImages', 'icones', 'iconeChoisir', 'ileServeur'],
     'partager et ouvrir : la sauvegarde et « Noter Requête » (4 novembre, 22 h 08) ; puis ta flamme en direct (7 novembre, ios-flamme-direct) et la salle dans l’île (ios-salle-ile), l’onboarding dans l’île (ios-accueil-ile)');
   const classe = cut(pont, 'public class RequeteWidgetPlugin: CAPPlugin, CAPBridgedPlugin {', '\n}\n');
   for (const n of noms) assert.ok(classe.includes(`@objc func ${n}(_ call: CAPPluginCall) {`), `${n} dans la classe`);
@@ -78,7 +78,7 @@ test('le pont : leconDebut, leconMaj, leconFin (iOS 16.2), et rien de resté à 
   }
   const p = cut(pont, 'enum RequeteLeconPont {', '\n}\n');
   for (const k of ['guard ActivityAuthorizationInfo().areActivitiesEnabled else { return false }', 'try Activity<RequeteLecon>.request(',
-    'content: ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600))', 'pushType: nil',
+    'let contenu = ActivityContent(state: etat, staleDate: Date().addingTimeInterval(3600))', 'request(attributes: attributs, content: contenu, pushType: .token)', 'request(attributes: attributs, content: contenu, pushType: nil)',
     'await a.update(ActivityContent(state: etat, staleDate: perime))',
     'let politique: ActivityUIDismissalPolicy = reussie ? .after(Date().addingTimeInterval(15 * 60)) : .immediate',
     'await a.end(dernier, dismissalPolicy: politique)',

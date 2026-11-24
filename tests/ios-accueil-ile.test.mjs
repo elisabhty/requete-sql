@@ -25,14 +25,14 @@ test('le même type dans l’app et dans le widget', () => {
 
 test('le pont : accueilDebut, accueilMaj, accueilFin (iOS 16.2), et rien d’en cours à la relance', () => {
   const noms = [...pont.matchAll(/CAPPluginMethod\(name: "(\w+)", returnType: CAPPluginReturnPromise\)/g)].map(x => x[1]);
-  assert.deepEqual(noms.slice(-13, -10), ['accueilDebut', 'accueilMaj', 'accueilFin'], 'puis les notifications (retours-1555), « Gérer mon abonnement » (retours-2106), la note de l’app (retours-0102) , les widgets posés (retours-2004), « Ouvrir dans Requête » (retours-0649) et les ponts du 16 novembre (retours-0704)');
+  assert.deepEqual(noms.slice(-14, -11), ['accueilDebut', 'accueilMaj', 'accueilFin'], 'puis les notifications (retours-1555), « Gérer mon abonnement » (retours-2106), la note de l’app (retours-0102) , les widgets posés (retours-2004), « Ouvrir dans Requête » (retours-0649) et les ponts du 16 novembre (retours-0704), puis ileServeur (retours-1648)');
   for (const n of ['accueilDebut', 'accueilMaj', 'accueilFin']) {
     const f = entre(pont, `@objc func ${n}(_ call: CAPPluginCall) {`, '\n    }\n');
     assert.ok(f.includes('guard #available(iOS 16.2, *) else {') && f.includes('Task {') && f.includes('call.resolve('), n);
   }
   const P = entre(pont, 'enum RequeteAccueilPont {', '\n}\n');
   for (const k of ['let etape: Int = min(total, max(0, call.getInt("etape") ?? 0))', 'await toutArreter()', 'guard ActivityAuthorizationInfo().areActivitiesEnabled else { return false }',
-    'attributes: RequeteAccueil(app: "Requête")', 'staleDate: Date().addingTimeInterval(3600)', 'if Activity<RequeteAccueil>.activities.isEmpty {\n            _ = await debut(etat)',
+    'let attributs = RequeteAccueil(app: "Requête")', 'staleDate: Date().addingTimeInterval(3600)', 'try Activity<RequeteAccueil>.request(attributes: attributs, content: contenu, pushType: .token)', 'try Activity<RequeteAccueil>.request(attributes: attributs, content: contenu, pushType: nil)', 'if Activity<RequeteAccueil>.activities.isEmpty {\n            _ = await debut(etat)',
     'let politique: ActivityUIDismissalPolicy = .immediate',   // 14 novembre : plus de 5 minutes sur l’écran verrouillé
     'for a in Activity<RequeteAccueil>.activities where !a.content.state.fini {'])
     assert.ok(P.includes(k), k);
@@ -68,7 +68,7 @@ test('la page : l’accueil, chaque étape, le parcours prêt, la fin ; rien pou
   const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     OB_SLIDES: ['welcome', 'name', 'level', 'practice', 'source', 'ready', 'pseudo'], obStep: 0, obApercu: false, obLegalMode: null,
     obFlowSteps: () => ['name', 'level', 'practice', 'source'], draft: {name: ''}, state: {onboarded: false},
-    ilePont: () => ({}), ileFermetureOk: () => true, ileAppel: (m, d) => appels.push([m, d]),
+    ilePont: () => ({}), ileFermetureOk: () => true, ileServeurDonner: () => {}, ileAppel: (m, d) => appels.push([m, d]),
     document: {getElementById: () => ({classList: {contains: c => c === 'on'}})}
   });
   vm.runInContext(js + ';this.ileObSync=ileObSync;this.ileObFin=ileObFin;', ctx);

@@ -104,7 +104,7 @@ test('aucune répétition de plus de 255 dans la dernière version d’une fonct
 });
 
 test('les migrations du dépôt portent le numéro de version de la base, dans l’ordre', () => {
-  assert.equal(fichiers.at(-1), '20261120091732_moyen_un_et_demi.sql', 'la dernière : le Moyen à ×1,5, paliers de 1 min 30, manche de 9 min (20 novembre, 10 h 15)');
+  assert.equal(fichiers.at(-1), '20261124160500_ile_fermer.sql', 'la dernière : l’île de la leçon ou de l’onboarding fermée 5 minutes après avoir quitté l’app (24 novembre, 16 h 48)');
   for (const f of fichiers) assert.match(f, /^\d{14}_[a-z0-9_]+\.sql$/, f);
   assert.equal(new Set(fichiers.map(f => f.slice(0, 14))).size, fichiers.length, 'un numéro par migration');
 });

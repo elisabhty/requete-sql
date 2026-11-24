@@ -145,7 +145,7 @@ test('la page : quitter l’app en pleine leçon anime toujours l’île ; en pl
   const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     OB_SLIDES: ['welcome', 'name', 'level', 'practice', 'source', 'ready'], obStep: 0, obApercu: false, obLegalMode: null,
     obFlowSteps: () => ['name', 'level', 'practice', 'source'], draft: {name: 'Elisa'}, state: {onboarded: false},
-    ilePont: () => ({}), ileFermetureOk: () => true, ileAppel: (m, d) => appels.push([m, JSON.parse(JSON.stringify(d))]),
+    ilePont: () => ({}), ileFermetureOk: () => true, ileServeurDonner: () => {}, ileAppel: (m, d) => appels.push([m, JSON.parse(JSON.stringify(d))]),
     document: {visibilityState: 'visible', getElementById: () => ({classList: {contains: c => c === 'on'}}), addEventListener: (n, f) => { ecoutes[n] = f; }}
   });
   vm.runInContext(js + ';this.ileObSync=ileObSync;this.ileObSalut=ileObSalut;', ctx);
@@ -247,5 +247,5 @@ test('les moments de la tuile sont des états, les passages des transitions ; l�
 
 test('la feuille de style et le cache changent de version', () => {
   assert.ok(app.includes('onboarding-vitrine.css?v=73'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-24-module-v3136';"));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-24-module-v3137';"));
 });

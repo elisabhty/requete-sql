@@ -202,7 +202,7 @@ test('5. les icônes au choix : la liste vient de l’app, le changement d’un 
 });
 
 test('les nouvelles méthodes du pont, à la fin de sa liste ; le Swift reste lisible par les tests', () => {
-  assert.ok(pont.includes('        CAPPluginMethod(name: "fichierFini", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "partagerFichiers", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "widgetImages", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "icones", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "iconeChoisir", returnType: CAPPluginReturnPromise)\n    ]'));
+  assert.ok(pont.includes('        CAPPluginMethod(name: "fichierFini", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "partagerFichiers", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "widgetImages", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "icones", returnType: CAPPluginReturnPromise),\n        CAPPluginMethod(name: "iconeChoisir", returnType: CAPPluginReturnPromise),\n'));
   for (const f of [pont, widget]) {
     const c = f.replace(/\/\/.*$/gm, '').replace(/"(?:[^"\\]|\\.)*"/g, '""');
     for (const [a, b] of [['{', '}'], ['(', ')'], ['[', ']']]) assert.equal(c.split(a).length, c.split(b).length, a + b);
