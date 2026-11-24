@@ -129,7 +129,7 @@ test('scripts/ios-widget.mjs : NSSupportsLiveActivities ajouté une fois à l’
 const ileLab = ({natif = true, allumee = true} = {}) => {
   const appels = [];
   const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
-    window: natif ? {Capacitor: {isNativePlatform: () => true, isPluginAvailable: n => n === 'RequeteWidget', nativePromise: (p, m, d) => { appels.push([p, m, JSON.parse(JSON.stringify(d))]); return Promise.resolve(); }}} : {},
+    window: natif ? {Capacitor: {PluginHeaders: [{name: 'RequeteWidget', methods: [{name: 'ileServeur'}]}], isNativePlatform: () => true, isPluginAvailable: n => n === 'RequeteWidget', nativePromise: (p, m, d) => { appels.push([p, m, JSON.parse(JSON.stringify(d))]); return Promise.resolve(); }}} : {},
     LV: {id: 12, fin: false, video: {currentTime: 0, duration: 100}},
     MODULES: [{titre: 'Bases'}, {titre: 'Les jointures'}], moduleDeLecon: () => null,
     jourActif: () => allumee, dstr: () => '2026-11-04', auj: () => 0

@@ -68,7 +68,7 @@ test('la page : l’accueil, chaque étape, le parcours prêt, la fin ; rien pou
   const ctx = vm.createContext({natifT: x => x, natifSql: x => x, natifLangue: () => 'fr', 
     OB_SLIDES: ['welcome', 'name', 'level', 'practice', 'source', 'ready', 'pseudo'], obStep: 0, obApercu: false, obLegalMode: null,
     obFlowSteps: () => ['name', 'level', 'practice', 'source'], draft: {name: ''}, state: {onboarded: false},
-    ilePont: () => ({}), ileAppel: (m, d) => appels.push([m, d]),
+    ilePont: () => ({}), ileFermetureOk: () => true, ileAppel: (m, d) => appels.push([m, d]),
     document: {getElementById: () => ({classList: {contains: c => c === 'on'}})}
   });
   vm.runInContext(js + ';this.ileObSync=ileObSync;this.ileObFin=ileObFin;', ctx);

@@ -49184,6 +49184,19 @@ async function iconeChoisir(nom){
   try{return await C.nativePromise('RequeteWidget','iconeChoisir',{nom:nom||''});}catch(e){return null;}
 }
 function ileAppel(m,data){ const C=ilePont(); if(!C)return; try{ Promise.resolve(C.nativePromise('RequeteWidget',m,data)).catch(()=>{}); }catch(e){} }
+/* 24 novembre, 16 h 48 (« pousser pour tout le monde de la fermer 5 min après avoir fermé complètement l’appli », puis « c’est
+   urgent ») : l’app balayée, iOS ne prévient pas, et l’île de la leçon ou de l’onboarding restait jusqu’à 8 heures. Elle se ferme
+   maintenant par le serveur, 5 minutes après qu’on a quitté l’app (ileServeur, RequeteWidgetPlugin.swift ; la fonction ile-fermer),
+   ce qui demande la nouvelle version de l’app. Les versions d’avant n’ont pas cette méthode (la liste des méthodes du pont, que
+   Capacitor pose dans la page) : plus d’île de leçon ni d’onboarding chez elles. La flamme du soir et les salles ne changent pas. */
+function ileFermetureOk(){
+  const C=ilePont();
+  if(!C)return false;
+  try{
+    const h=(C.PluginHeaders||[]).find(x=>x&&x.name==='RequeteWidget');
+    return !!(h&&Array.isArray(h.methods)&&h.methods.some(m=>m&&m.name==='ileServeur'));
+  }catch(e){return false;}
+}
 function ileProgression(){ const V=LV&&LV.video,d=V&&V.duration||0; return d?Math.max(0,Math.min(1,(V.currentTime||0)/d)):0; }
 function ileAllumee(){ try{ return !!jourActif(dstr(auj())); }catch(e){ return false; } }
 /* Les moments de la leçon, dès que la vidéo les a donnés : { reussis (du premier coup, comme l’écran de fin), moments, objectif }. */
@@ -49193,7 +49206,7 @@ function ileMoments(){
   return {reussis:Math.min(n,lvPkScore(LV.id,n)),moments:n,objectif:Math.min(n,ileEtat.seuil||n)};
 }
 function ileDebut(l){
-  if(!l||!ilePont())return;
+  if(!l||!ilePont()||!ileFermetureOk())return;
   const m=typeof moduleDeLecon==='function'?moduleDeLecon(l.id):null,mi=m&&typeof MODULES!=='undefined'?MODULES.indexOf(m):-1;
   ileEtat={id:l.id,pas:-1,seuil:typeof lvSeuil==='function'?lvSeuil(l):0,vus:null,pause:ilePause()};
   const data={titre:String(natifT(l.titre||'Leçon')),module:m?`Module ${mi+1} · ${natifT(m.titre)}`:natifT('Cours'),progression:ileProgression(),allumee:ileAllumee(),pause:ilePause()},mo=ileMoments();
@@ -49244,7 +49257,7 @@ function ileObEtat(){
   return {etape,total,titre:natifT(ILE_OB_TITRES[slide]||'Ton parcours'),bonjour:prenom?`${natifT('Bienvenue')}, ${prenom}`:natifT('Bienvenue sur Requête'),minutes};
 }
 function ileObSync(){
-  if(!ilePont()||state.onboarded||(typeof obApercu!=='undefined'&&obApercu)||obLegalMode)return;
+  if(!ilePont()||!ileFermetureOk()||state.onboarded||(typeof obApercu!=='undefined'&&obApercu)||obLegalMode)return;
   const root=typeof document!=='undefined'&&document.getElementById('onboarding');
   if(!root||!root.classList.contains('on'))return;
   const data=ileObEtat(),k=JSON.stringify(data);
@@ -54510,7 +54523,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-21-module-v3135';
+  const SW_CACHE='requete-2026-11-24-module-v3136';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
