@@ -38,7 +38,7 @@ test('sur Android, Apple et l’iPhone deviennent Google Play et le téléphone 
 test('les textes passent par natifTexte ; la boutique, l’abonnement et la note mènent à Google Play', () => {
   for (const k of ["obPh(natifTexte('Paiement Apple'))", "natifTexte('Les prix sont ceux de l’App Store de ton pays.')", "dire(natifTexte('Aucun abonnement à restaurer sur ce compte Apple.'))",
     "['store',natifTexte('App Store'),'store']", "'<p class=\"ob-sans-compte-note\">'+natifTexte('Ta progression reste sur cet iPhone.", "${natifTexte('Sur ton iPhone')}",
-    "${natifTexte('Ton avis sur l’App Store aide d’autres à nous trouver')}", "obAbonne()?natifTexte(`<p class=\"lq-del-abo\">", '<div class="legal-copy">${natifTexte(privacy',
+    "${natifTexte('Ton avis sur l’App Store aide d’autres à nous trouver')}", '<div class="legal-copy">${natifTexte(privacy',
     'privacy:natifTexte(`<div class="legal-copy">', 'terms:natifTexte(`<div class="legal-copy">', 'lqSay(natifTexte(dUnCompte?'])
     assert.ok(app.includes(k), k);
   assert.ok(entre(app, 'function noterAppli(){', '\n}\n').includes('if(appAndroid()){androidOuvrir(playFiche());return;}'));
@@ -73,7 +73,7 @@ test('les marges du haut et du bas suivent Android (variables de Capacitor), et 
     assert.ok(!/(?<!--safe-area-inset-(?:top|right|bottom|left),)env\(safe-area-inset/.test(t.replace(/var\(--safe-area-inset-(top|right|bottom|left),env\(safe-area-inset-\1(,0px)?\)\)/g, '')), 'chaque env() a sa variable devant');
   }
   assert.ok(app.includes('var(--safe-area-inset-top,env(safe-area-inset-top,0px))') && css.includes('var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))'));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=392">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=393">'));
 });
 
 test('le projet Android et sa fabrication sur GitHub', () => {

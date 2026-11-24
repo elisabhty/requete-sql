@@ -84,12 +84,11 @@ test('la suppression du compte retire aussi des classements, et la liste le dit'
   assert.ok(fn('compteSupprimerHTML').includes(', tes scores et ta place dans les classements, tes avis, ton vote et tes messages'));
   const mig = lire('supabase/migrations/20261104224931_compte_supprimer.sql'), cls = lire('supabase/migrations/20261031143437_classement_general.sql');
   assert.ok(mig.includes('delete from public.jeu_joueur where cle = v_cle;') && cls.includes('joueur uuid not null references public.jeu_joueur (id) on delete cascade'), 'ses parties partent avec lui');
-  /* 14 novembre, 18 h (l’audit App Review) : abonné, la fenêtre dit que la facturation d’Apple continue et où l’arrêter */
+  /* 24 novembre, 22 h 02 (Elisa : « Supprime la phrase après le bloc rouge ») : abonné ou non, rien sous l’encadré « irréversible » */
   const ctx = vm.createContext({natifTexte: x => x, appAndroid: () => false,  esc: x => x, DEL_SVG: { nuage: '', tel: '', alerte: '' }, obAbonne: () => true });
   vm.runInContext(cut('function compteSupprimerHTML(', '\nasync function compteSupprimer(){'), ctx);
-  assert.ok(ctx.compteSupprimerHTML('@lea', true).includes('<p class="lq-del-abo">Ton abonnement Requête Premium n’est pas résilié pour autant&nbsp;: Apple continue de le facturer tant que tu ne l’arrêtes pas, dans Mon compte › Gérer mon abonnement ou dans les réglages de ton identifiant Apple.</p>'));
-  ctx.obAbonne = () => false;
-  assert.ok(!ctx.compteSupprimerHTML('@lea', true).includes('lq-del-abo'), 'sans abonnement, rien');
+  const h = ctx.compteSupprimerHTML('@lea', true);
+  assert.ok(h.trim().endsWith('Tes données ne pourront pas être récupérées.</span></p>') && !h.includes('lq-del-abo') && !h.includes('résilié'), 'plus de phrase sur l’abonnement');
 });
 
 test('import : l’en-tête sous un titre fusionné, les lignes par requête préparée avec la progression, le bouton occupé', async () => {
@@ -168,6 +167,6 @@ test('schéma UML : « +2 colonnes » est un bouton, sans « Voir » (6 novembre
 });
 
 test('versions : ludique.css v155, cache du service worker', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=392">'));
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-24-module-v3140';") && app.includes("const SW_CACHE='requete-2026-11-24-module-v3140';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=393">'));
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-24-module-v3141';") && app.includes("const SW_CACHE='requete-2026-11-24-module-v3141';"));
 });
