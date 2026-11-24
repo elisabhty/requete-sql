@@ -114,7 +114,8 @@
   var C = window.Capacitor;
   var natif = !!(C && typeof C.isNativePlatform === 'function' && C.isNativePlatform());
   var P = natif && C.Plugins && C.Plugins.Purchases;
-  var CLE = typeof C.getPlatform === 'function' && C.getPlatform() === 'android' ? RC_CLE_ANDROID : RC_CLE_IOS;
+  var ANDROID = typeof C.getPlatform === 'function' && C.getPlatform() === 'android';
+  var CLE = ANDROID ? RC_CLE_ANDROID : RC_CLE_IOS;
   if (!CLE || !P) return;
 
   /* Ce qu'on sait : true (abonnée), false (pas abonnée), null (jamais eu de réponse). Et la date de la réponse qui l'a dit. */
@@ -156,7 +157,8 @@
     return a;
   }
   function offreDe(pq){
-    var t = pq && (pq.packageType || ''), id = pq && pq.product && pq.product.identifier;
+    /* Sur Google Play, l'identifiant porte aussi le forfait de base (« fr.requete.app.annuel:annuel ») : seul l'abonnement compte. */
+    var t = pq && (pq.packageType || ''), id = pq && pq.product && String(pq.product.identifier || '').split(':')[0];
     /* Le produit de bienvenue d'abord : c'est aussi un annuel, il ne doit jamais prendre la place du paquet « an ». */
     if (id === PRODUITS.bienvenue) return 'bienvenue';
     if (t === 'ANNUAL' || id === PRODUITS.an) return 'an';
@@ -187,6 +189,18 @@
       var cur = r && (r.current || (r.all && r.all['default']));
       var liste = (cur && cur.availablePackages) || [];
       liste.forEach(function(pq){ var k = offreDe(pq); if (k) paquets[k] = pq; });
+      /* 24 novembre, Android : Google Play ne renvoie que les offres auxquelles la personne a droit (l'essai, le prix de lancement),
+         et il n'y a pas de question à poser comme chez Apple. Une offre présente vaut donc « a droit » (statut 2), absente « pas
+         d'offre » (3). Le prix de lancement est mis sous la même forme qu'iOS (introPrice), pour le paywall et l'offre de bienvenue. */
+      if (ANDROID) {
+        Object.keys(paquets).forEach(function(k){
+          var p = paquets[k].product;
+          if (p && !p.introPrice) p.introPrice = introGoogle(p);
+          essais[k] = true;
+          statuts[k] = p && p.introPrice ? 2 : 3;
+        });
+        return;
+      }
       var ids = Object.keys(paquets).map(function(k){ return paquets[k].product.identifier; });
       if (!ids.length || typeof P.checkTrialOrIntroductoryPriceEligibility !== 'function') return;
       return P.checkTrialOrIntroductoryPriceEligibility({productIdentifiers: ids}).then(function(el){
@@ -216,6 +230,18 @@
     return n > 0 && UNITES[u] ? {n: n, unite: UNITES[u]} : null;
   }
   /* Le prix de lancement d'un produit : {prix, texte} seulement s'il est payant et couvre un an d'un coup (« P1Y », un seul cycle). */
+  /* Android : la première étape de l'offre choisie par RevenueCat (defaultOption), essai gratuit ou prix de lancement, sous la forme
+     d'un introPrice d'iOS : {price, priceString, period ('P3D', 'P1Y'…), periodUnit, periodNumberOfUnits, cycles}. Rien : null. */
+  var UNITES_G = {D: 'DAY', W: 'WEEK', M: 'MONTH', Y: 'YEAR'};
+  function introGoogle(p){
+    var o = p && p.defaultOption, ph = o && (o.freePhase || o.introPhase);
+    if (!ph) return null;
+    var prix = ph.price || {}, per = ph.billingPeriod || {}, iso = String(per.iso8601 || ph.billingPeriod || '').toUpperCase();
+    var m = /^P(\d+)([DWMY])$/.exec(iso), montant = prix.amountMicros != null ? Number(prix.amountMicros) / 1e6 : (o.freePhase === ph ? 0 : NaN);
+    if (!m || isNaN(montant)) return null;
+    return {price: montant, priceString: prix.formatted || '', period: iso, periodUnit: UNITES_G[m[2]], periodNumberOfUnits: Number(m[1]),
+      cycles: ph.billingCycleCount != null ? Number(ph.billingCycleCount) : 1};
+  }
   function introDe(p){
     var i = p && p.introPrice;
     if (!i || typeof i.price !== 'number' || !(i.price > 0) || !i.priceString) return null;

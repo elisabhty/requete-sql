@@ -1,0 +1,51 @@
+# La clé d’envoi Android (à lancer une seule fois, avant le premier envoi à Google Play).
+# Google Play signe lui-même l’appli pour les téléphones (signature d’application Google Play) ; cette clé-ci sert seulement à
+# prouver que les AAB envoyés viennent bien de nous. Perdue, elle se remplace en écrivant au support de Google Play.
+#
+# Avant de lancer : créer dans GitHub (Settings › Secrets and variables › Actions › New repository secret), avec des mots de passe
+# choisis par Elisa et gardés dans son gestionnaire de mots de passe (Claude ne les voit jamais) :
+#   ANDROID_KEYSTORE_PASSWORD   le mot de passe du fichier de clé (au moins 6 caractères)
+#   ANDROID_KEY_ALIAS           le nom de la clé, par exemple : requete
+#   ANDROID_KEY_PASSWORD        le même mot de passe que le premier (le format de clé PKCS12 n’en garde qu’un)
+# Puis : Actions › Clé d’envoi Android › Run workflow. Le fichier sort dans l’artefact « cle-envoi-android » (gardé 1 jour) :
+#   - requete-envoi.jks : la clé, à garder précieusement (une copie hors de GitHub) ;
+#   - requete-envoi.base64.txt : son contenu à coller dans un 4e secret, ANDROID_KEYSTORE_BASE64. Ensuite, chaque fabrication
+#     (android.yml) signe l’AAB avec elle.
+name: Clé d’envoi Android
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Fabrication de la clé
+        env:
+          DEJA: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          MDP: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          MDP_CLE: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$DEJA" ]; then echo "::error::Une clé existe déjà (ANDROID_KEYSTORE_BASE64) : rien n’est refait."; exit 1; fi
+          if [ -z "$MDP" ] || [ -z "$ALIAS" ] || [ -z "$MDP_CLE" ]; then echo "::error::Il manque un des trois secrets (voir l’en-tête du fichier)."; exit 1; fi
+          if [ ${#MDP} -lt 6 ]; then echo "::error::Le mot de passe doit faire au moins 6 caractères."; exit 1; fi
+          if [ "$MDP" != "$MDP_CLE" ]; then echo "::error::ANDROID_KEY_PASSWORD doit être le même que ANDROID_KEYSTORE_PASSWORD."; exit 1; fi
+          mkdir -p cle
+          keytool -genkeypair -keystore cle/requete-envoi.jks -storetype PKCS12 -alias "$ALIAS" -keyalg RSA -keysize 4096 -validity 10000 \
+            -storepass "$MDP" -keypass "$MDP_CLE" -dname "CN=Requete, O=Elisa Blanchart, C=FR" -noprompt
+          base64 -w0 cle/requete-envoi.jks > cle/requete-envoi.base64.txt
+          echo "Empreintes de la clé d’envoi (SHA-1 à donner à Google Cloud pour la connexion Google des versions d’essai) :"
+          keytool -list -v -keystore cle/requete-envoi.jks -storepass "$MDP" -alias "$ALIAS" | grep -E "SHA1|SHA256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cle-envoi-android
+          path: cle/
+          retention-days: 1

@@ -61,10 +61,10 @@ test('connexion : Google seul sur Android, avec le client web ; achats : la clé
   assert.ok(c.includes("var fournisseurs = android ? (avecGoogle ? ['google'] : []) : (avecGoogle ? ['apple', 'google'] : ['apple']);"));
   assert.ok(c.includes("o.google = android ? {webClientId: GOOGLE_WEB, mode: 'online'} : {iOSClientId: GOOGLE_IOS, iOSServerClientId: GOOGLE_WEB, mode: 'online'};"));
   const a = lire('achat.js');
-  assert.ok(a.includes("var CLE = typeof C.getPlatform === 'function' && C.getPlatform() === 'android' ? RC_CLE_ANDROID : RC_CLE_IOS;") && a.includes('P.configure({apiKey: CLE})'));
-  assert.ok(app.includes('<script src="connexion.js?v=4"></script>') && app.includes('<script src="achat.js?v=8"></script>'));
+  assert.ok(a.includes("var ANDROID = typeof C.getPlatform === 'function' && C.getPlatform() === 'android';") && a.includes('var CLE = ANDROID ? RC_CLE_ANDROID : RC_CLE_IOS;') && a.includes('P.configure({apiKey: CLE})'));
+  assert.ok(app.includes('<script src="connexion.js?v=4"></script>') && app.includes('<script src="achat.js?v=9"></script>'));
   const sw = lire('sw.js');
-  assert.ok(sw.includes("'./connexion.js?v=4',") && sw.includes("'./achat.js?v=8',"));
+  assert.ok(sw.includes("'./connexion.js?v=4',") && sw.includes("'./achat.js?v=9',"));
 });
 
 test('les marges du haut et du bas suivent Android (variables de Capacitor), et l’iPhone garde env()', () => {
@@ -121,4 +121,55 @@ test('Android : le clavier, la vue rétrécit d’elle-même (pas de double recu
   assert.ok(h.includes('var kbScroll=!appAndroid()&&P.Keyboard') && h.includes('var kbMode=!appAndroid()&&P.Keyboard'));
   const conf = JSON.parse(lire('capacitor.config.json'));
   assert.deepEqual(conf.plugins.SystemBars, {style: 'LIGHT', initialViewportFitValueHint: 'cover'}, 'icônes foncées sur le fond clair, même téléphone en mode sombre');
+});
+
+/* Les achats sur Google Play (24 novembre) : Google ne renvoie que les offres auxquelles la personne a droit ; pas de question
+   d’éligibilité comme chez Apple. L’identifiant porte le forfait de base (« abonnement:forfait »). */
+function achatAndroid({bienvenueDispo = true, essaiDispo = true} = {}) {
+  const src = lire('achat.js').replace("var RC_CLE_ANDROID = '';", "var RC_CLE_ANDROID = 'goog_essai';");
+  const store = {}, achats = [], cles = [];
+  const info = a => ({customerInfo: {entitlements: {active: a ? {premium: {}} : {}}}});
+  const phase = (iso, micros, txt) => ({billingPeriod: {iso8601: iso}, billingCycleCount: 1, price: {formatted: txt, amountMicros: micros, currencyCode: 'EUR'}});
+  const pq = (type, id, price, priceString, defaultOption) => ({identifier: type, packageType: type, product: {identifier: id, price, priceString, currencyCode: 'EUR', introPrice: null, defaultOption}});
+  const liste = [pq('ANNUAL', 'fr.requete.app.annuel:annuel', 49, '49,00 €', essaiDispo ? {freePhase: phase('P3D', 0, 'Gratuit')} : {}),
+    pq('WEEKLY', 'fr.requete.app.hebdo:hebdo', 4.99, '4,99 €', {}),
+    pq('CUSTOM', 'fr.requete.app.annuel.bienvenue:annuel', 49, '49,00 €', bienvenueDispo ? {introPhase: phase('P1Y', 24500000, '24,50 €')} : {})];
+  const plugin = {
+    configure: ({apiKey}) => { cles.push(apiKey); return Promise.resolve(); }, getCustomerInfo: () => Promise.resolve(info(false)),
+    getOfferings: () => Promise.resolve({current: {availablePackages: liste}}),
+    checkTrialOrIntroductoryPriceEligibility: () => { throw new Error('pas sur Android'); },
+    purchasePackage: ({aPackage}) => { achats.push(aPackage.product.identifier); return Promise.resolve(info(true)); },
+    restorePurchases: () => Promise.resolve(info(false)),
+  };
+  const win = {Capacitor: {isNativePlatform: () => true, getPlatform: () => 'android', Plugins: {Purchases: plugin}}};
+  vm.runInNewContext(src, {window: win, document: {visibilityState: 'visible', addEventListener() {}},
+    localStorage: {getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }}, Promise, Error, Object, Number, String, isNaN});
+  return {a: win.REQUETE_ACHAT, achats, cles};
+}
+const tour = () => new Promise(r => setTimeout(r, 10));
+
+test('Android : la clé Google, l’essai de 3 jours et l’offre de bienvenue lus dans les offres de Google Play', async () => {
+  const {a, achats, cles} = achatAndroid();
+  await tour();
+  assert.deepEqual(cles, ['goog_essai']);
+  assert.equal(a.prix('an').prix, 49); assert.equal(a.prix('semaine').texte, '4,99 €');
+  assert.deepEqual({...a.essai('an')}, {...a.essai('an'), n: 3, unite: 'jour'});
+  assert.equal(a.essai('semaine'), null);
+  assert.equal(a.sortieDispo(), true);
+  assert.deepEqual({...a.prix('bienvenue').intro}, {prix: 24.5, texte: '24,50 €'});
+  assert.equal(await a.acheter('bienvenue'), true);
+  assert.equal(await a.acheter('an'), true);
+  assert.deepEqual(achats, ['fr.requete.app.annuel.bienvenue:annuel', 'fr.requete.app.annuel:annuel']);
+});
+
+test('Android : sans droit à l’offre (Google ne la renvoie pas), ni essai promis ni −50 %', async () => {
+  const {a} = achatAndroid({bienvenueDispo: false, essaiDispo: false});
+  await tour();
+  assert.equal(a.essai('an'), null);
+  assert.equal(a.sortieDispo(), false);
+  assert.equal(a.prix('an').prix, 49, 'le paquet « an » reste l’annuel');
+});
+
+test('Android : sans clé RevenueCat Android, pas de crochet d’achat (à remplir avant toute sortie sur Google Play)', () => {
+  assert.ok(lire('achat.js').includes("var RC_CLE_ANDROID = '';"));
 });
