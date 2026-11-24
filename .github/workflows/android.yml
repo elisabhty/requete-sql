@@ -92,10 +92,16 @@ jobs:
           voix=$(unzip -l sortie/requete.aab | awk 'NF>=4 && $4 ~ /^voix\/assets\/public\/assets\/voix\// {n++} END {print n+0}')
           echo "Partie principale : $base Mo ; voix dans leur paquet : $voix fichiers"
           test "$base" -lt 190 && test "$voix" -gt 2000
+      # Deux téléchargements séparés : l’APK seul pour essayer (sur un téléphone ou l’émulateur d’Android Studio), l’AAB pour Google Play.
       - uses: actions/upload-artifact@v4
         with:
-          name: requete-android-${{ github.run_number }}
-          path: sortie/
+          name: requete-test-apk-${{ github.run_number }}
+          path: sortie/requete-test.apk
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: requete-aab-${{ github.run_number }}
+          path: sortie/requete.aab
           retention-days: 30
       - uses: actions/upload-artifact@v4
         with:
