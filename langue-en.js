@@ -307,6 +307,7 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Heure du rappel": "Reminder time",
     "Tes séances": "Your sessions",
     "« Requête » souhaite vous envoyer des notifications": "“Requête” Would Like to Send You Notifications",
+    "Autoriser Requête à vous envoyer des notifications ?": "Allow Requête to send you notifications?",
     "Les notifications peuvent inclure des alertes, des sons et des pastilles d’icônes. Elles peuvent être configurées dans Réglages.": "Notifications may include alerts, sounds, and icon badges. These can be configured in Settings.",
     "Ne pas autoriser les rappels": "Don’t allow reminders",
     "Ne pas autoriser": "Don’t Allow",

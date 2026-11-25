@@ -63,7 +63,7 @@ test('le clavier ouvert sur un champ : ob-clavier ; la phrase s’efface, le pie
 });
 
 test('le prénom clavier ouvert : la bulle répond à la place de la carte, sans changer de taille', () => {
-  const ctx = vm.createContext({ esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;') });
+  const ctx = vm.createContext({ esc: s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'), obLangue: () => null, obNt: () => '' });
   vm.runInContext(cut('function obTypo(s){', '\n') + '\n' + cut('function obPrenomReponse(n){', 'function obNamePreview(){'), ctx);
   assert.equal(ctx.obPrenomReponse(' Elisa '), 'Enchantée, <em>Elisa</em>&nbsp;! J’ai hâte d’en savoir plus sur toi.');
   assert.equal(ctx.obPrenomReponse(''), 'Enchantée, <em>Léa</em>&nbsp;! J’ai hâte d’en savoir plus sur toi.', 'sans prénom : la place d’un prénom courant');
