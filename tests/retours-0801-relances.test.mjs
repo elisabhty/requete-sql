@@ -13,7 +13,7 @@ const bout = (a, b) => app.slice(app.indexOf(a), app.indexOf(b, app.indexOf(a)))
 const ctx = (pwVu) => {
   const c = vm.createContext({ localStorage: { getItem: k => (k === 'rq-pw-vu' ? pwVu : null) } });
   vm.runInContext(bout('const RELANCE_IDS', 'let relanceSig') + "function parseD(s){const d=new Date(s+'T00:00:00');d.setHours(0,0,0,0);return d;}\n"
-    + bout('function relanceMessageDu', 'function relanceAuto') + ';this.R=RELANCE_MSG;this.A=ABSENCE_MSG;this.f=relanceMessageDu;', c);
+    + bout('function relanceNumeroDu', 'function relanceAuto') + ';this.R=RELANCE_MSG;this.A=ABSENCE_MSG;this.f=relanceMessageDu;', c);
   return c;
 };
 
