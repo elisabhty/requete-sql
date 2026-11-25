@@ -77,10 +77,18 @@ const ETAT = `(async () => { const M = window.REQUETE_MAJ, U = window.Capacitor 
   return {version: M && M.version, etat: M && M.etat(), paquet: cur && cur.bundle ? {id: cur.bundle.id, version: cur.bundle.version, status: cur.bundle.status} : cur, natif: cur && cur.native,
     plateforme: Capacitor.getPlatform(), texte: (document.body.innerText || '').trim().length}; })()`;
 
+const DIAG_SW = `(async () => { const nom = t => (String(t).match(/var NOM = '([^']+)'/) || [])[1];
+  const sw = navigator.serviceWorker; let regs = [], cles = [], cache = null;
+  try { regs = (await sw.getRegistrations()).map(r => (r.active || r.waiting || r.installing || {}).scriptURL); } catch (e) { regs = String(e); }
+  try { cles = await caches.keys(); const m = await caches.match('maj.js?v=3'); cache = m ? nom(await m.text()) : null; } catch (e) { cles = String(e); }
+  return {sansSW: window.__rqSansSW, pageAvecRetrait: [...document.scripts].some(s => s.textContent.includes('rq-sans-sw')), controleur: !!(sw && sw.controller),
+    workers: regs, caches: cles, majEnCache: cache, natif: !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform())}; })()`;
+
 // 1. Premier lancement : l’ancienne version, qui découvre la nouvelle et la télécharge
 let p = await lancer();
 let e = await p.evaluer(ETAT);
 console.log('1er lancement :', JSON.stringify(e));
+console.log('   service worker (1er lancement) :', JSON.stringify(await p.evaluer(DIAG_SW)));
 note('appli Android, module de mise à jour présent', e && e.plateforme === 'android' && e.etat && e.etat.branchee, e && e.plateforme);
 note('version embarquée v3100 (le téléphone « en retard »)', e && e.version === 3100, e && e.version);
 for (let i = 0; i < 48 && !(e && e.etat && e.etat.prete === attendue); i++) {
@@ -90,6 +98,7 @@ for (let i = 0; i < 48 && !(e && e.etat && e.etat.prete === attendue); i++) {
   if (i % 4 === 0) console.log('   … ' + (d ? d.quoi + (d.detail ? ' (' + d.detail + ')' : '') : 'pas encore lu'));
   if (d && d.quoi === 'vérification ratée' && i === 6) await p.evaluer('REQUETE_MAJ.verifier(true)');
 }
+console.log('   service worker (fin du 1er lancement) :', JSON.stringify(await p.evaluer(DIAG_SW)));
 note('nouvelle version téléchargée en arrière-plan', e && e.etat && e.etat.prete === attendue, e && e.etat);
 capture('1-ancienne-version');
 
@@ -106,7 +115,8 @@ const diag = await p.evaluer(`(async () => { const nom = t => (String(t).match(/
   return {adresse: location.href, majServi: nom(a), majCache: nom(b), script: ([...document.scripts].find(s => /maj\\.js/.test(s.src)) || {}).src,
     navigation: n && {type: n.type, transfert: n.transferSize, debut: Math.round(n.startTime)}, sw: !!(navigator.serviceWorker && navigator.serviceWorker.controller)}; })()`);
 console.log('   page :', JSON.stringify(diag));
-console.log('   paquets sur le téléphone :', adb(`shell run-as fr.requete.app sh -c 'ls files/versions; for d in files/versions/*; do echo $d; grep -o "var NOM = .[^;]*" $d/maj.js; ls $d | head -5; done'`).replace(/\s+/g, ' ').slice(0, 600));
+console.log('   service worker (2e lancement) :', JSON.stringify(await p.evaluer(DIAG_SW)));
+console.log('   paquets sur le téléphone :', adb(`shell "run-as fr.requete.app find . -maxdepth 3 -name maj.js"`).replace(/\s+/g, ' ').slice(0, 600));
 console.log('   journal du module :', adb('logcat -d').split('\n').filter(l => /updater|capgo/i.test(l)).slice(-25).join('\n'));
 note('elle vient du paquet téléchargé (pas du contenu embarqué)', e && e.paquet && e.paquet.id && e.paquet.id !== 'builtin' && e.paquet.version === 'v' + attendue, e && e.paquet);
 note('la page s’affiche', e && e.texte > 50, e && e.texte);
