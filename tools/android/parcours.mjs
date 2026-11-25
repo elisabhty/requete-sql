@@ -170,8 +170,24 @@ await envoyer('Page.reload', {ignoreCache: false});
 await dormir(12000);
 try { rapport.langue = await evaluer(`navigator.language + ' · ' + ((window.REQUETE_LANGUE || {}).code || 'fr')`); console.log('Langue de la page : ' + rapport.langue); } catch (e) {}
 let precedente = '', meme = 0;
+/* L’état de la page, même si elle met du temps à répondre : jusqu’à 3 min ; le temps passé figée est noté (c’est un souci). */
+async function etatSur() {
+  const t0 = Date.now(); let vu = false;
+  for (;;) {
+    try {
+      const st = await etat();
+      const s = Math.round((Date.now() - t0) / 1000);
+      if (s >= 20) { console.log(`   ! la page n’a pas répondu pendant ${s} s (${st.slide || st.ecran || 'appli'})`); (rapport.figee = rapport.figee || []).push({ecran: st.slide || st.ecran, secondes: s}); }
+      return st;
+    } catch (e) {
+      if (!vu) { vu = true; try { execSync(`adb exec-out screencap -p > captures/fige-${String(num).padStart(2, '0')}.png`, {timeout: 30000}); } catch (x) {} }
+      if (Date.now() - t0 > 180000) throw e;
+      fenetreSysteme();
+    }
+  }
+}
 for (let k = 0; k < 140; k++) {
-  const st = await etat();
+  const st = await etatSur();
   if (!st.ob) break;
   if (st.slide !== precedente) { await dormir(1200); await capture('onb-' + st.slide); precedente = st.slide; meme = 0; }
   else if (++meme > 14) { await capture('bloque-' + st.slide); rapport.bloque = st.slide; break; }
