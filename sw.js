@@ -18,6 +18,12 @@
 
 const CACHE = 'requete-2026-11-25-module-v3156';
 
+/* 25 novembre, 23 h : dans l’appli Android (https://localhost, sans port), pas de service worker. Il gardait les anciens
+   fichiers (maj.js) et cassait la mise à jour à distance (voir le haut de index.html). Un worker installé là ne range rien,
+   n’intercepte rien, et se retire de lui-même avec ses fichiers, puis recharge la page. Le site (requeteapp.com), l’iPhone
+   (capacitor://) et la mise au point (http://localhost:port) ne sont pas concernés. */
+const DANS_L_APPLI = self.location.protocol === 'https:' && self.location.hostname === 'localhost' && !self.location.port;
+
 const PRECACHE = [
   './safari-surface.css?v=14',
   './safari-surface.js?v=9',
@@ -454,6 +460,7 @@ const COEUR = PRECACHE.filter((url) => !EN_FOND(url));
 const ANIMS = PRECACHE.filter(EN_FOND);
 
 self.addEventListener('install', (e) => {
+  if (DANS_L_APPLI) { e.waitUntil(self.skipWaiting()); return; }
   e.waitUntil((async () => {
     const cache = await caches.open(CACHE);
     // addAll échoue en bloc si un seul fichier manque : on tolère les absents.
@@ -477,12 +484,20 @@ async function rangerAnims(){
   await Promise.all([suivant(), suivant()]);
 }
 self.addEventListener('message', (e) => {
-  if (e.data !== 'warm') return;
+  if (DANS_L_APPLI || e.data !== 'warm') return;
   if (!rangement) rangement = rangerAnims().finally(() => { rangement = null; });
   e.waitUntil(rangement);
 });
 
 self.addEventListener('activate', (e) => {
+  if (DANS_L_APPLI) {
+    e.waitUntil((async () => {
+      try { await Promise.all((await caches.keys()).map((n) => caches.delete(n))); } catch (err) {}
+      try { await self.registration.unregister(); } catch (err) {}
+      try { for (const c of await self.clients.matchAll({type: 'window'})) c.navigate(c.url).catch(() => {}); } catch (err) {}
+    })());
+    return;
+  }
   e.waitUntil((async () => {
     const noms = await caches.keys();
     await Promise.all(noms.filter((n) => n !== CACHE).map((n) => caches.delete(n)));
@@ -494,6 +509,7 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+  if (DANS_L_APPLI) return;
   const req = e.request;
   if (req.method !== 'GET') return;
 

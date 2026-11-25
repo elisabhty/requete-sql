@@ -39,6 +39,21 @@
 <!-- Elisa, 13 novembre, 11 h 49 : « modifier un cours, ajouter un parcours, modifier une faute, sans passer par une mise en prod
      Apple ». maj.js, chargé avant tout le reste : dans l’app iPhone, une version plus récente déjà téléchargée depuis requeteapp.com
      s’installe ici, sous l’écran de lancement (jamais en cours d’utilisation). Dans un navigateur, il ne fait rien. Voir maj.js. -->
+<!-- 25 novembre, 23 h (Elisa : « Vérifie », la mise à jour à distance sur Android, essayée sur un émulateur de GitHub). Dans
+     l’appli Android, la page est servie depuis https://localhost : le service worker du site s’y installait (sur iPhone, jamais).
+     Il gardait les anciens fichiers (maj.js) : après une mise à jour à distance, la page mélangeait l’ancienne version et la
+     nouvelle, et la nouvelle finissait écartée. Dans l’appli, pas de service worker : tout est déjà sur le téléphone. Un worker
+     déjà installé est retiré avec ses fichiers, et la page rechargée une fois (deux au plus par ouverture). -->
+<script>(function(){try{
+  var C=window.Capacitor,sw=navigator.serviceWorker;
+  if(!sw||!C||typeof C.isNativePlatform!=='function'||!C.isNativePlatform())return;
+  window.__rqSansSW=1;
+  var avait=!!sw.controller,k='rq-sans-sw',n=0;try{n=+sessionStorage.getItem(k)||0;}catch(e){}
+  sw.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));})
+    .then(function(){return window.caches?caches.keys().then(function(ks){return Promise.all(ks.map(function(x){return caches.delete(x);}));}):0;})
+    .then(function(){if(avait&&n<2){try{sessionStorage.setItem(k,String(n+1));}catch(e){}location.reload();}})
+    .catch(function(){});
+}catch(e){}})();</script>
 <script src="maj.js?v=3"></script>
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
@@ -54749,6 +54764,8 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   window.addEventListener('load',()=>{
     /* Dans un navigateur, la page part vers le site (script de tête, 13 novembre) : rien à garder hors ligne. */
     if(window.__rqVersSite)return;
+    /* Dans l’appli (Android), pas de service worker (en tête de page, 25 novembre) */
+    if(window.__rqSansSW)return;
     navigator.serviceWorker.register('sw.js?'+encodeURIComponent(SW_CACHE),{updateViaCache:'none'}).catch(e=>console.warn('Service worker non enregistré :',e));
     /* Les animations des cours sont rangées pour le hors ligne après coup, en fond (voir « warm » dans sw.js) :
        quelques secondes après l’ouverture, et pas pendant qu’une vidéo est ouverte. */
