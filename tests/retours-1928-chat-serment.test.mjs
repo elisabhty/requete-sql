@@ -18,8 +18,11 @@ test('Android : le chat du serment s’écarte du bouton ; iPhone inchangé', ()
   }
 });
 
-test('Android : l’engagement pris, plus de fil violet entre le rond et son halo ; iPhone inchangé', () => {
-  assert.ok(css.includes('html.is-android #onboarding.ob-vitrine .ob-hold.is-done .ob-hold-ring{opacity:0}'));
-  assert.ok(css.includes('html.is-android #onboarding.ob-vitrine .ob-hold.is-done{box-shadow:0 0 0 9px rgba(159,240,198,.55),0 6px 0 #5FCB97,0 16px 30px -12px rgba(27,22,64,.6)}'));
-  assert.ok(css.includes('html #onboarding.ob-vitrine .ob-hold.is-done{background:var(--v-mint);box-shadow:0 6px 0 #5FCB97,0 16px 30px -12px rgba(27,22,64,.6)}'), 'iPhone : la règle d’origine');
+test('partout : l’engagement pris, plus de fil violet entre le rond et son halo', () => {
+  assert.ok(css.includes('html #onboarding.ob-vitrine .ob-hold.is-done .ob-hold-ring{opacity:0}'));
+  const r = 'html #onboarding.ob-vitrine .ob-pact .ob-hold.is-done,html #onboarding.ob-vitrine .ob-hold.is-done{box-shadow:0 0 0 9px rgba(159,240,198,.55),0 6px 0 #5FCB97,0 16px 30px -12px rgba(27,22,64,.6)}';
+  assert.ok(css.includes(r));
+  /* elle passe après la règle d'origine, qu'elle remplace */
+  assert.ok(css.indexOf(r) > css.indexOf('html #onboarding.ob-vitrine .ob-hold.is-done{background:var(--v-mint);box-shadow:0 6px 0 #5FCB97,0 16px 30px -12px rgba(27,22,64,.6)}'));
+  assert.ok(!css.includes('html.is-android #onboarding.ob-vitrine .ob-hold.is-done'));
 });
