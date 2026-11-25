@@ -33,16 +33,23 @@ console.log('Version publiée pour tous sur requeteapp.com : v' + attendue);
 let ws = null;
 async function lancer() {
   try { if (ws) ws.close(); } catch (e) {}
-  adb('shell am force-stop fr.requete.app'); await dormir(1500);
-  adb('shell monkey -p fr.requete.app -c android.intent.category.LAUNCHER 1');
-  await dormir(30000);
-  const pid = adb('shell pidof fr.requete.app').trim();
-  const sock = (adb('shell cat /proc/net/unix').match(new RegExp('webview_devtools_remote_' + pid + '\\b')) || [])[0] || 'webview_devtools_remote_' + pid;
-  adb('forward --remove-all'); adb(`forward tcp:9222 localabstract:${sock}`);
   let page = null;
-  for (let i = 0; i < 15 && !page; i++) {
-    try { page = (await (await fetch('http://127.0.0.1:9222/json')).json()).find(c => c.type === 'page'); } catch (e) {}
-    if (!page) await dormir(2000);
+  // Jusqu’à trois essais : l’émulateur de GitHub, lent, ne montre pas toujours la page du premier coup.
+  for (let essai = 1; essai <= 3 && !page; essai++) {
+    adb('shell am force-stop fr.requete.app'); await dormir(1500);
+    adb('shell monkey -p fr.requete.app -c android.intent.category.LAUNCHER 1');
+    await dormir(30000);
+    for (let i = 0; i < 20 && !page; i++) {
+      const pid = adb('shell pidof fr.requete.app').trim();
+      const socks = adb('shell cat /proc/net/unix').match(/webview_devtools_remote_\d+/g) || [];
+      const sock = socks.find(x => x === 'webview_devtools_remote_' + pid) || socks[socks.length - 1];
+      if (i % 5 === 0) console.log(`   (lancement ${essai} : processus ${pid || '?'}, ${socks.length} prise(s) de débogage)`);
+      if (sock) {
+        adb('forward --remove-all'); adb(`forward tcp:9222 localabstract:${sock}`);
+        try { page = (await (await fetch('http://127.0.0.1:9222/json')).json()).find(c => c.type === 'page'); } catch (e) {}
+      }
+      if (!page) await dormir(3000);
+    }
   }
   if (!page) throw new Error('aucune page dans la WebView');
   ws = new WebSocket(page.webSocketDebuggerUrl);
