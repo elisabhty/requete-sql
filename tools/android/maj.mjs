@@ -98,6 +98,16 @@ p = await lancer();
 e = await p.evaluer(ETAT);
 console.log('2e lancement :', JSON.stringify(e));
 note('au lancement suivant, la nouvelle version tourne', e && e.version === attendue, e && e.version);
+// Ce que la page charge vraiment, et ce qu’il y a dans le paquet sur le téléphone (pour comprendre un écart)
+const diag = await p.evaluer(`(async () => { const nom = t => (String(t).match(/var NOM = '([^']+)'/) || [])[1];
+  const a = await fetch('maj.js?v=3', {cache: 'no-store'}).then(r => r.text()).catch(e => String(e));
+  const b = await fetch('maj.js?v=3').then(r => r.text()).catch(e => String(e));
+  const n = performance.getEntriesByType('navigation')[0];
+  return {adresse: location.href, majServi: nom(a), majCache: nom(b), script: ([...document.scripts].find(s => /maj\\.js/.test(s.src)) || {}).src,
+    navigation: n && {type: n.type, transfert: n.transferSize, debut: Math.round(n.startTime)}, sw: !!(navigator.serviceWorker && navigator.serviceWorker.controller)}; })()`);
+console.log('   page :', JSON.stringify(diag));
+console.log('   paquets sur le téléphone :', adb(`shell run-as fr.requete.app sh -c 'ls files/versions; for d in files/versions/*; do echo $d; grep -o "var NOM = .[^;]*" $d/maj.js; ls $d | head -5; done'`).replace(/\s+/g, ' ').slice(0, 600));
+console.log('   journal du module :', adb('logcat -d').split('\n').filter(l => /updater|capgo/i.test(l)).slice(-25).join('\n'));
 note('elle vient du paquet téléchargé (pas du contenu embarqué)', e && e.paquet && e.paquet.id && e.paquet.id !== 'builtin' && e.paquet.version === 'v' + attendue, e && e.paquet);
 note('la page s’affiche', e && e.texte > 50, e && e.texte);
 const lu = await p.evaluer(`fetch(${JSON.stringify(voix)}).then(async r => ({ok: r.ok, octets: (await r.arrayBuffer()).byteLength})).catch(e => String(e))`);
