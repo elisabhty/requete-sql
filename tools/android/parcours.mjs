@@ -214,7 +214,22 @@ for (let i = 0; i < 4; i++) {
   await dormir(1800);
   await capture('appli-' + ferme);
 }
-const onglets = await evaluer(`[...document.querySelectorAll('#tabbar [role=tab], #tabbar button')].filter(b => b.offsetParent).map((b, i) => i)`).catch(() => []);
+/* ESSAI_CIBLE (un onglet : « Pratiquer », « Bibliothèque », « Compte »… ou « lecon ») : un passage court, un seul endroit de
+   l’appli, regardé jusqu’en bas (les émulateurs de GitHub tiennent quelques minutes). */
+const CIBLE = process.env.ESSAI_CIBLE || '';
+async function descendre(nom) {
+  for (let i = 1; i <= 4; i++) {
+    const bouge = await evaluer(`(() => { const z = [...document.querySelectorAll('*')].filter(e => { if (!e.offsetParent && e !== document.scrollingElement) return false; const s = getComputedStyle(e); return /(auto|scroll)/.test(s.overflowY) && e.scrollHeight > e.clientHeight + 40 && e.clientHeight > innerHeight * .4; }).sort((a, b) => b.clientHeight - a.clientHeight)[0] || document.scrollingElement; const avant = z.scrollTop; z.scrollTop += z.clientHeight * .8; return z.scrollTop > avant + 5; })()`).catch(() => false);
+    if (!bouge) break;
+    await dormir(1500); await capture(nom + '-bas-' + i);
+  }
+}
+if (CIBLE && CIBLE !== 'lecon') {
+  const nom = await evaluer(`(() => { const b = [...document.querySelectorAll('#tabbar [role=tab], #tabbar button')].find(b => b.offsetParent && (b.innerText || b.getAttribute('aria-label') || '').includes(${JSON.stringify(CIBLE)})); if (!b) return null; b.click(); return ${JSON.stringify(CIBLE)}; })()`).catch(() => null);
+  if (nom) { await dormir(2500); await capture('onglet-' + nom); await descendre('onglet-' + nom); }
+  else console.log('Onglet introuvable : ' + CIBLE);
+}
+const onglets = CIBLE ? [] : await evaluer(`[...document.querySelectorAll('#tabbar [role=tab], #tabbar button')].filter(b => b.offsetParent).map((b, i) => i)`).catch(() => []);
 for (const i of (onglets || []).slice(0, 6)) {
   const nom = await evaluer(`(() => { const b = [...document.querySelectorAll('#tabbar [role=tab], #tabbar button')].filter(b => b.offsetParent)[${i}]; if (!b) return null; b.click(); return (b.innerText || b.getAttribute('aria-label') || 'onglet').trim().split('\\n')[0].slice(0, 20); })()`).catch(() => null);
   if (!nom) continue;
@@ -222,7 +237,7 @@ for (const i of (onglets || []).slice(0, 6)) {
   await capture('onglet-' + nom);
 }
 // La première leçon, depuis l’accueil
-const lecon = await evaluer(`(() => { const b = [...document.querySelectorAll('button,a')].find(b => b.offsetParent && /Commencer la leçon|Reprendre|Start the lesson|Start lesson|Resume/i.test(b.innerText || '')); if (b) { b.click(); return true; } return false; })()`).catch(() => false);
+const lecon = CIBLE && CIBLE !== 'lecon' ? false : await evaluer(`(() => { const b = [...document.querySelectorAll('button,a')].find(b => b.offsetParent && /Commencer la leçon|Reprendre|Start the lesson|Start lesson|Resume/i.test(b.innerText || '')); if (b) { b.click(); return true; } return false; })()`).catch(() => false);
 if (lecon) {
   for (let i = 0; i < 6; i++) {
     await dormir(4000); await capture('lecon-' + (i + 1));
