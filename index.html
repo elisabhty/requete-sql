@@ -6830,7 +6830,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=393">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=78">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=79">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -47694,6 +47694,13 @@ function obPaywallPied(){
      « Entrer dans l’appli (version de test) ». L’iPhone et l’appli de Google Play ne changent pas. */
   const testAndroid=!obAchatPret()&&obEssaiAndroid();
   obSetFooter(testAndroid?'Entrer dans l’appli (version de test)':libelle,testAndroid?obPaywallPasser:obPaywallAcheter,'','',{html:legal},obPwBusy);
+  if(typeof appAndroid==='function'&&appAndroid()&&typeof requestAnimationFrame==='function')requestAnimationFrame(pwConfianceLignes);
+}
+/* 25 novembre (Android) : les garanties du paywall passées à la ligne ne commencent pas par un trait (onboarding-vitrine.css). */
+function pwConfianceLignes(){
+  const c=typeof document!=='undefined'&&document.querySelector('#ob-foot-note .pw-confiance');if(!c)return;
+  let haut=null;
+  [...c.children].forEach(x=>{const t=x.offsetTop;x.classList.toggle('is-debut',haut!==null&&t>haut+2);haut=t;});
 }
 /* Les prix de la boutique viennent d’arriver (ou de manquer) : le paywall ouvert se repeint, sans rejouer son entrée. */
 function obPaywallPrix(){
