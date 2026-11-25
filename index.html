@@ -52699,6 +52699,12 @@ function compteStats(){
   const streak=streakJours();
   return {lessons,defis,cards,notes,due,streak};
 }
+/* 25 novembre, 19 h (Elisa, l'appli Android sur un vrai Pixel 8 chez BrowserStack : en entrant dans l'appli, Android ouvrait tout seul
+   la page des réglages « Alarmes et rappels ») : le module des notifications demande par défaut une alarme exacte, et ouvre cette
+   page tant qu'elle n'est pas permise. L'appli ne la demande pas (AndroidManifest.xml retire SCHEDULE_EXACT_ALARM) : la page ne sert
+   à rien et l'interrupteur y est grisé. Sur Android seulement, les notifications partent en alarme non exacte (à quelques minutes
+   près, ce qui suffit pour un rappel) ; l'iPhone ne change pas. */
+function lnSansExact(liste){try{return typeof appAndroid==='function'&&appAndroid()?(liste||[]).map(x=>Object.assign({},x,{isExactNotification:false})):liste;}catch(e){return liste;}}
 function rappelOn(){
   try{ return localStorage.getItem('requete-rappel')==='1'; }catch(e){ return false; }
 }
@@ -52927,7 +52933,7 @@ function rappelNativeSync(demander){
     try{const p=await(demander||typeof LN.checkPermissions!=='function'?LN.requestPermissions():LN.checkPermissions());if(p&&p.display&&p.display!=='granted')return;}catch(e){return;}
     const boutons=typeof LN.registerActionTypes==='function'?await rappelBoutonsPoser(LN):false;
     const notifications=rappelSeances(new Date(),56).filter(d=>!(typeof flammeDirectCouvre==='function'&&flammeDirectCouvre(d))).map((d,i)=>{const [title,body]=rappelMessage(d);return Object.assign({id:100+i,title,body,schedule:{at:d,allowWhileIdle:true}},boutons?{actionTypeId:RAPPEL_BOUTONS}:{});});
-    try{if(notifications.length)await LN.schedule({notifications});}catch(e){}
+    try{if(notifications.length)await LN.schedule({notifications:typeof lnSansExact==='function'?lnSansExact(notifications):notifications});}catch(e){}
   };
   rappelFile=(rappelFile||Promise.resolve()).then(go,go);
 }
@@ -52959,7 +52965,7 @@ function rappelBouton(action,notif){
   const C=window.Capacitor,LN=C&&C.Plugins&&C.Plugins.LocalNotifications,at=rappelPlusTardQuand(new Date());
   if(!LN||!at||!notif)return;
   const n={id:RAPPEL_PLUS_TARD_ID,title:String(notif.title||''),body:String(notif.body||''),schedule:{at,allowWhileIdle:true},actionTypeId:RAPPEL_BOUTONS};
-  Promise.resolve(LN.cancel({notifications:[{id:RAPPEL_PLUS_TARD_ID}]})).catch(()=>{}).then(()=>LN.schedule({notifications:[n]})).catch(()=>{});
+  Promise.resolve(LN.cancel({notifications:[{id:RAPPEL_PLUS_TARD_ID}]})).catch(()=>{}).then(()=>LN.schedule({notifications:typeof lnSansExact==='function'?lnSansExact([n]):[n]})).catch(()=>{});
 }
 /* L’appli ouverte pour de bon (au premier plan) : le rappel remis à plus tard n’a plus lieu d’être. */
 function rappelPlusTardAnnuler(){
@@ -53039,7 +53045,7 @@ function relanceAuto(){
     const n=q.relance
       ?relanceJours(demain,28,h,m).map((at,i)=>{const k=relanceNumeroDu(at),[t,b]=RELANCE_MSG[k-1];return {id:RELANCE_IDS[i],title:T(t),body:T(b),schedule:{at,allowWhileIdle:true},extra:{rq:'relance',m:k}};})
       :relanceJours(new Date(Date.now()+3*864e5),3,h,m).map((at,i)=>({id:ABSENCE_IDS[i],title:T(ABSENCE_MSG[i][0]),body:T(ABSENCE_MSG[i][1]),schedule:{at,allowWhileIdle:true},extra:{rq:'absence',m:i+1}}));
-    try{if(n.length)await LN.schedule({notifications:n});}catch(e){}
+    try{if(n.length)await LN.schedule({notifications:typeof lnSansExact==='function'?lnSansExact(n):n});}catch(e){}
   };
   relanceFile=(relanceFile||Promise.resolve()).then(go,go);
 }
@@ -54721,7 +54727,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-25-module-v3152';
+  const SW_CACHE='requete-2026-11-25-module-v3153';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
