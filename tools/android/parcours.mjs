@@ -115,12 +115,18 @@ async function capture(nomEtape) {
   for (const x of e.erreurs) console.log('   ! ' + String(x).slice(0, 200));
 }
 
-/* Un appui long réel (le doigt sur le bouton du serment), aux coordonnées de l’écran du téléphone */
+/* Un appui long (le doigt sur le bouton du serment) : un vrai toucher envoyé à la page (les coordonnées de la page, sans
+   dépendre de la place de la vue sur l’écran) ; s’il n’a pas pris, le doigt d’Android aux coordonnées de l’écran. */
 async function appuiLong(selecteur, ms) {
-  const r = await evaluer(`(() => { const e = document.querySelector(${JSON.stringify(selecteur)}); if (!e) return null; const b = e.getBoundingClientRect(); return {x: b.left + b.width / 2, y: b.top + b.height / 2, d: devicePixelRatio}; })()`);
+  const ou = `(() => { const e = document.querySelector(${JSON.stringify(selecteur)}); if (!e) return null; const b = e.getBoundingClientRect(); return {x: b.left + b.width / 2, y: b.top + b.height / 2, d: devicePixelRatio, fait: e.classList.contains('is-done')}; })()`;
+  const r = await evaluer(ou);
   if (!r) return false;
-  const x = Math.round(r.x * r.d), y = Math.round(r.y * r.d + HAUT);
-  adb(`shell input swipe ${x} ${y} ${x} ${y} ${ms}`);
+  await envoyer('Input.dispatchTouchEvent', {type: 'touchStart', touchPoints: [{x: r.x, y: r.y}]});
+  await dormir(ms);
+  await envoyer('Input.dispatchTouchEvent', {type: 'touchEnd', touchPoints: []});
+  await dormir(600);
+  const apres = await evaluer(ou).catch(() => null);
+  if (apres && !apres.fait) adb(`shell input swipe ${Math.round(r.x * r.d)} ${Math.round(r.y * r.d + HAUT)} ${Math.round(r.x * r.d)} ${Math.round(r.y * r.d + HAUT)} ${ms}`);
   return true;
 }
 
@@ -159,7 +165,7 @@ for (let k = 0; k < 140; k++) {
   else if (++meme > 14) { await capture('bloque-' + st.slide); rapport.bloque = st.slide; break; }
   let fait = null;
   try { fait = await evaluer(AGIR); } catch (e) { console.log('   ! action : ' + String(e).slice(0, 160)); }
-  if (fait === 'serment') { await appuiLong('.ob-hold', 2600); await dormir(1500); await capture('onb-pact-fait'); }
+  if (fait === 'serment') { await appuiLong('.ob-hold', 2600); await dormir(1500); if (!rapport.pacte) { rapport.pacte = 1; await capture('onb-pact-fait'); } }
   await dormir(fait ? 900 : 1600);
 }
 

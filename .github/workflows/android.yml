@@ -166,7 +166,7 @@ jobs:
           arch: x86_64
           target: google_apis
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader_indirect -feature -Vulkan -no-snapshot -noaudio -no-boot-anim
           script: ESSAI_BORDS=${{ matrix.api == 35 && '1' || '0' }} bash tools/android/essai.sh
       - uses: actions/upload-artifact@v4
         if: always()
@@ -227,7 +227,9 @@ jobs:
           # s’arrêtaient net pendant les animations du premier passage (25 novembre). Les captures montrent l’état final de chaque écran.
           disable-animations: true
           ram-size: 4096M
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          # Sans Vulkan dans le téléphone : la WebView dessinait en Vulkan, que l’émulateur imite mal sans carte graphique, et
+          # l’émulateur s’arrêtait net au bout de quelques minutes (2e passage, 25 novembre).
+          emulator-options: -no-window -gpu swiftshader_indirect -feature -Vulkan -no-snapshot -noaudio -no-boot-anim
           script: ESSAI_SOMBRE=${{ matrix.api == 35 && '1' || '0' }} ESSAI_LANGUE=${{ matrix.langue }} bash tools/android/parcours.sh
       - uses: actions/upload-artifact@v4
         if: always()
