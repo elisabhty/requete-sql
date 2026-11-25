@@ -12,6 +12,8 @@ const keepExt = new Set(['.html', '.css', '.js', '.webmanifest']);
 const skip = new Set(['perf-probe.js']);
 for (const name of readdirSync(root)) {
   const p = join(root, name);
+  // Le fichier de Google Search Console (google….html, 25 novembre, pour valider le site dans la Play Console) reste sur le site seulement.
+  if (/^google[0-9a-f]+\.html$/.test(name)) continue;
   if (statSync(p).isFile() && keepExt.has(extname(name)) && !skip.has(name)) cpSync(p, join(out, name));
 }
 // La vidéo mascotte-requete.mp4 (4,5 Mo) n’est utilisée nulle part : on ne l’embarque pas. Depuis le 30 octobre, la
