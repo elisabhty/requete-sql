@@ -47552,7 +47552,7 @@ function obPrixBoutique(k){try{const a=window.REQUETE_ACHAT,p=a&&typeof a.prix==
    ses prix (REQUETE_ACHAT.prixEtat : 'attente', puis 'echec' sans réponse), le paywall le dit à la place des offres, et se repeint
    dès qu’ils arrivent (obPaywallPrix, suivi par obGardeDemarrer). Sans boutique branchée (le site, la mise au point), 'oui' : les
    prix d’Elisa en euros, comme avant. */
-function obPrixEtat(){try{const a=window.REQUETE_ACHAT;if(!a||typeof a.acheter!=='function')return obAppIphone()?'echec':'oui';if(typeof a.prixEtat!=='function')return 'oui';const e=a.prixEtat();return e==='attente'||e==='echec'?e:'oui';}catch(e){return 'oui';}}
+function obPrixEtat(){try{const a=window.REQUETE_ACHAT;if(!a||typeof a.acheter!=='function')return obAppIphone()&&!obEssaiAndroid()?'echec':'oui';if(typeof a.prixEtat!=='function')return 'oui';const e=a.prixEtat();return e==='attente'||e==='echec'?e:'oui';}catch(e){return 'oui';}}
 function obPrixEcrit(prix,devise,texte){return obDevise(prix,devise)||String(texte||'').replace(/ /g,'\u00a0');}
 function obPrixTexte(k){const b=obPrixBoutique(k);return b?obPrixEcrit(b.prix,b.devise,b.texte):obEuros(OB_OFFRES[k].prix);}
 /* Un montant dans la devise de la boutique, écrit à la française (« 0,76 $US », « 0,86 € ») ; '' si la devise est inconnue.
@@ -47679,7 +47679,12 @@ function obPaywallPied(){
     :obEssaiConnu(k)?`<b class="pw-sans"${obNt()}>${obPh('{prix} aujourd’hui, puis {quand}.',{prix,quand:obPh(k==='an'?'chaque année':'chaque semaine')})}</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
     :`<b class="pw-sans"${obNt()}>${prix} ${obPh(o.par)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `);
   const legal=confiance+texte+`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener"${obNt()}>${obLangue()?obPh('Conditions d’utilisation'):'Conditions'}</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
-  obSetFooter(libelle,obPaywallAcheter,'','',{html:legal},obPwBusy);
+  /* 25 novembre, 16 h 35 (Elisa, sur l’émulateur Android : « laisse-moi rentrer dans l’application avec un bouton », « avec le paywall
+     je ne peux pas rentrer ») : dans l’appli d’essai Android seulement (obEssaiAndroid), tant que l’achat n’est pas branché, le
+     paywall ne dit plus « Les offres ne se chargent pas » (obPrixEtat) : il montre les offres, et son bouton dit ce qu’il fait,
+     « Entrer dans l’appli (version de test) ». L’iPhone et l’appli de Google Play ne changent pas. */
+  const testAndroid=!obAchatPret()&&obEssaiAndroid();
+  obSetFooter(testAndroid?'Entrer dans l’appli (version de test)':libelle,testAndroid?obPaywallPasser:obPaywallAcheter,'','',{html:legal},obPwBusy);
 }
 /* Les prix de la boutique viennent d’arriver (ou de manquer) : le paywall ouvert se repeint, sans rejouer son entrée. */
 function obPaywallPrix(){
@@ -54716,7 +54721,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-25-module-v3151';
+  const SW_CACHE='requete-2026-11-25-module-v3152';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
