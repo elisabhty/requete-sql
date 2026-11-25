@@ -19,6 +19,15 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
 - Les achats (achat.js) savent lire les offres de Google Play : essai de 3 jours, offre de bienvenue, identifiants
   « abonnement:forfait ». Il manque seulement la clé RevenueCat Android (voir plus bas).
 - La clé d'envoi : un bouton dans GitHub (Actions › Clé d'envoi Android), avec des mots de passe choisis par Elisa.
+- 25 novembre : clé d'envoi fabriquée (secrets ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD ; le 4e,
+  ANDROID_KEYSTORE_BASE64, à coller par Elisa depuis l'artefact « cle-envoi-android »). Empreintes, publiques :
+  SHA-1 5E:9D:A2:EB:B5:E6:56:94:DD:5A:24:C6:33:F6:DB:FF:D8:67:20:62 (client « Android » de Google Cloud, fr.requete.app, pour la
+  connexion Google des versions d'essai) ; SHA-256 1B:92:B6:28:29:C3:12:01:4E:E8:FD:EE:4B:AC:F1:9E:E5:98:E9:0A:06:F0:53:EE:64:BD:35:31:2B:25:F7:29.
+  Les téléphones qui installent depuis Google Play ont la signature de Google : son SHA-1 (Play Console › Intégrité de l'appli) sera
+  à ajouter aussi.
+- 25 novembre : compte Play Console d'organisation créé (HORMEND AI LABS, D-U-N-S 278027523) ; site requeteapp.com validé dans la
+  Search Console (fichier google17eb5e8ac0a6504f.html à la racine du site, à ne pas supprimer) ; identité en cours de vérification
+  par Google ; profil de paiement rempli.
 
 ## Dans l'ordre, ce qu'il reste à faire
 
