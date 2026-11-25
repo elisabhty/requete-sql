@@ -191,10 +191,17 @@ jobs:
             profil: pixel_7
             nom: grand-ecran-android-14
             langue: fr-FR
+            depart: onboarding
           - api: 35
             profil: Galaxy Nexus
             nom: petit-ecran-android-15
             langue: ''
+            depart: onboarding
+          - api: 34
+            profil: Nexus 5X
+            nom: appli-android-14
+            langue: fr-FR
+            depart: appli
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -230,7 +237,7 @@ jobs:
           # Sans Vulkan dans le téléphone : la WebView dessinait en Vulkan, que l’émulateur imite mal sans carte graphique, et
           # l’émulateur s’arrêtait net au bout de quelques minutes (2e passage, 25 novembre).
           emulator-options: -no-window -gpu swiftshader_indirect -feature -Vulkan -no-snapshot -noaudio -no-boot-anim
-          script: ESSAI_SOMBRE=${{ matrix.api == 35 && '1' || '0' }} ESSAI_LANGUE=${{ matrix.langue }} bash tools/android/parcours.sh
+          script: ESSAI_SOMBRE=${{ matrix.api == 35 && '1' || '0' }} ESSAI_LANGUE=${{ matrix.langue }} ESSAI_DEPART=${{ matrix.depart }} bash tools/android/parcours.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:

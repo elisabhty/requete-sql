@@ -169,6 +169,13 @@ const AGIR = `(async () => {
 await envoyer('Page.reload', {ignoreCache: false});
 await dormir(12000);
 try { rapport.langue = await evaluer(`navigator.language + ' · ' + ((window.REQUETE_LANGUE || {}).code || 'fr')`); console.log('Langue de la page : ' + rapport.langue); } catch (e) {}
+/* ESSAI_DEPART=appli : l’onboarding sauté (réponses par défaut), droit dans l’appli. Les émulateurs de GitHub s’arrêtent au bout de
+   quelques minutes : l’appli elle-même est parcourue dans un passage à part, tant que l’émulateur tient. */
+if (process.env.ESSAI_DEPART === 'appli') {
+  const ok = await evaluer(`(() => { try { draft.name = draft.name || 'Elisa'; finishOnboard('home'); return true; } catch (e) { return String(e); } })()`).catch(e => String(e));
+  console.log('Onboarding sauté : ' + ok);
+  await dormir(4000);
+}
 let precedente = '', meme = 0;
 /* L’état de la page, même si elle met du temps à répondre : jusqu’à 3 min ; le temps passé figée est noté (c’est un souci). */
 async function etatSur() {
@@ -202,7 +209,7 @@ for (let k = 0; k < 140; k++) {
 await dormir(3000);
 await capture('appli-arrivee');
 for (let i = 0; i < 4; i++) {
-  const ferme = await evaluer(`(() => { const b = [...document.querySelectorAll('button')].find(b => b.offsetParent && /Récupérer|Plus tard|Fermer|Compris|C’est parti|Continuer/i.test(b.innerText || b.getAttribute('aria-label') || '')); if (b) { b.click(); return b.innerText.trim().slice(0, 30); } return null; })()`).catch(() => null);
+  const ferme = await evaluer(`(() => { const b = [...document.querySelectorAll('button')].find(b => b.offsetParent && /Récupérer|Plus tard|Fermer|Compris|C’est parti|Continuer|Later|Close|Got it|Let’s go|Continue/i.test(b.innerText || b.getAttribute('aria-label') || '')); if (b) { b.click(); return b.innerText.trim().slice(0, 30); } return null; })()`).catch(() => null);
   if (!ferme) break;
   await dormir(1800);
   await capture('appli-' + ferme);
@@ -216,7 +223,14 @@ for (const i of (onglets || []).slice(0, 6)) {
 }
 // La première leçon, depuis l’accueil
 const lecon = await evaluer(`(() => { const b = [...document.querySelectorAll('button,a')].find(b => b.offsetParent && /Commencer la leçon|Reprendre|Start the lesson|Start lesson|Resume/i.test(b.innerText || '')); if (b) { b.click(); return true; } return false; })()`).catch(() => false);
-if (lecon) { for (let i = 0; i < 3; i++) { await dormir(4000); await capture('lecon-' + (i + 1)); } }
+if (lecon) {
+  for (let i = 0; i < 6; i++) {
+    await dormir(4000); await capture('lecon-' + (i + 1));
+    // Le bouton qui fait avancer la leçon (sans répondre aux exercices à la place de l’élève : seulement « Continuer », « Suivant »…)
+    const suite = await evaluer(`(() => { const b = [...document.querySelectorAll('button')].filter(b => b.offsetParent && !b.disabled).find(b => /^(Continuer|Suivant|Commencer|C’est parti|J’ai compris|Continue|Next|Start|Got it)/i.test((b.innerText || '').trim())); if (b) { b.click(); return b.innerText.trim().slice(0, 30); } return null; })()`).catch(() => null);
+    if (!suite) break;
+  }
+}
 
 writeFileSync('captures/rapport.json', JSON.stringify(rapport, null, 1));
 const total = rapport.etapes.reduce((s, e) => s + e.soucis.length + e.erreurs.length, 0);
