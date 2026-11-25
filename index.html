@@ -50131,10 +50131,11 @@ function obFit(){
      comprises, sans ses hauteurs imposées (ob-jauge), à l’échelle essayée : getBoundingClientRect rend sa hauteur à l’écran. */
   const zMax=Math.max(1,Math.min(OB_Z_MAX,(root.clientWidth||OB_Z_REF)/OB_Z_REF)),z0=obZ();
   const dernier=screen.lastElementChild;
-  /* 25 novembre, 15 h 47 (Elisa : « je parlais du gif qui cache le texte ») : sur la feuille de connexion, un message sous les boutons
-     (« Connexion impossible… ») agrandit la feuille sans changer le bas de la page : rien ne remesurait, le haut rapetissait sous sa
-     place prévue et le chat à la clé montait sur son texte. La hauteur de la feuille compte maintenant dans ce qui a bougé. */
-  const feuille=typeof screen.querySelector==='function'?screen.querySelector(':scope>.ob-acc-feuille'):null;
+  /* 25 novembre, 15 h 47 (Elisa : « je parlais du gif qui cache le texte » ; 16 h 15 : « sur iPhone c’est ok […] c’est que Android »)
+     : sur Android, un message sous les boutons de la feuille de connexion (« Connexion impossible… ») agrandit la feuille sans changer
+     le bas de la page : rien ne remesurait, le haut rapetissait sous sa place prévue et le chat à la clé montait sur son texte. Sur
+     Android, la hauteur de la feuille compte maintenant dans ce qui a bougé. L’iPhone ne change pas. */
+  const feuille=typeof appAndroid==='function'&&appAndroid()&&typeof screen.querySelector==='function'?screen.querySelector(':scope>.ob-acc-feuille'):null;
   const signe=()=>[screen.childElementCount,screen.scrollHeight,dernier?dernier.offsetTop+dernier.offsetHeight:0,foot?foot.offsetHeight:0,feuille?feuille.offsetHeight:0].join(',');
   const cle=[root.dataset.obSlide,root.clientWidth,root.clientHeight,screen.className].join('|');
   const tient=()=>cadre.scrollHeight<=cadre.clientHeight+1;
@@ -54715,7 +54716,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-25-module-v3150';
+  const SW_CACHE='requete-2026-11-25-module-v3151';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
