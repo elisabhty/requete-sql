@@ -77,5 +77,5 @@ test('« À plusieurs » : une rangée de cartes ; le podium moins haut ; la lé
     assert.ok(bloc.includes(r), r);
   assert.ok(app.includes('<p class="perf-legend is-ligne"><span><i class="perf-legend-o" aria-hidden="true"></i>points des adversaires</span><span class="perf-legend-t">au pied des barres&nbsp;: nombre de joueurs</span></p>'));
   assert.ok(!app.includes('perf-legend-n'), 'pas de chiffre d’exemple (31 octobre, 18 h 19)');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=393">') && sw.includes("const CACHE = 'requete-2026-11-25-module-v3145';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=393">') && sw.includes("const CACHE = 'requete-2026-11-25-module-v3146';"));
 });

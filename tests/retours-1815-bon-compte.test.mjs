@@ -36,7 +36,7 @@ test('l’autre fournisseur, et les deux questions', async () => {
 
 test('« J’ai déjà un compte » sur un compte neuf : l’autre fournisseur est proposé avant les questions', () => {
   const f = entre('async function obStartAuth(provider,btn){', '\n}\n');
-  assert.ok(f.includes("const autreF=typeof compteAutreFournisseur==='function'?compteAutreFournisseur(provider):'';\n        if(autreF&&await compteProposerAutre(provider,autreF)){compteChangerFournisseur(autreF);return;}"));
+  assert.ok(f.includes("const autreF=typeof compteAutreFournisseur==='function'?compteAutreFournisseur(provider):'';\n        if(autreF&&!obAutreEssaye&&await compteProposerAutre(provider,autreF)){compteChangerFournisseur(autreF);return;}"));
   assert.ok(f.indexOf('compteProposerAutre(provider,autreF)') < f.lastIndexOf("obGoto('questions');"), 'la question, puis les questions de l’onboarding');
   const c = entre('async function compteChangerFournisseur(a){', '\n}\n');
   assert.ok(c.includes('await compteQuitterNeuf();') && c.includes('return obStartAuth(a,null);'));

@@ -47339,9 +47339,13 @@ function obPaywallOuvert(){return !obAchatPret()&&(!obAppIphone()||obEssaiAndroi
 function obAbonne(){try{return !!(window.REQUETE_ACHAT&&typeof window.REQUETE_ACHAT.actif==='function'&&window.REQUETE_ACHAT.actif());}catch(e){return false;}}
 function obApresPret(fin){draft.finVoulue=fin||'home';const connecte=(draft.accountMode||state.accountMode)==='connected';if(obCompteVisible()&&!connecte)obGoto('account');else obApresCompte();}   // déjà connectée (dès le début, 12 novembre) : pas une deuxième fois
 /* Le compte avait-il déjà quelque chose (csDistant, renvoyé par csSync) ? Sans réponse du compte : le planning arrivé sur l’appareil. */
+/* 25 novembre, 8 h 33 (Elisa : « Apple alors que j’étais sur Google, ça a créé un compte sans onboarding », appli réinstallée) :
+   son compte Apple, ouvert par erreur la veille, n’avait qu’un planning (ni pseudo, ni progression) ; il passait pour un compte
+   connu : ni l’autre fournisseur proposé, ni les questions, ni les stickers. Un compte n’est connu qu’avec de la progression, des
+   notes, ou un planning ET un pseudo (tout compte allé au bout a un pseudo, obligatoire depuis le 24 novembre). */
 function obCompteConnu(r){
   const d=(r&&r.distant)||(typeof CS!=='undefined'&&CS&&CS.distant)||null;
-  if(d)return !!(d.plan||d.progres||d.notes);
+  if(d)return !!(d.progres||d.notes||(d.plan&&typeof psMien==='function'&&psMien()));
   return !!(state.plan&&Array.isArray(state.plan.sessions)&&state.plan.sessions.length);
 }
 function obApresCompte(){if(obAbonne())finishOnboard(draft.finVoulue||draft.finConnexion||'home');else obGoto('paywall');}
@@ -51283,7 +51287,11 @@ async function compteQuitterNeuf(){
   if(draft&&typeof draft==='object')draft.accountMode='guest';
 }
 /* Dans l’onboarding (page du compte) : le compte neuf est quitté, l’autre fournisseur s’ouvre tout de suite. */
+/* 25 novembre, 8 h 33 : deux comptes neufs (Apple puis Google, ou l’inverse) se renvoyaient la balle sans fin (« Ce compte est
+   nouveau » à chaque fois). L’autre fournisseur n’est proposé qu’une fois ; le second compte neuf enchaîne sur les questions. */
+let obAutreEssaye=false;
 async function compteChangerFournisseur(a){
+  obAutreEssaye=true;
   await compteQuitterNeuf();
   obAuthBusy=false;obAuthFait=false;obAuthMessage='';
   return obStartAuth(a,null);
@@ -51385,7 +51393,7 @@ async function obStartAuth(provider,btn){
         /* 24 novembre, 17 h 45 (Elisa, inscrite avec Google, reconnectée avec Apple : « il me reconnaît plus ») : un compte neuf
            derrière « J’ai déjà un compte » est peut-être le mauvais fournisseur ; on propose l’autre avant les questions. */
         const autreF=typeof compteAutreFournisseur==='function'?compteAutreFournisseur(provider):'';
-        if(autreF&&await compteProposerAutre(provider,autreF)){compteChangerFournisseur(autreF);return;}
+        if(autreF&&!obAutreEssaye&&await compteProposerAutre(provider,autreF)){compteChangerFournisseur(autreF);return;}
         /* 12 h 24 (« pas de texte notifié noir ») : plus de bandeau par-dessus la page des questions, qui le dit déjà */
         obGoto('questions');
       }
@@ -54679,7 +54687,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-25-module-v3145';
+  const SW_CACHE='requete-2026-11-25-module-v3146';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

@@ -151,6 +151,8 @@ test('avec un fournisseur branché, les mêmes boutons connectent pour de vrai, 
       window: { REQUETE_AUTH: { signIn: async () => ({ email: 'lea@apple.test', prenom: 'Léa' }) } }, state: {}, draft: {}, obEntry: 'welcome', obAuthBusy: false, obAuthMessage: '',
       paintOb() {}, save() {}, obGoto: t => v.push(t), obApresCompte: () => v.push('paywall'), buzz() {}, obTypo: x => x, obBandeau: t => bandeaux.push(t),
       setTimeout: (f, ms) => (ms < 1000 ? f() : 0), obDraftDepuisEtat() {},
+      /* 25 novembre : un compte connu a aussi son pseudo (obCompteConnu) */
+      psMien: () => connu ? '@lea' : '',
     });
     vm.runInContext(fournisseurs.replace('const OB_PROVIDERS=', 'var OB_PROVIDERS=') + connexion + cut('function obCompteConnu(r){', '\n}\n') + '\n}', c);
     /* Ce que le compte contenait (csDistant, posé par csSync) ; la synchro elle-même n’est pas branchée ici */
