@@ -10,6 +10,10 @@ if [ "${ESSAI_SOMBRE:-0}" = "1" ]; then adb shell cmd uimode night yes || true; 
 # La langue de l’appli sur ce téléphone (Android 13 et plus) : le français pour le grand écran
 if [ -n "${ESSAI_LANGUE:-}" ]; then adb shell cmd locale set-app-locales fr.requete.app --locales "$ESSAI_LANGUE" || true; fi
 adb shell wm size; adb shell wm density
+# Le bureau d’Android (le lanceur) coupé pendant le parcours : sur l’émulateur surchargé, il « ne répondait pas » et sa fenêtre
+# se posait devant l’appli (2e passage, 25 novembre). L’appli est lancée directement, le bureau ne sert pas.
+for L in com.google.android.apps.nexuslauncher com.android.launcher3; do adb shell pm disable-user --user 0 "$L" >/dev/null 2>&1 || true; done
+adb shell settings put global anr_show_background 0 || true
 adb logcat -c || true
 adb shell monkey -p fr.requete.app -c android.intent.category.LAUNCHER 1 >/dev/null
 sleep 35

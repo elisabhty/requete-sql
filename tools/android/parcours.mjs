@@ -99,8 +99,20 @@ const etat = () => evaluer(`(() => { const r = document.getElementById('onboardi
   return {ob, slide: ob && typeof OB_SLIDES !== 'undefined' ? OB_SLIDES[obStep] : '', ecran: (document.querySelector('.scr.on,.screen.on,[data-ecran].on') || {}).id || '',
     titre: ((r && ob ? r : document.body).querySelector('h1,h2') || {}).innerText || '', activite: '' }; })()`);
 
+/* Une fenêtre d’Android devant l’appli (« … ne répond pas ») : on touche « Attendre », elle s’en va. */
+function fenetreSysteme() {
+  const f = adb('shell dumpsys window').split('\n').find(l => /mCurrentFocus/.test(l)) || '';
+  if (!/Not Responding|ne répond pas/i.test(f)) return '';
+  adb('shell uiautomator dump /sdcard/anr.xml');
+  const x = adb('shell cat /sdcard/anr.xml');
+  const m = x.match(/text="(Wait|Attendre)"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/);
+  if (m) adb(`shell input tap ${(+m[2] + +m[4]) >> 1} ${(+m[3] + +m[5]) >> 1}`); else adb('shell input keyevent KEYCODE_BACK');
+  return f.trim().slice(0, 120);
+}
+
 async function capture(nomEtape) {
   num++;
+  const anr = fenetreSysteme(); if (anr) { (rapport.fenetres = rapport.fenetres || []).push(anr); await dormir(800); }
   const fichier = String(num).padStart(2, '0') + '-' + nomEtape.replace(/[^a-z0-9-]+/gi, '-').slice(0, 40) + '.png';
   try { execSync(`adb exec-out screencap -p > captures/${fichier}`, {timeout: 30000}); } catch (e) {}
   let soucis = []; try { soucis = await evaluer(VERIFS); } catch (e) { soucis = [{type: 'vérification impossible', detail: String(e).slice(0, 120)}]; }
@@ -164,6 +176,7 @@ for (let k = 0; k < 140; k++) {
   if (st.slide !== precedente) { await dormir(1200); await capture('onb-' + st.slide); precedente = st.slide; meme = 0; }
   else if (++meme > 14) { await capture('bloque-' + st.slide); rapport.bloque = st.slide; break; }
   let fait = null;
+  fenetreSysteme();
   try { fait = await evaluer(AGIR); } catch (e) { console.log('   ! action : ' + String(e).slice(0, 160)); }
   if (fait === 'serment') { await appuiLong('.ob-hold', 2600); await dormir(1500); if (!rapport.pacte) { rapport.pacte = 1; await capture('onb-pact-fait'); } }
   await dormir(fait ? 900 : 1600);
