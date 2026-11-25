@@ -27,7 +27,8 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
   à ajouter aussi.
 - 25 novembre : compte Play Console d'organisation créé (HORMEND AI LABS, D-U-N-S 278027523) ; site requeteapp.com validé dans la
   Search Console (fichier google17eb5e8ac0a6504f.html à la racine du site, à ne pas supprimer) ; identité en cours de vérification
-  par Google ; profil de paiement rempli.
+  par Google ; profil de paiement rempli. Client OAuth « Requete Android » créé dans Google Cloud (projet requete-514506,
+  fr.requete.app, SHA-1 de la clé d'envoi) : la connexion Google marche dans les versions signées avec la clé d'envoi.
 
 ## Dans l'ordre, ce qu'il reste à faire
 
