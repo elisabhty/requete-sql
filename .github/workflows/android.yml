@@ -14,6 +14,10 @@ on:
         description: Nom de version montré dans Google Play (ex. 1.0)
         required: false
         default: "1.0"
+      travaux:
+        description: "Les essais sur émulateur : tout, ou maj (la mise à jour à distance seulement)"
+        required: false
+        default: tout
 
 permissions:
   contents: read
@@ -86,6 +90,12 @@ jobs:
           ./gradlew --no-daemon bundleDebug
           mkdir -p ../essai
           cp app/build/outputs/bundle/debug/app-debug.aab ../essai/requete-essai.aab
+          # 25 novembre, 22 h 57 (Elisa : « Vérifie », la mise à jour à distance sur Android) : la même appli d’essai, qui se croit
+          # en v3100 (maj.js). Le travail « maj » vérifie qu’elle se met d’elle-même à la version publiée sur requeteapp.com.
+          sed -i -E "s/^(  var NOM = 'requete-[^']*-v)[0-9]+';/\13100';/" app/src/main/assets/public/maj.js
+          grep -q "^  var NOM = 'requete-.*-v3100';" app/src/main/assets/public/maj.js
+          ./gradlew --no-daemon bundleDebug
+          cp app/build/outputs/bundle/debug/app-debug.aab ../essai/requete-ancienne.aab
       - name: Bundletool (l’outil de Google qui découpe l’AAB comme Google Play)
         env:
           GH_TOKEN: ${{ github.token }}
@@ -94,8 +104,10 @@ jobs:
           # Une clé jetable, juste pour installer l’essai sur l’émulateur (rien à voir avec la clé d’envoi à Google Play).
           keytool -genkeypair -keystore "$RUNNER_TEMP/essai.jks" -storepass essai1234 -keypass essai1234 -alias essai \
             -keyalg RSA -keysize 2048 -validity 30 -dname "CN=Essai Requete" -noprompt
-          java -jar "$RUNNER_TEMP/bundletool.jar" build-apks --bundle essai/requete-essai.aab --output essai/requete-essai.apks \
-            --ks "$RUNNER_TEMP/essai.jks" --ks-pass pass:essai1234 --ks-key-alias essai --key-pass pass:essai1234
+          for n in essai ancienne; do
+            java -jar "$RUNNER_TEMP/bundletool.jar" build-apks --bundle essai/requete-$n.aab --output essai/requete-$n.apks \
+              --ks "$RUNNER_TEMP/essai.jks" --ks-pass pass:essai1234 --ks-key-alias essai --key-pass pass:essai1234
+          done
           echo "Taille au téléchargement depuis Google Play (octets, sans le paquet des voix) :"
           java -jar "$RUNNER_TEMP/bundletool.jar" get-size total --apks essai/requete-essai.apks || true
       - name: Vérification de la taille pour Google Play (partie principale sous 200 Mo)
@@ -124,13 +136,14 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: essai
-          path: essai/requete-essai.apks
+          path: essai/*.apks
           retention-days: 3
 
   # L’essai : l’appli installée comme depuis Google Play sur un téléphone Android simulé, puis vérifiée de l’intérieur
   # (tools/android/essai.sh et essai.mjs). Les captures d’écran sont dans l’artefact « captures-android ».
   essai:
     needs: android
+    if: ${{ inputs.travaux != 'maj' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -181,6 +194,7 @@ jobs:
   # Android 15, téléphone en mode sombre).
   parcours:
     needs: android
+    if: ${{ inputs.travaux != 'maj' }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
@@ -265,3 +279,48 @@ jobs:
           path: captures/
           retention-days: 30
 
+  # 25 novembre, 22 h 57 (Elisa : « Est-ce qu’on peut avoir une fonction de mise à jour à distance comme avec Apple ? », puis
+  # « Vérifie ») : l’appli qui se croit en v3100 lit l’annonce de requeteapp.com, télécharge la version publiée pour tous,
+  # l’installe au lancement suivant et la garde (tools/android/maj.sh et maj.mjs).
+  maj:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/download-artifact@v4
+        with:
+          name: essai
+          path: essai
+      - name: Bundletool
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download -R google/bundletool --pattern 'bundletool-all-*.jar' -O "$RUNNER_TEMP/bundletool.jar"
+      - name: Accélération de l’émulateur
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: Nexus 5X
+          disable-animations: true
+          ram-size: 4096M
+          emulator-options: -no-window -gpu swiftshader_indirect -feature -Vulkan -no-snapshot -no-boot-anim
+          script: bash tools/android/maj.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maj-android
+          path: captures/
+          retention-days: 30
