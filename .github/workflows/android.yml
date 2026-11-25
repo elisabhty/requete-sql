@@ -94,6 +94,9 @@ jobs:
           # en v3100 (maj.js). Le travail « maj » vérifie qu’elle se met d’elle-même à la version publiée sur requeteapp.com.
           sed -i -E "s/^(  var NOM = 'requete-[^']*-v)[0-9]+';/\13100';/" app/src/main/assets/public/maj.js
           grep -q "^  var NOM = 'requete-.*-v3100';" app/src/main/assets/public/maj.js
+          # La table des empreintes du contenu embarqué (écrite par le module de mise à jour à la copie) suit le maj.js modifié,
+          # comme pour une vraie appli : sans ça, le module recopiait ce maj.js modifié dans la version téléchargée.
+          node -e "const fs=require('fs'),c=require('crypto'),d='app/src/main/assets/public/',f=d+'ota-builtin-hashes.json';const j=JSON.parse(fs.readFileSync(f,'utf8')),b=fs.readFileSync(d+'maj.js');j.files['maj.js']={sha256:c.createHash('sha256').update(b).digest('hex'),size:b.length};fs.writeFileSync(f,JSON.stringify(j));console.log('Empreinte de maj.js mise à jour')"
           ./gradlew --no-daemon bundleDebug
           cp app/build/outputs/bundle/debug/app-debug.aab ../essai/requete-ancienne.aab
       - name: Bundletool (l’outil de Google qui découpe l’AAB comme Google Play)
