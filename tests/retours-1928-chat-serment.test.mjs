@@ -17,3 +17,9 @@ test('Android : le chat du serment s’écarte du bouton ; iPhone inchangé', ()
     assert.ok(css.indexOf(android) > css.indexOf(ios), 'la règle Android passe après');
   }
 });
+
+test('Android : l’engagement pris, plus de fil violet entre le rond et son halo ; iPhone inchangé', () => {
+  assert.ok(css.includes('html.is-android #onboarding.ob-vitrine .ob-hold.is-done .ob-hold-ring{opacity:0}'));
+  assert.ok(css.includes('html.is-android #onboarding.ob-vitrine .ob-hold.is-done{box-shadow:0 0 0 9px rgba(159,240,198,.55),0 6px 0 #5FCB97,0 16px 30px -12px rgba(27,22,64,.6)}'));
+  assert.ok(css.includes('html #onboarding.ob-vitrine .ob-hold.is-done{background:var(--v-mint);box-shadow:0 6px 0 #5FCB97,0 16px 30px -12px rgba(27,22,64,.6)}'), 'iPhone : la règle d’origine');
+});
