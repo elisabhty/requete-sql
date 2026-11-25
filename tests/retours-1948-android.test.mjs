@@ -192,3 +192,9 @@ test('Android : le passe d’essai du paywall, dans l’APK d’essai seulement'
   assert.ok(w.indexOf("c.appendUserAgent='RequeteEssaiAndroid'") < w.indexOf('./gradlew --no-daemon assembleDebug') && w.indexOf('cp "$RUNNER_TEMP/capacitor.config.json"') < w.indexOf('./gradlew --no-daemon bundleRelease'), 'remis avant l’AAB');
   assert.ok(w.includes('if unzip -p sortie/requete.aab base/assets/capacitor.config.json | grep -q RequeteEssaiAndroid; then'), 'la fabrication refuse un AAB avec le passe');
 });
+
+test('Android : l’APK d’essai signé avec la clé d’envoi (empreinte stable pour la connexion Google)', () => {
+  const g = lire('android/app/build.gradle'), w = lire('.github/workflows/android.yml');
+  assert.match(g, /debug \{\s*if \(System\.getenv\("ANDROID_KEYSTORE_PATH"\)\) signingConfig signingConfigs\.envoi\s*\}/);
+  assert.ok(w.includes('keytool -list -v -keystore "$RUNNER_TEMP/envoi.jks"') && w.includes('grep -E "SHA1:"'), 'le SHA-1 dans le journal');
+});

@@ -41,10 +41,15 @@ jobs:
       - name: La clé d’envoi (si les secrets sont là)
         env:
           KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          MDP: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           if [ -n "$KS" ]; then
             echo "$KS" | base64 -d > "$RUNNER_TEMP/envoi.jks"
             echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/envoi.jks" >> "$GITHUB_ENV"
+            # L’APK d’essai et l’AAB sont signés avec elle : son SHA-1 est celui du client « Android » de Google Cloud.
+            echo "Empreinte de la clé d’envoi :"
+            keytool -list -v -keystore "$RUNNER_TEMP/envoi.jks" -storepass "$MDP" -alias "$ALIAS" | grep -E "SHA1:" || true
           else
             echo "Pas de clé d’envoi : l’AAB sort non signé."
           fi

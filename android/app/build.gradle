@@ -32,6 +32,12 @@ android {
         }
     }
     buildTypes {
+        // 25 novembre (Elisa, sur l’émulateur : « Connexion impossible pour le moment ») : l’APK d’essai était signé par une clé de
+        // débogage refaite à chaque fabrication, donc inconnue de Google. Signé avec la clé d’envoi, il garde la même empreinte
+        // SHA-1, celle du client « Android » de Google Cloud : la connexion Google y marche.
+        debug {
+            if (System.getenv("ANDROID_KEYSTORE_PATH")) signingConfig signingConfigs.envoi
+        }
         release {
             if (System.getenv("ANDROID_KEYSTORE_PATH")) signingConfig signingConfigs.envoi
             minifyEnabled false
