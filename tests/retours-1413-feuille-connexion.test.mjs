@@ -21,7 +21,8 @@ test('la feuille a la même taille quel que soit le texte au-dessus', () => {
   const bloc = css.slice(css.indexOf('/* ---------- 14 novembre, 14 h 13'));
   assert.ok(bloc.length > 0);
   for (const r of [
-    'html #onboarding.ob-vitrine{--ob-fond-ref:210px}',
+    'html #onboarding.ob-vitrine{--ob-fond-ref:228px}',   // 25 novembre : 228 px (place du chat sous le texte du haut)
+    'html #onboarding.ob-vitrine.ob-fit-2{--ob-fond-ref:210px}',
     'html #onboarding.ob-vitrine:is(.ob-fit-3,.ob-fit-4,.ob-fit-5){--ob-fond-ref:187px}',
     'html #onboarding.ob-vitrine.ob-jauge .ob-screen.ob-account.is-feuille>.ob-acc-fond{flex:none!important;height:var(--ob-fond-ref)!important;min-height:0!important}',
     'html #onboarding.ob-vitrine:not(.ob-fit-defile):not(.ob-jauge) .ob-screen.ob-account.is-feuille>.ob-acc-fond{flex:1 1 0;min-height:0}',
@@ -38,6 +39,6 @@ test('plus d’élastique sous le doigt, sauf si la page ne tient vraiment pas',
 });
 
 test('la nouvelle feuille de style arrive sur les iPhone', () => {
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=74">'));
-  assert.ok(sw.includes("'./onboarding-vitrine.css?v=74',") && sw.includes("const CACHE = 'requete-2026-11-25-module-v3149';"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=75">'));
+  assert.ok(sw.includes("'./onboarding-vitrine.css?v=75',") && sw.includes("const CACHE = 'requete-2026-11-25-module-v3150';"));
 });
