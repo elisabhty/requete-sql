@@ -16,7 +16,15 @@ if (!page) throw new Error('Aucune page dans la WebView');
 const ws = new WebSocket(page.webSocketDebuggerUrl);
 await new Promise((ok, ko) => { ws.onopen = ok; ws.onerror = ko; });
 let n = 0; const attente = new Map(); let erreurs = [];
-const envoyer = (method, params = {}) => new Promise(ok => { const id = ++n; attente.set(id, ok); ws.send(JSON.stringify({id, method, params})); });
+// Chaque demande à la page a 25 s pour répondre : un téléphone figé ne bloque plus tout le parcours.
+const envoyer = (method, params = {}) => new Promise(ok => { const id = ++n; attente.set(id, ok); try { ws.send(JSON.stringify({id, method, params})); } catch (e) { attente.delete(id); ok({}); return; }
+  setTimeout(() => { if (attente.has(id)) { attente.delete(id); ok({result: {exceptionDetails: {text: 'pas de réponse de la page en 25 s (' + method + ')'}}}); } }, 25000); });
+// La liaison avec l’appli coupée (l’émulateur qui s’arrête, l’appli fermée) : le rapport est gardé et le parcours s’arrête net.
+ws.onclose = () => {
+  console.log('\n!! La liaison avec l’appli s’est coupée (émulateur arrêté ou appli fermée), après ' + rapport.etapes.length + ' écrans.');
+  rapport.coupe = true; try { writeFileSync('captures/rapport.json', JSON.stringify(rapport, null, 1)); } catch (e) {}
+  process.exit(3);
+};
 ws.onmessage = m => {
   const d = JSON.parse(m.data);
   if (d.id && attente.has(d.id)) { attente.get(d.id)(d); attente.delete(d.id); return; }
@@ -34,11 +42,12 @@ const evaluer = async expr => {
   if (r.result?.exceptionDetails) throw new Error(r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text);
   return r.result?.result?.value;
 };
+let rapport = {etapes: []};
 await envoyer('Runtime.enable'); await envoyer('Page.enable');
 await envoyer('Fetch.enable', {patterns: [{urlPattern: '*supabase.co*'}]});
 
 const HAUT = Number(process.env.ESSAI_HAUT || 0);   // le haut de la WebView sur l’écran, en pixels du téléphone
-const rapport = {appareil: adb('shell getprop ro.product.model').trim() + ' · Android ' + adb('shell getprop ro.build.version.release').trim(), etapes: []};
+rapport = {appareil: adb('shell getprop ro.product.model').trim() + ' · Android ' + adb('shell getprop ro.build.version.release').trim(), etapes: []};
 let num = 0;
 
 /* Les vérifications d’un écran, de l’intérieur de la page */
@@ -100,6 +109,7 @@ async function capture(nomEtape) {
   const e = {etape: nomEtape, capture: fichier, soucis, erreurs: erreurs.filter(x => !/^Error injecting safe area CSS/.test(x))};
   erreurs = [];
   rapport.etapes.push(e);
+  try { writeFileSync('captures/rapport.json', JSON.stringify(rapport, null, 1)); } catch (x) {}
   console.log(`${fichier}  ${e.soucis.length ? e.soucis.length + ' souci(s)' : 'ok'}${e.erreurs.length ? ', ' + e.erreurs.length + ' erreur(s)' : ''}`);
   for (const s of e.soucis) console.log('   · ' + JSON.stringify(s));
   for (const x of e.erreurs) console.log('   ! ' + String(x).slice(0, 200));
@@ -140,6 +150,7 @@ const AGIR = `(async () => {
 // Le départ : l’appli fraîchement installée, page relancée pour partir de zéro
 await envoyer('Page.reload', {ignoreCache: false});
 await dormir(12000);
+try { rapport.langue = await evaluer(`navigator.language + ' · ' + ((window.REQUETE_LANGUE || {}).code || 'fr')`); console.log('Langue de la page : ' + rapport.langue); } catch (e) {}
 let precedente = '', meme = 0;
 for (let k = 0; k < 140; k++) {
   const st = await etat();
@@ -169,7 +180,7 @@ for (const i of (onglets || []).slice(0, 6)) {
   await capture('onglet-' + nom);
 }
 // La première leçon, depuis l’accueil
-const lecon = await evaluer(`(() => { const b = [...document.querySelectorAll('button,a')].find(b => b.offsetParent && /Commencer la leçon|Reprendre|Start lesson/i.test(b.innerText || '')); if (b) { b.click(); return true; } return false; })()`).catch(() => false);
+const lecon = await evaluer(`(() => { const b = [...document.querySelectorAll('button,a')].find(b => b.offsetParent && /Commencer la leçon|Reprendre|Start the lesson|Start lesson|Resume/i.test(b.innerText || '')); if (b) { b.click(); return true; } return false; })()`).catch(() => false);
 if (lecon) { for (let i = 0; i < 3; i++) { await dormir(4000); await capture('lecon-' + (i + 1)); } }
 
 writeFileSync('captures/rapport.json', JSON.stringify(rapport, null, 1));

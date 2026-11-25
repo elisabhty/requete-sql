@@ -6725,7 +6725,15 @@ html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-moti
       };
     }catch(e){}
   }
-  window.nativeAppReady=function(){if(window.__majInstalle)return;try{P.SplashScreen&&P.SplashScreen.hide({fadeOutDuration:250});}catch(e){}};
+  /* 25 novembre (Android, le parcours sur les émulateurs de GitHub) : l’heure et la batterie étaient blanches sur le fond lavande,
+     invisibles. Android reprend les couleurs des barres du thème quand l’écran de lancement s’en va : on remet les icônes en sombre
+     juste après (le thème le fait aussi, pour les prochaines versions de l’appli). Sur iPhone, rien ne change. */
+  var barresSombres=function(){if(!appAndroid())return;[400,1500].forEach(function(t){setTimeout(function(){
+    try{var a=P.SystemBars&&P.SystemBars.setStyle&&P.SystemBars.setStyle({style:'LIGHT'});if(a&&a.catch)a.catch(function(){});}catch(e){}
+    try{var b=P.StatusBar&&P.StatusBar.setStyle({style:'LIGHT'});if(b&&b.catch)b.catch(function(){});}catch(e){}
+  },t);});};
+  window.barresSombres=barresSombres;
+  window.nativeAppReady=function(){if(window.__majInstalle)return;try{P.SplashScreen&&P.SplashScreen.hide({fadeOutDuration:250});}catch(e){}barresSombres();};
 })();
 </script>
 <style id="ios-finish">
@@ -7762,6 +7770,7 @@ html.lq #scr-compte .plus-row-icon.is-icone,#scr-compte .plus-row-icon.is-icone{
     lance=true;
     L.classList.remove('is-long');
     try{C&&C.Plugins&&C.Plugins.SplashScreen&&C.Plugins.SplashScreen.hide({fadeOutDuration:0});}catch(e){}
+    try{window.barresSombres&&window.barresSombres();}catch(e){}
     if(calme){L.classList.add('fade-out');setTimeout(ranger,340);return;}
     T=chatPret>=CHAT_IMG.length?CHAT:PLEINE;
     HAPTIQUE=haptique();

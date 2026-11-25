@@ -190,9 +190,11 @@ jobs:
           - api: 34
             profil: pixel_7
             nom: grand-ecran-android-14
+            langue: fr-FR
           - api: 35
             profil: Galaxy Nexus
             nom: petit-ecran-android-15
+            langue: ''
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -221,9 +223,12 @@ jobs:
           arch: x86_64
           target: google_apis
           profile: ${{ matrix.profil }}
-          disable-animations: false
+          # Animations coupées (l’appli passe en « animations réduites ») : les émulateurs de GitHub, sans carte graphique,
+          # s’arrêtaient net pendant les animations du premier passage (25 novembre). Les captures montrent l’état final de chaque écran.
+          disable-animations: true
+          ram-size: 4096M
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
-          script: ESSAI_SOMBRE=${{ matrix.api == 35 && '1' || '0' }} bash tools/android/parcours.sh
+          script: ESSAI_SOMBRE=${{ matrix.api == 35 && '1' || '0' }} ESSAI_LANGUE=${{ matrix.langue }} bash tools/android/parcours.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
