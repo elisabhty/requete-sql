@@ -47330,7 +47330,12 @@ function obAchatPret(){return !!(window.REQUETE_ACHAT&&typeof window.REQUETE_ACH
    jamais d’entrée gratuite. « Continuer » ne reste que hors de l’app iPhone (mise au point, tests), où le
    site renvoie de toute façon vers decouvrir/. Une abonnée déjà entrée n’est pas bloquée par une panne du module (obGardeEtat). */
 function obAppIphone(){try{const C=window.Capacitor;return !!(C&&typeof C.isNativePlatform==='function'&&C.isNativePlatform());}catch(e){return false;}}
-function obPaywallOuvert(){return !obAchatPret()&&!obAppIphone();}
+/* 25 novembre, 7 h 55 (Elisa, pour tester la suite sur le téléphone Android virtuel : « Oui stp ») : seule l’appli d’essai Android
+   (requete-test.apk, fabriquée sur GitHub) laisse passer le paywall tant que l’achat n’est pas branché. Sa page porte
+   « RequeteEssaiAndroid » dans son user-agent, ajouté par .github/workflows/android.yml à la seule fabrication de l’APK d’essai :
+   jamais l’AAB de Google Play (la fabrication le vérifie), jamais l’iPhone. */
+function obEssaiAndroid(){try{return typeof appAndroid==='function'&&appAndroid()&&/\bRequeteEssaiAndroid\b/.test(navigator.userAgent||'');}catch(e){return false;}}
+function obPaywallOuvert(){return !obAchatPret()&&(!obAppIphone()||obEssaiAndroid());}
 function obAbonne(){try{return !!(window.REQUETE_ACHAT&&typeof window.REQUETE_ACHAT.actif==='function'&&window.REQUETE_ACHAT.actif());}catch(e){return false;}}
 function obApresPret(fin){draft.finVoulue=fin||'home';const connecte=(draft.accountMode||state.accountMode)==='connected';if(obCompteVisible()&&!connecte)obGoto('account');else obApresCompte();}   // déjà connectée (dès le début, 12 novembre) : pas une deuxième fois
 /* Le compte avait-il déjà quelque chose (csDistant, renvoyé par csSync) ? Sans réponse du compte : le planning arrivé sur l’appareil. */
@@ -47695,14 +47700,14 @@ function obPaywallChoisir(k){
   if(typeof buzz==='function')buzz('light');
   obPaywallPied();
 }
-function obPaywallPasser(){if(!obPaywallOuvert())return;if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'continuer'});obPaywallEntrer();}
+function obPaywallPasser(){if(!obPaywallOuvert())return;if(typeof stat==='function'&&!obEssaiAndroid())stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'continuer'});obPaywallEntrer();}
 function obPaywallEntrer(){obPwSortie=false;if(typeof buzz==='function')buzz('success');
   /* La garde de l’abonnement : l’appli est derrière, telle qu’on l’avait laissée ; surtout pas finishOnboard, qui referait le planning */
   if(typeof obEntry!=='undefined'&&obEntry==='paywall'&&state.onboarded){if(typeof obGardeFermer==='function')obGardeFermer();return;}
   finishOnboard(draft.finVoulue||draft.finConnexion||'home');}
 async function obPaywallAcheter(){
   if(obPrixEtat()!=='oui')return;   // pas d’achat sans les prix de la boutique sous les yeux
-  if(!obAchatPret()){if(!obPaywallOuvert())return;if(typeof stat==='function')stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'bouton'});obPaywallEntrer();return;}
+  if(!obAchatPret()){if(!obPaywallOuvert())return;if(typeof stat==='function'&&!obEssaiAndroid())stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'bouton'});obPaywallEntrer();return;}
   if(obPwBusy)return;
   const live=document.getElementById('pw-live');obPwBusy=true;obPaywallPied();if(live)live.textContent='';
   try{const o=draft.offre==='semaine'?'semaine':'an',essai=obEssai(o);const ok=await window.REQUETE_ACHAT.acheter(o);obPwBusy=false;
@@ -54674,7 +54679,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-25-module-v3144';
+  const SW_CACHE='requete-2026-11-25-module-v3145';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

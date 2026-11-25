@@ -173,3 +173,22 @@ test('Android : sans droit à l’offre (Google ne la renvoie pas), ni essai pro
 test('Android : sans clé RevenueCat Android, pas de crochet d’achat (à remplir avant toute sortie sur Google Play)', () => {
   assert.ok(lire('achat.js').includes("var RC_CLE_ANDROID = '';"));
 });
+
+/* 25 novembre, 7 h 55 (Elisa : « Oui stp ») : seule l’APK d’essai passe le paywall tant que l’achat n’est pas branché. */
+test('Android : le passe d’essai du paywall, dans l’APK d’essai seulement', () => {
+  const h = lire('index.html');
+  const morceau = n => { const i = h.indexOf('function ' + n + '('); return h.slice(i, h.indexOf('\n', i)); };
+  const essai = (ua, android, achat = false, natif = true) => vm.runInNewContext(
+    morceau('obEssaiAndroid') + '\n' + morceau('obPaywallOuvert') + ';obPaywallOuvert()',
+    {navigator: {userAgent: ua}, appAndroid: () => android, obAchatPret: () => achat, obAppIphone: () => natif});
+  const UA = 'Mozilla/5.0 (Linux; Android 17) Chrome/150 Mobile Safari/537.36';
+  assert.equal(essai(UA + ' RequeteEssaiAndroid', true), true, 'APK d’essai : le paywall laisse passer');
+  assert.equal(essai(UA, true), false, 'appli Google Play : jamais');
+  assert.equal(essai('iPhone RequeteEssaiAndroid', false), false, 'iPhone : jamais');
+  assert.equal(essai(UA + ' RequeteEssaiAndroid', true, true), false, 'achat branché : seul le paiement passe');
+  assert.equal(essai(UA, false, false, false), true, 'hors de l’appli (mise au point) : comme avant');
+  const w = lire('.github/workflows/android.yml');
+  assert.ok(w.includes("c.appendUserAgent='RequeteEssaiAndroid'") && w.includes('cp "$RUNNER_TEMP/capacitor.config.json" app/src/main/assets/capacitor.config.json'));
+  assert.ok(w.indexOf("c.appendUserAgent='RequeteEssaiAndroid'") < w.indexOf('./gradlew --no-daemon assembleDebug') && w.indexOf('cp "$RUNNER_TEMP/capacitor.config.json"') < w.indexOf('./gradlew --no-daemon bundleRelease'), 'remis avant l’AAB');
+  assert.ok(w.includes('if unzip -p sortie/requete.aab base/assets/capacitor.config.json | grep -q RequeteEssaiAndroid; then'), 'la fabrication refuse un AAB avec le passe');
+});
