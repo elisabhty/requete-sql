@@ -30,6 +30,18 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
   par Google ; profil de paiement rempli. Client OAuth « Requete Android » créé dans Google Cloud (projet requete-514506,
   fr.requete.app, SHA-1 de la clé d'envoi) : la connexion Google marche dans les versions signées avec la clé d'envoi.
 
+- 26 novembre, nuit : appli créée dans la Play Console (« Requête — Apprends le SQL », fr.requete.app, Français, appli sans
+  frais avec abonnements, protection automatique de Google laissée active ; identifiant Play 4972131845844910750). 1re version
+  (31, « 1.0 ») envoyée en test interne, sans testeurs : privée, elle débloque les abonnements. Signature d'application par Google :
+  clé d'origine SHA-1 F0:A8:9B:9D:6F:12:77:77:D0:78:38:F8:74:50:4B:E0:A4:E2:AB:B0, clé actuelle (« prête pour l'informatique
+  quantique », classique) SHA-1 C5:CA:5E:8F:7B:0C:E4:BE:69:BD:4A:1E:CB:DA:E7:31:21:60:F3:EC. Deux clients OAuth Android ajoutés
+  dans Google Cloud (requete-514506) avec ces deux empreintes : « Requete Android (Google Play) » et « … cle 2 ».
+- Abonnements créés et actifs (prix choisis par Elisa le 26 novembre : comme l'App Store, 44,99 €/an et 5,99 €/semaine) :
+  fr.requete.app.annuel (forfait « annuel », 44,99 € TTC en France, offre « essai-3-jours » : 3 jours gratuits pour qui n'a
+  jamais eu d'abonnement dans l'appli) ; fr.requete.app.hebdo (forfait « hebdo », 5,99 € TTC) ; fr.requete.app.annuel.bienvenue
+  (forfait « annuel », 44,99 €, offre « bienvenue » : 1re année payée d'avance à −50 %, soit 22,50 € en France, pour qui n'a
+  jamais eu d'abonnement). Les prix des autres pays : convertis par Google depuis 37,49 € HT (annuel) et 4,99 € HT (hebdo).
+
 ## Dans l'ordre, ce qu'il reste à faire
 
 1. **Compte Google Play Console** (organisation, D-U-N-S 278027523) : Elisa, en cours. Une fois validé, créer l'appli :
@@ -44,9 +56,9 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
 4. **Les abonnements** (Play Console › Monétiser › Produits › Abonnements), les mêmes identifiants que sur iPhone :
    | Abonnement | Forfait de base | Période | Prix France | Offre |
    |---|---|---|---|---|
-   | fr.requete.app.annuel | annuel | 1 an, renouvelable | 49,00 € | « essai-3-jours » : essai gratuit 3 jours, nouveaux clients |
-   | fr.requete.app.hebdo | hebdo | 1 semaine, renouvelable | 4,99 € | aucune |
-   | fr.requete.app.annuel.bienvenue | annuel | 1 an, renouvelable | 49,00 € | « bienvenue » : 1 an payé d'avance à 24,50 €, nouveaux clients |
+   | fr.requete.app.annuel | annuel | 1 an, renouvelable | 44,99 € | « essai-3-jours » : essai gratuit 3 jours, nouveaux clients |
+   | fr.requete.app.hebdo | hebdo | 1 semaine, renouvelable | 5,99 € | aucune |
+   | fr.requete.app.annuel.bienvenue | annuel | 1 an, renouvelable | 44,99 € | « bienvenue » : 1 an payé d'avance à 22,50 €, nouveaux clients |
    L'appli ne montre l'offre de bienvenue qu'à qui referme la feuille de paiement, et seulement si Google la renvoie.
 5. **RevenueCat** : Projet Requête › Apps & providers › + Google Play (fr.requete.app), y déposer le fichier JSON d'un compte de
    service Google Cloud invité dans la Play Console (droits financiers et commandes), brancher les notifications en temps réel
