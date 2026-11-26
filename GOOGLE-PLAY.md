@@ -81,11 +81,13 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
   logo rond) ; dans une note, « Enregistrer » ne saute plus quand le clavier arrive (collé en bas en permanence, il glisse avec
   la vue). Le travail « clavier » (travaux = clavier) filme et mesure le clavier dans une note sur un émulateur de la taille du
   Samsung. Publiée en test interne le 26 novembre, 20 h 17.
-- Version suivante (Android seulement ; Elisa, 26 novembre, 21 h 34, sur la 44 : « ça flash encore », la note neuve) : le clavier
+- Version 46 (Android seulement ; Elisa, 26 novembre, 21 h 34, sur la 44 : « ça flash encore », la note neuve) : le clavier
   passe par-dessus la vue, comme sur l'iPhone (module natif ClavierPlugin, demandé par la page) : la WebView ne change plus de
   taille quand il monte ou descend (plus d'image blanche, plus de bande claire sous la page) ; l'appli se cale sur lui dès qu'il
   s'annonce et suit son mouvement (0,285 s). Une page plus ancienne (mise à jour sans le module) garde la vue qui rétrécit, et
-  CLAVIER_DESSUS (index.html) permet d'y revenir par une simple mise à jour de la page.
+  CLAVIER_DESSUS (index.html) permet d'y revenir par une simple mise à jour de la page. Mesuré sur émulateur (Android 14) : la
+  vue garde sa hauteur du début à la fin. Publiée en test interne le 26 novembre, 22 h 58 (la 1re importation du fichier a échoué
+  chez Google, la 2e est passée).
 - 26 novembre, 13 h 30 (Elisa : « Oui stp ») : noms des abonnements raccourcis (coupés dans la feuille de Google) : « Premium annuel »
   (fr.requete.app.annuel et fr.requete.app.annuel.bienvenue : pas de « −50 % » dans le nom, qui reste affiché après la 1re année,
   au plein tarif) et « Premium hebdo » (fr.requete.app.hebdo).
