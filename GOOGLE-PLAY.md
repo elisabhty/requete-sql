@@ -17,7 +17,7 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
 - L'essai automatique sur deux téléphones Android simulés (Android 14 et 15, ce dernier en mode sombre) : l'appli démarre, les
   voix se lisent depuis leur paquet, les modules natifs sont là, aucune erreur. Il tourne à chaque fabrication.
 - Les achats (achat.js) savent lire les offres de Google Play : essai de 3 jours, offre de bienvenue, identifiants
-  « abonnement:forfait ». Il manque seulement la clé RevenueCat Android (voir plus bas).
+  « abonnement:forfait ». La clé RevenueCat Android est en place depuis le 26 novembre.
 - La clé d'envoi : un bouton dans GitHub (Actions › Clé d'envoi Android), avec des mots de passe choisis par Elisa.
 - 25 novembre : clé d'envoi fabriquée (secrets ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD ; le 4e,
   ANDROID_KEYSTORE_BASE64, à coller par Elisa depuis l'artefact « cle-envoi-android »). Empreintes, publiques :
@@ -41,6 +41,17 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
   jamais eu d'abonnement dans l'appli) ; fr.requete.app.hebdo (forfait « hebdo », 5,99 € TTC) ; fr.requete.app.annuel.bienvenue
   (forfait « annuel », 44,99 €, offre « bienvenue » : 1re année payée d'avance à −50 %, soit 22,50 € en France, pour qui n'a
   jamais eu d'abonnement). Les prix des autres pays : convertis par Google depuis 37,49 € HT (annuel) et 4,99 € HT (hebdo).
+- 26 novembre, RevenueCat (Elisa : « oui ») : dans Google Cloud (requete-514506), API activées (Google Play Android Developer,
+  Google Play Developer Reporting, Cloud Pub/Sub) ; compte de service revenuecat@requete-514506.iam.gserviceaccount.com avec les
+  rôles Administrateur Pub/Sub et Lecteur Monitoring ; invité dans la Play Console pour l'appli seulement (informations de
+  l'appli, données financières, commandes et abonnements), actif. Dans RevenueCat : appli « Requête (Play Store) »
+  (appcf0e1daecf, fr.requete.app), les 3 produits (fr.requete.app.annuel:annuel, fr.requete.app.hebdo:hebdo,
+  fr.requete.app.annuel.bienvenue:annuel) rattachés à « premium » et aux paquets bienvenue, $rc_annual et $rc_weekly de l'offre
+  « default ». Clé publique Android dans achat.js (RC_CLE_ANDROID). Le paquet d'essai de l'émulateur (GitHub) la retire pour
+  garder le passe du paywall (l'émulateur n'a pas Google Play) ; requete.aab la garde (vérifié à la fabrication).
+  Reste à Elisa : la clé JSON du compte de service (Google Cloud › Comptes de service › revenuecat › Clés › Ajouter une clé ›
+  JSON), à déposer dans RevenueCat (Requête (Play Store) › Service Account Credentials JSON), puis les notifications en temps
+  réel (Connect to Google dans RevenueCat, sujet Pub/Sub à coller dans Play Console › Monétiser › Configuration).
 
 ## Dans l'ordre, ce qu'il reste à faire
 

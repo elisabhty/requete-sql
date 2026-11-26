@@ -102,10 +102,9 @@
   /* La clé publique iOS de RevenueCat (Projet Requête › Apps & providers › App Store › Public API key).
      Elle est faite pour être dans l'app : ce n'est pas un secret. */
   var RC_CLE_IOS = 'appl_qLAPPmCbplIcNyriYbILgTzVYYQ';
-  /* 24 novembre (Elisa : « pousser la version Android ») : la clé publique Android de RevenueCat (Apps & providers › Google Play ›
-     Public API key, « goog_… »), à mettre quand l'appli Google Play sera créée et reliée à RevenueCat. Vide : sur Android, pas
-     d'achat branché (le paywall se passe, comme avant le branchement sur iPhone) ; à ne pas publier pour tous ainsi. */
-  var RC_CLE_ANDROID = '';
+  /* La clé publique Android de RevenueCat (Projet Requête › Apps & providers › Requête (Play Store) › Public API key), mise le
+     26 novembre quand l'appli Google Play a été reliée à RevenueCat. Pas un secret non plus. */
+  var RC_CLE_ANDROID = 'goog_YzIcsUCwtWLfnRnpkRqsvVOUFHC';
   var DROIT = 'premium';
   var GARDE = 'requete-premium';
   var GARDE_VU = 'requete-premium-vu';

@@ -62,9 +62,9 @@ test('connexion : Google seul sur Android, avec le client web ; achats : la clé
   assert.ok(c.includes("o.google = android ? {webClientId: GOOGLE_WEB, mode: 'online'} : {iOSClientId: GOOGLE_IOS, iOSServerClientId: GOOGLE_WEB, mode: 'online'};"));
   const a = lire('achat.js');
   assert.ok(a.includes("var ANDROID = typeof C.getPlatform === 'function' && C.getPlatform() === 'android';") && a.includes('var CLE = ANDROID ? RC_CLE_ANDROID : RC_CLE_IOS;') && a.includes('P.configure({apiKey: CLE})'));
-  assert.ok(app.includes('<script src="connexion.js?v=4"></script>') && app.includes('<script src="achat.js?v=9"></script>'));
+  assert.ok(app.includes('<script src="connexion.js?v=4"></script>') && app.includes('<script src="achat.js?v=10"></script>'));
   const sw = lire('sw.js');
-  assert.ok(sw.includes("'./connexion.js?v=4',") && sw.includes("'./achat.js?v=9',"));
+  assert.ok(sw.includes("'./connexion.js?v=4',") && sw.includes("'./achat.js?v=10',"));
 });
 
 test('les marges du haut et du bas suivent Android (variables de Capacitor), et l’iPhone garde env()', () => {
@@ -126,7 +126,7 @@ test('Android : le clavier, la vue rétrécit d’elle-même (pas de double recu
 /* Les achats sur Google Play (24 novembre) : Google ne renvoie que les offres auxquelles la personne a droit ; pas de question
    d’éligibilité comme chez Apple. L’identifiant porte le forfait de base (« abonnement:forfait »). */
 function achatAndroid({bienvenueDispo = true, essaiDispo = true} = {}) {
-  const src = lire('achat.js').replace("var RC_CLE_ANDROID = '';", "var RC_CLE_ANDROID = 'goog_essai';");
+  const src = lire('achat.js').replace(/var RC_CLE_ANDROID = '[^']*';/, "var RC_CLE_ANDROID = 'goog_essai';");
   const store = {}, achats = [], cles = [];
   const info = a => ({customerInfo: {entitlements: {active: a ? {premium: {}} : {}}}});
   const phase = (iso, micros, txt) => ({billingPeriod: {iso8601: iso}, billingCycleCount: 1, price: {formatted: txt, amountMicros: micros, currencyCode: 'EUR'}});
@@ -170,8 +170,14 @@ test('Android : sans droit à l’offre (Google ne la renvoie pas), ni essai pro
   assert.equal(a.prix('an').prix, 49, 'le paquet « an » reste l’annuel');
 });
 
-test('Android : sans clé RevenueCat Android, pas de crochet d’achat (à remplir avant toute sortie sur Google Play)', () => {
-  assert.ok(lire('achat.js').includes("var RC_CLE_ANDROID = '';"));
+/* 26 novembre : l’appli Google Play est reliée à RevenueCat (Requête (Play Store)) ; sa clé publique est dans achat.js. */
+test('Android : la clé publique RevenueCat Android est en place ; seul le paquet d’essai de l’émulateur la retire', () => {
+  assert.ok(lire('achat.js').includes("var RC_CLE_ANDROID = 'goog_YzIcsUCwtWLfnRnpkRqsvVOUFHC';"));
+  const w = lire('.github/workflows/android.yml');
+  const retrait = w.indexOf("s/^  var RC_CLE_ANDROID = 'goog_[^']*';/  var RC_CLE_ANDROID = '';/");
+  assert.ok(retrait > w.indexOf('./gradlew --no-daemon bundleRelease'), 'après l’AAB de Google Play');
+  assert.ok(retrait < w.indexOf('cp app/build/outputs/bundle/debug/app-debug.aab ../essai/requete-essai.aab'), 'avant le paquet d’essai');
+  assert.ok(w.includes("unzip -p sortie/requete.aab base/assets/public/achat.js | grep -q \"^  var RC_CLE_ANDROID = 'goog_\""), 'l’AAB vérifié avec la clé');
 });
 
 /* 25 novembre, 7 h 55 (Elisa : « Oui stp ») : seule l’APK d’essai passe le paywall tant que l’achat n’est pas branché. */

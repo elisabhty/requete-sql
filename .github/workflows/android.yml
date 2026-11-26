@@ -87,6 +87,11 @@ jobs:
           # 25 novembre : l’essai sur émulateur a aussi le passe du paywall (le parcours complet va jusque dans l’appli). Ce paquet
           # d’essai ne part jamais sur Google Play (seul requete.aab, vérifié plus bas, y va).
           node -e "const fs=require('fs'),f='app/src/main/assets/capacitor.config.json',c=JSON.parse(fs.readFileSync(f,'utf8'));c.appendUserAgent='RequeteEssaiAndroid';c.android=Object.assign({},c.android,{appendUserAgent:'RequeteEssaiAndroid'});fs.writeFileSync(f,JSON.stringify(c,null,2))"
+          # 26 novembre : l’achat est branché sur Android (clé RevenueCat dans achat.js). L’émulateur n’a pas Google Play : sans la
+          # clé, ce paquet d’essai garde le passe du paywall et le parcours va jusque dans l’appli. requete.aab garde la clé.
+          sed -i -E "s/^  var RC_CLE_ANDROID = 'goog_[^']*';/  var RC_CLE_ANDROID = '';/" app/src/main/assets/public/achat.js
+          grep -q "^  var RC_CLE_ANDROID = '';" app/src/main/assets/public/achat.js
+          node -e "const fs=require('fs'),c=require('crypto'),d='app/src/main/assets/public/',f=d+'ota-builtin-hashes.json';const j=JSON.parse(fs.readFileSync(f,'utf8'));if(!j.files||!j.files['achat.js'])process.exit(0);const b=fs.readFileSync(d+'achat.js');j.files['achat.js']={sha256:c.createHash('sha256').update(b).digest('hex'),size:b.length};fs.writeFileSync(f,JSON.stringify(j));console.log('Empreinte de achat.js mise à jour')"
           ./gradlew --no-daemon bundleDebug
           mkdir -p ../essai
           cp app/build/outputs/bundle/debug/app-debug.aab ../essai/requete-essai.aab
@@ -124,6 +129,7 @@ jobs:
         run: |
           unzip -p sortie/requete-test.apk assets/capacitor.config.json | grep -q RequeteEssaiAndroid
           if unzip -p sortie/requete.aab base/assets/capacitor.config.json | grep -q RequeteEssaiAndroid; then echo "::error::L’AAB porte le passe d’essai"; exit 1; fi
+          unzip -p sortie/requete.aab base/assets/public/achat.js | grep -q "^  var RC_CLE_ANDROID = 'goog_" || { echo "::error::L’AAB n’a pas la clé RevenueCat Android"; exit 1; }
           echo "APK d’essai : passe présent ; AAB : aucun passe."
       # Deux téléchargements séparés : l’APK seul pour essayer (sur un téléphone ou l’émulateur d’Android Studio), l’AAB pour Google Play.
       - uses: actions/upload-artifact@v4
