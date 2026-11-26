@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-25-module-v3156';
+const CACHE = 'requete-2026-11-26-module-v3157';
 
 /* 25 novembre, 23 h : dans l’appli Android (https://localhost, sans port), pas de service worker. Il gardait les anciens
    fichiers (maj.js) et cassait la mise à jour à distance (voir le haut de index.html). Un worker installé là ne range rien,
