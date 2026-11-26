@@ -92,6 +92,43 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
   (fr.requete.app.annuel et fr.requete.app.annuel.bienvenue : pas de « −50 % » dans le nom, qui reste affiché après la 1re année,
   au plein tarif) et « Premium hebdo » (fr.requete.app.hebdo).
 
+## Envoi en production (27 novembre, 0 h 35)
+
+Elisa, 26 novembre, 23 h 15 : « ok cette version est ok pour mettre en prod ». Ses choix : tous les pays, un code promo pour les
+vérificateurs, Claude remplit et enregistre, elle clique l'envoi. Envoyé à Google le 27 novembre vers 0 h 35 (« Modifications en
+cours d'examen », 30 modifications) : version 46 (1.0) en déploiement complet, 177 pays et le reste du monde. Publication gérée
+désactivée : l'appli sort dès que Google la valide.
+
+- Fiche : l'anglais (en-US) est la langue par défaut depuis le 27 novembre (Elisa, 0 h 14 : « tu n'as pas mis les captures pour
+  les autres langues ») : une langue sans fiche reçoit la fiche par défaut, et hors des pays francophones l'appli s'ouvre en
+  anglais. 19 langues, comme l'App Store : en-US, fr-FR, fr-CA, de-DE, es-ES, es-419, es-US, it-IT, pt-BR, pt-PT, nl-NL, pl-PL,
+  tr-TR, id, ar, ja-JP, ko-KR, zh-TW, zh-HK. Textes : ceux d'APP-STORE-LANGUES.md adaptés à Android (le téléphone au lieu de
+  l'iPhone, plus de widgets, connexion Google seule, paiement et résiliation dans Google Play › Paiements et abonnements), une
+  description courte de 80 caractères au plus par langue ; fr-CA reprend la fiche française. Visuels : captures et bannière
+  françaises pour fr-FR et fr-CA, anglaises partout ailleurs, icône google-play/icone-512.png.
+- Captures : google-play/captures/ (8 en français, 8 en anglais, 1206 × 2400), tirées des captures App Store 6,3 pouces par
+  tools/google-play/captures-android.py (l'île et les icônes d'iOS remplacées par la caméra et les icônes d'Android, haut et bas
+  recadrés). Google les accepte telles quelles. Déclaration sur l'IA de la fiche : rien à signaler (Elisa).
+- Abonnements : l'anglais par défaut demande un nom anglais pour chacun : « Premium yearly » (fr.requete.app.annuel et
+  fr.requete.app.annuel.bienvenue) et « Premium weekly » (fr.requete.app.hebdo), comme « Yearly » et « Weekly » dans l'appli.
+- Catégorie Enseignement ; coordonnées publiques contact@requeteapp.com et https://requeteapp.com/decouvrir/, sans téléphone.
+- Informations de connexion : pas de connexion obligatoire. 3 des 5 codes de la promotion « Vérification Google Play » (Premium
+  annuel, 30 jours, utilisables du 27 novembre 2026 au 27 février 2027) sont donnés aux vérificateurs, avec la marche à suivre
+  en anglais (le code dans Play Store › Paiements et abonnements, « Continue without an account », « Restore » au besoin) ; les 2
+  autres restent à Elisa. Pour un examen après le 27 février 2027, créer une nouvelle promotion et changer les codes. Partage de
+  ces informations avec les robots de test de Google : désactivé (ils auraient pu user les codes).
+- Classification du contenu (IARC) : tout public (L au Brésil, E en Amérique du Nord). Interactions entre utilisateurs : oui
+  (pseudos, 4 réactions emoji, « Signaler et bloquer », salles privées par code) ; modération de conversations : non (il n'y
+  a pas de discussion) ; achats numériques, sans tirage au sort ; ni position précise ni récompense ; appli d'éducation.
+- Cible : 13-15, 16-17, 18 ans et plus.
+- Sécurité des données (comme prévu plus bas) : compte par OAuth (Google) ; lien de suppression du compte et des données :
+  confidentialite.html#suppression ; obligatoires : historique des achats et identifiants d'appareil (RevenueCat démarre à
+  l'ouverture) ; facultatifs : nom, e-mail, identifiant (fonctionnement et gestion du compte), position approximative, fichiers
+  joints, autres contenus (fonctionnement), interactions et diagnostics (analyses).
+- Statut de professionnel : celui du compte développeur, appliqué à l'appli, avec les conditions d'utilisation
+  https://requeteapp.com/decouvrir/conditions.html.
+- Seul avertissement de la version : pas de fichier de désobscurcissement (sans conséquence).
+
 ## Dans l'ordre, ce qu'il reste à faire
 
 1. **Compte Google Play Console** (organisation, D-U-N-S 278027523) : Elisa, en cours. Une fois validé, créer l'appli :
@@ -130,7 +167,7 @@ l'instant ; la progression reste possible sans compte), les widgets et l'île dy
 
 ---
 
-## Fiche en français (langue par défaut)
+## Fiche en français (fr-FR, reprise pour fr-CA)
 
 ### Nom de l'appli (30 caractères au plus) : 25
 
@@ -180,7 +217,7 @@ l'instant ; la progression reste possible sans compte), les widgets et l'île dy
     Conditions d'utilisation : https://requeteapp.com/decouvrir/conditions.html
     Politique de confidentialité : https://requeteapp.com/decouvrir/confidentialite.html
 
-## Fiche en anglais (English (United States), à ajouter dans les traductions)
+## Fiche en anglais (en-US, langue par défaut depuis le 27 novembre)
 
 ### App name (30 au plus) : 19
 
@@ -233,8 +270,8 @@ l'instant ; la progression reste possible sans compte), les widgets et l'île dy
 - Icône 512 × 512 : google-play/icone-512.png (la même que sur iPhone).
 - Image de présentation 1024 × 500 : google-play/banniere-fr.png et banniere-en.png (accueil de l'appli dans un téléphone sans
   marque, la mascotte Requête, les vrais chiffres).
-- Captures de téléphone (2 à 8, format 9:16, pas plus de 2 fois plus hautes que larges) : à faire. Les captures iPhone de l'App
-  Store (1206 × 2622) sont trop hautes pour Google et montrent un iPhone.
+- Captures de téléphone : google-play/captures/ (8 par langue, 1206 × 2400, faites le 27 novembre par
+  tools/google-play/captures-android.py à partir des captures App Store, trop hautes pour Google et montrant un iPhone).
 
 ## Coordonnées et catégorie
 
