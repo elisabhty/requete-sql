@@ -26,3 +26,18 @@ test('Android : l’icône du téléphone est tirée à 72 dp (le centre de l’
   const a = readFileSync(new URL('mipmap-anydpi-v26/ic_launcher.xml', res), 'utf8');
   assert.ok(a.includes('<inset android:drawable="@mipmap/ic_launcher_foreground" android:inset="16.7%" />'), 'le logo reste dans le centre');
 });
+
+// 26 novembre, 11 h 34 (Elisa, sa photo du Samsung) : « la page Requête “on explore le monde des données” n’est pas centrée ».
+// Sur Android, la barre du haut est fine et le bas gardait l'écart prévu pour l'iPhone, plus les 48 px des boutons d'Android : tout
+// remontait contre l'heure. Android seulement ; l'iPhone ne change pas.
+test('Android : les boutons du bas posés à 20 px de la barre d’Android, la page « bonjour » centrée', () => {
+  const css = readFileSync(new URL('../onboarding-vitrine.css', import.meta.url), 'utf8');
+  const regle = 'html.is-android #onboarding.ob-vitrine :where(.ob-foot){padding-bottom:calc(var(--safe-bottom,0px) + 20px)!important}';
+  assert.ok(css.includes(regle));
+  assert.ok(css.indexOf(regle) > css.indexOf('html #onboarding.ob-vitrine .ob-foot{padding-bottom:calc(var(--safe-bottom,0px) + max(12px,'), 'après la règle générale, qu’elle remplace sur Android');
+  assert.ok(css.includes('html.is-android #onboarding.ob-vitrine.ob-bonjour-step #ob-foot-note:empty{display:none}'));
+  // Les écrans qui ont leur propre bas le gardent : leurs règles pèsent plus que :where(.ob-foot).
+  assert.ok(css.includes('html #onboarding.ob-vitrine.ob-paywall-step .ob-foot{padding-top:10px!important;padding-bottom:calc(var(--safe-bottom,0px) + 12px)!important}'));
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.ok(html.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=80">'));
+});

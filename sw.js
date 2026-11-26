@@ -39,7 +39,7 @@ const PRECACHE = [
   './compte-moteurs.js?v=3',
   './connexion.js?v=4',
   './memo-collection.css?v=5',
-  './onboarding-vitrine.css?v=79',
+  './onboarding-vitrine.css?v=80',
   './',
   './index.html',
   './home-journey.css',
