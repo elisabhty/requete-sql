@@ -82,7 +82,7 @@ test('le clavier : la vue garde sa taille, l’appli suit son mouvement une seul
   /* Le champ glisse en vue, d’un seul mouvement */
   assert.ok(app.includes("sc.scrollTop=st0;try{sc.scrollTo({top:vise,behavior:'smooth'});}catch(e){sc.scrollTop=vise;}"));
   /* kb-ouvert tient le temps que le clavier descende */
-  assert.ok(app.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre||part);"));
+  assert.ok(app.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre||part||kbAnd);"));
   /* L’appli et les feuilles suivent le clavier (0,26 s), sauf mouvements réduits */
   const bloc = cut(lq, '/* Le clavier qui monte (13 novembre, 14 h 24', '/* ====');
   assert.ok(bloc.includes('@media (prefers-reduced-motion:no-preference){\n  html.is-native:not([data-motion="reduce"]) #app{transition:height .26s cubic-bezier(.38,.7,.125,1),min-height .26s cubic-bezier(.38,.7,.125,1)}'));

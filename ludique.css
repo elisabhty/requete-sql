@@ -3323,6 +3323,20 @@ html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat-m>b{animation:introC
 html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat-a{animation:introOn 1ms linear var(--t-arret) forwards}
 html.is-native.lq #loader.is-intro.is-chat.is-play .in-chat-a>b{animation:introChatAssis 770ms linear var(--t-arret) both}
 html.is-native.lq #loader.is-intro.fade-out{animation:introOut .3s linear forwards}
+/* 26 novembre, 14 h 05 (Elisa, sur son Samsung, sa photo du logo rond d’Android par-dessus les cases qui volent : « ça a fait comme un
+   flash »). Sur Android, l’ouverture commence par le logo de l’écran de lancement d’Android (.in-and : la même image, à la même place,
+   à la même taille), sans les points ni les emplacements : le fondu d’Android (250 ms) passe d’une image à la même. Ce fondu fini
+   (index.html, ANDROID_FONDU), le logo se resserre et s’efface (is-and-part, 0,28 s) pendant que les points et les seize
+   emplacements de l’iPhone apparaissent (0,2 s) ; puis l’ouverture part comme sur l’iPhone (is-play : les cases partent des points).
+   L’iPhone ne change pas (pas de .in-and). */
+html.is-native.lq #loader.is-intro .in-and{display:none}
+html.is-native.is-android.lq #loader.is-intro.is-and .in-and{display:block;position:absolute;z-index:3;left:50%;top:50%;width:194px;height:194px;margin:-97px 0 0 -97px;
+  pointer-events:none;-webkit-user-drag:none;user-select:none;will-change:transform,opacity}
+html.is-native.is-android.lq #loader.is-intro.is-and:not(.is-and-part) :is(.in-d,.in-s){opacity:0}
+html.is-native.is-android.lq #loader.is-intro.is-and.is-and-part .in-and{animation:introAndLogo .28s cubic-bezier(.35,0,.65,1) both}
+html.is-native.is-android.lq #loader.is-intro.is-and.is-and-part:not(.is-play) :is(.in-d,.in-s){animation:introAndPoints .2s ease-out both}
+@keyframes introAndLogo{to{opacity:0;transform:scale(.6)}}
+@keyframes introAndPoints{from{opacity:0}}
 /* Le vol d’une case : du point (sa taille, sa couleur, à angle droit) à sa place, en accélérant puis en freinant ; elle se pose aux
    82 % (un peu grande), puis se tasse */
 /* 12 novembre, 17 h 51 (« j’ai l’impression que ça bug au début ») : le vol, la soudure et les lettres n’animent plus que transform
@@ -9612,6 +9626,11 @@ html.lq #scr-lesson .bravo-wrap .bravo-suite .bravo-tool .bi{width:34px!importan
 html.lq #scr-lesson .bravo-wrap .bravo-suite .bravo-tool .bi svg{width:19px!important;height:19px!important}
 html.lq #scr-lesson .bravo-wrap .bravo-suite .bravo-tool .bt{font-size:13px!important;line-height:1.15!important;text-align:center;white-space:normal;text-wrap:balance;overflow-wrap:anywhere}
 @media (max-width:360px){html.lq #scr-lesson .bravo-wrap .bravo-suite .bravo-tool .bt{font-size:12.5px!important}}
+/* 26 novembre, 14 h 05 (Elisa, sur son Samsung, sa photo du bilan : « Recommence / r ») : sur Android, un nom de tuile ne se coupe plus
+   au milieu d’un mot. Si le plus long ne tient pas (petit écran, texte agrandi dans les réglages du téléphone), les trois noms
+   rapetissent ensemble (bravoTuilesAjuster, dans index.html, règle --bt-taille). L’iPhone ne change pas. */
+html.lq.is-android #scr-lesson .bravo-wrap .bravo-suite .bravo-tool .bt{overflow-wrap:normal;word-break:normal;hyphens:manual;font-size:var(--bt-taille,13px)!important}
+@media (max-width:360px){html.lq.is-android #scr-lesson .bravo-wrap .bravo-suite .bravo-tool .bt{font-size:var(--bt-taille,12.5px)!important}}
 /* ---------- 64. Les cartes de l’album, sur tous les iPhone (10 novembre, 8 h 50 : « Base relationnelle » coupé, plus de « Voir la leçon ») ----------
    Safari mesurait le mot-clé avant de connaître la largeur de la carte (cqi), comme la pastille « Voir la leçon » le 7 novembre : le
    mot restait sur une ligne, trop grand, coupé au bord. Dans l’album, sa taille suit la largeur de l’écran. Carte = 50vw − 52 px (deux

@@ -6843,7 +6843,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=393">
+<link rel="stylesheet" href="ludique.css?v=394">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=82">
 <style id="lesson-video-css">
@@ -7635,7 +7635,19 @@ html.lq #scr-compte .plus-row-icon.is-icone,#scr-compte .plus-row-icon.is-icone{
   /* 12 novembre, 17 h 51 (« Améliore cette entrée ») : les seize emplacements de la touche, en clair, au centre (.in-s ; les mêmes
      vues dans l’écran de lancement). Colonne par colonne, comme les cases. */
   for(var sc=0;sc<4;sc++)for(var sr=0;sr<4;sr++)h+='<i class="in-s" aria-hidden="true" style="--c:'+sc+';--r:'+sr+'"></i>';
+  /* 26 novembre, 14 h 05 (Elisa, sur son Samsung, sa photo du logo rond par-dessus les cases qui volent : « ça a fait comme un flash »).
+     L’écran de lancement d’Android n’est pas celui de l’iPhone : le logo rond, seul au centre (splash_icone). Il s’efface en 250 ms
+     (launchFadeOutDuration) dès que l’appli le retire, et l’ouverture partait aussitôt : les cases volaient sous le logo qui
+     disparaissait. Sur Android, la page commence par le même logo, à la même place et à la même taille (lancement-android.webp, tiré de
+     splash_icone : 194 dp autour du cercle), sans les points ni les emplacements : le fondu d’Android passe d’une image à la même.
+     Ce fondu fini (ANDROID_FONDU), le logo se resserre et s’efface, les points et les emplacements apparaissent, et l’ouverture part. */
+  var android=d.classList.contains('is-android'),logoAndroid=null,ANDROID_FONDU=320;
+  if(android){
+    h+='<img class="in-and" src="assets/lancement-android.webp" width="194" height="194" alt="" aria-hidden="true" draggable="false">';
+    L.classList.add('is-and');
+  }
   L.insertAdjacentHTML('afterbegin',h);
+  if(android){logoAndroid=L.querySelector('.in-and');try{if(logoAndroid&&logoAndroid.decode)logoAndroid.decode().catch(function(){});}catch(e){}}
   var nom=L.querySelector('.ld-name');
   if(nom&&!calme){var t=nom.textContent;nom.setAttribute('aria-label',t);
     nom.innerHTML=Array.from(t).map(function(c,i){return '<span class="in-l" aria-hidden="true" style="--i:'+i+'"><b>'+c+'</b></span>';}).join('');}
@@ -7779,24 +7791,39 @@ html.lq #scr-compte .plus-row-icon.is-icone,#scr-compte .plus-row-icon.is-icone{
     L.classList.add('is-sortie');
     setTimeout(ranger,T.dSortie+10);
   };
+  var attenteLogo=0;   // Android : 1 pendant l’attente du logo de la page, 2 ensuite
   var jouer=function(){
     if(lance)return;
     if(window.__majInstalle){window.__majApres=jouer;return;}   // la page va être remplacée : l’écran de lancement reste
+    /* Android : le logo de la page est là avant que celui d’Android parte (400 ms d’attente au plus). */
+    if(android&&attenteLogo<2&&logoAndroid&&!(logoAndroid.complete&&logoAndroid.naturalWidth>0)){
+      if(!attenteLogo){
+        attenteLogo=1;
+        var pret=function(){if(attenteLogo===2)return;attenteLogo=2;jouer();};
+        logoAndroid.addEventListener('load',pret);logoAndroid.addEventListener('error',pret);setTimeout(pret,400);
+      }
+      return;
+    }
     lance=true;
     L.classList.remove('is-long');
     try{C&&C.Plugins&&C.Plugins.SplashScreen&&C.Plugins.SplashScreen.hide({fadeOutDuration:0});}catch(e){}
     try{window.barresSombres&&window.barresSombres();}catch(e){}
-    if(calme){L.classList.add('fade-out');setTimeout(ranger,340);return;}
+    if(calme){var fondu=function(){L.classList.add('fade-out');setTimeout(ranger,340);};if(android)setTimeout(fondu,ANDROID_FONDU);else fondu();return;}
     T=chatPret>=CHAT_IMG.length?CHAT:PLEINE;
     HAPTIQUE=haptique();
     construire();
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      t0=horloge();
-      L.classList.add('is-play');
-      jouerSon();
-      vibrer();
-      setTimeout(function(){sortieDue=true;if(prete)sortir();},T.sortie);
-    });});
+    var partir=function(){
+      requestAnimationFrame(function(){requestAnimationFrame(function(){
+        t0=horloge();
+        L.classList.add('is-play');
+        jouerSon();
+        vibrer();
+        setTimeout(function(){sortieDue=true;if(prete)sortir();},T.sortie);
+      });});
+    };
+    /* Android : l’écran de lancement s’efface encore (250 ms). Quand il n’est plus là, le logo de la page se resserre et s’efface
+       pendant que les points et les emplacements de l’iPhone apparaissent (is-and-part, 0,2 s), puis l’ouverture part comme sur l’iPhone. */
+    if(android)setTimeout(function(){L.classList.add('is-and-part');setTimeout(partir,200);},ANDROID_FONDU);else partir();
   };
   /* L’appli est prête (hideLoader) : l’ouverture part si elle attendait encore ; partie, elle sort à son heure, ou tout de suite si
      son heure est passée */
@@ -34799,6 +34826,22 @@ const BRAVO_ICO={
   book:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5v-13Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5v-13Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>',
   restart:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.8 12a8.2 8.2 0 1 0 2.1-5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3.5 4.8v4.2H7.7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
+/* 26 novembre, 14 h 05 (Elisa, sur son Samsung, sa photo du bilan : « Recommence / r ») : sur Android, un nom de tuile ne se coupe
+   plus au milieu d’un mot (ludique.css). Si le plus long mot ne tient pas dans sa tuile (petit écran, texte agrandi dans les réglages
+   du téléphone), les trois noms rapetissent ensemble, d’un demi-pixel à la fois, jusqu’à ce qu’il tienne (--bt-taille, 10,5 px au
+   moins). L’iPhone ne change pas. */
+function bravoTuilesAjuster(){
+  if(typeof appAndroid!=='function'||!appAndroid()||typeof document==='undefined')return;
+  const g=document.querySelector('#scr-lesson .bravo-tools');if(!g)return;
+  const bts=[...g.querySelectorAll('.bravo-tool .bt')];if(!bts.length)return;
+  g.style.removeProperty('--bt-taille');
+  const deborde=()=>bts.some(b=>b.clientWidth>0&&b.scrollWidth>b.clientWidth+0.5);
+  let t=typeof matchMedia==='function'&&matchMedia('(max-width:360px)').matches?12.5:13;
+  while(t>10.5&&deborde()){t-=0.5;g.style.setProperty('--bt-taille',t+'px');}
+}
+if(typeof window!=='undefined'&&typeof window.addEventListener==='function')window.addEventListener('resize',()=>{
+  if(typeof lessonStep!=='undefined'&&lessonStep===3&&typeof appAndroid==='function'&&appAndroid())bravoTuilesAjuster();
+});
 function bravoActionsHtml(l){
   const goBtn=recommendedSession()?'':`<button type="button" class="bravo-go" onclick="exitLessonToTab('learn')">Retour à l’accueil</button>`;
   const video=lessonHasVideo(l);
@@ -36435,7 +36478,7 @@ function renderLessonFlow(){
     if(d!=null){const ta=document.getElementById('ed-lesson');if(ta){ta.value=d;syncHL('ed-lesson','hl-lesson');fitSqlEditor(ta);}}
   }
   if(lessonStep===2) renderValidation();
-  if(lessonStep===3){ requestAnimationFrame(revealBravoCard); requestAnimationFrame(bravoNoteWire); requestAnimationFrame(bravoFinWire); requestAnimationFrame(bravoCadWire); stkPaint(document.getElementById('lesson-body')); setTimeout(()=>{moduleUpCheck();nivUpCheck();},250); }
+  if(lessonStep===3){ bravoTuilesAjuster(); requestAnimationFrame(bravoTuilesAjuster); requestAnimationFrame(revealBravoCard); requestAnimationFrame(bravoNoteWire); requestAnimationFrame(bravoFinWire); requestAnimationFrame(bravoCadWire); stkPaint(document.getElementById('lesson-body')); setTimeout(()=>{moduleUpCheck();nivUpCheck();},250); }
   if(lessonStep===0&&!lessonHasVideo(l)){
     buildSommaire();
     initTesteEditor();
@@ -46145,6 +46188,13 @@ function openNote(id,pre){
   /* La copie colorée se remplit tout de suite : sans elle, la requête associée restait invisible jusqu’à la première frappe
      (Elisa, 2 novembre, 18 h 45 : un grand cadre sombre et vide). */
   syncHL('ne-sql','hl-ne-sql');
+  /* 26 novembre, 14 h 05 (Elisa, sur son Samsung : « il faut cliquer 2 fois ») : sur Android, « Enregistrer » est collé au-dessus du
+     clavier (kb-ouvert). Le toucher ne retire pas le clavier avant l’enregistrement : il reste le temps de la coche (lqSaved) et part
+     avec l’éditeur quand la liste revient ; sinon la vue grandissait sous le doigt et le bouton retombait à sa place pendant sa coche. */
+  if(typeof appAndroid==='function'&&appAndroid()){
+    const nb=document.getElementById('note-body'),prim=nb&&nb.querySelector('.ne-act .prim');
+    if(prim)prim.addEventListener('mousedown',ev=>{const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName)&&nb.contains(a))ev.preventDefault();});
+  }
   if(!n)setTimeout(()=>ta.focus(),260);
   document.getElementById('note-body').scrollTop=0;
 }
@@ -53392,6 +53442,26 @@ if(typeof document!=='undefined'&&typeof window!=='undefined'){
 (function(){
   const vv=window.visualViewport;if(!vv)return;
   let raf=0,serreT=0,partT=0;
+  /* 26 novembre, 14 h 05 (Elisa, sur son Samsung : « quand on veut enregistrer la note, il faut cliquer 2 fois », « ça saute quand on
+     écrit pour la première fois sur le clavier de notes »). Sur Android, la vue de l’appli rétrécit d’elle-même au-dessus du clavier
+     (Capacitor 8) : ni --kb ni kbNatH n’y voient de clavier, et kb-ouvert ne venait jamais. Dans une note, « Enregistrer » restait donc
+     sous le clavier (il ne se colle au-dessus de lui qu’avec kb-ouvert, ludique.css, 48d bis) : un premier toucher fermait le clavier,
+     un second enregistrait. kbAnd : le clavier d’Android est là, d’après le plugin Keyboard (keyboardWillShow, keyboardWillHide, au
+     départ de son mouvement, quand la vue change de taille), ou d’après la vue qui a rétréci de plus de 120 px avec un champ actif. */
+  const kbAndroid=typeof appAndroid==='function'&&appAndroid();
+  let kbAnd=false,kbAndH=window.innerHeight,kbAndL=window.innerWidth;
+  if(kbAndroid){
+    const champ=()=>{const a=document.activeElement;return !!(a&&(/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)||a.isContentEditable));};
+    window.addEventListener('keyboardWillShow',()=>{kbAnd=true;});
+    window.addEventListener('keyboardDidShow',()=>{kbAnd=true;});
+    window.addEventListener('keyboardWillHide',()=>{kbAnd=false;});
+    window.addEventListener('keyboardDidHide',()=>{kbAnd=false;});
+    window.addEventListener('resize',()=>{
+      const l=window.innerWidth,h=window.innerHeight;
+      if(l!==kbAndL){kbAndL=l;kbAndH=h;}else if(h>kbAndH)kbAndH=h;
+      if(h<kbAndH-120){if(champ())kbAnd=true;}else kbAnd=false;
+    });
+  }
   /* Dans l’app, le clavier qui ne fait pas rétrécir la page compte aussi (kbNatif, 11 novembre) ; html.kb-ouvert : un clavier à l’écran. */
   const fit=()=>{raf=0;const kb=Math.max(Math.round(window.innerHeight-vv.height-vv.offsetTop),kbNatif());document.documentElement.style.setProperty('--kb',(kb>60?kb:0)+'px');
     document.documentElement.style.setProperty('--kb-flot',(kb>60&&!kbNatH?IOS_KB_OVERLAY:0)+'px');   // Safari : les barres qui flottent sur le clavier
@@ -53416,7 +53486,7 @@ if(typeof document!=='undefined'&&typeof window!=='undefined'){
     const part=!kbNatH&&typeof kbEnMouvement==='function'&&kbEnMouvement();
     clearTimeout(partT);
     if(part)partT=setTimeout(fit,Math.max(0,kbAnimFin-Date.now())+10);
-    document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre||part);
+    document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre||part||kbAnd);
     if(typeof paysVueRendre==='function')paysVueRendre();};
   const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};
   vv.addEventListener('resize',ask);vv.addEventListener('scroll',ask);

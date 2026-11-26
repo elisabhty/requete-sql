@@ -73,7 +73,7 @@ test('les marges du haut et du bas suivent Android (variables de Capacitor), et 
     assert.ok(!/(?<!--safe-area-inset-(?:top|right|bottom|left),)env\(safe-area-inset/.test(t.replace(/var\(--safe-area-inset-(top|right|bottom|left),env\(safe-area-inset-\1(,0px)?\)\)/g, '')), 'chaque env() a sa variable devant');
   }
   assert.ok(app.includes('var(--safe-area-inset-top,env(safe-area-inset-top,0px))') && css.includes('var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))'));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=393">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=394">'));
 });
 
 test('le projet Android et sa fabrication sur GitHub', () => {
