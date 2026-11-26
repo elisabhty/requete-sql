@@ -66,10 +66,11 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
 - 26 novembre, vers 13 h 55 (version 35) : achat d'essai réussi sur le Samsung d'Elisa (offre de bienvenue, carte de test) ;
   RevenueCat l'a reçu (données « sandbox » : Play Store, fr.requete.app.annuel.bienvenue:annuel, « New Sub »). Les achats de
   test n'envoient pas les notifications d'un vrai achat ; en test, l'annuel se renouvelle toutes les 30 min, 6 fois au plus.
-- Version 36 (Android seulement) : l'ouverture commence par le logo rond de l'écran de lancement d'Android (plus de logo par-dessus
-  les cases qui volent) ; dans une note, « Enregistrer » collé au-dessus du clavier (un seul toucher) ; au bilan d'une leçon,
-  « Recommencer » jamais coupé, même quand le texte du téléphone est agrandi (la WebView d'Android suit le réglage de taille de
-  police du téléphone ; l'iPhone, non).
+- Version 37 (Android seulement ; la 36 n'a pas été envoyée) : l'ouverture commence par le logo rond de l'écran de lancement
+  d'Android (plus de logo par-dessus les cases qui volent), et ce logo n'est plus rogné en haut et en bas par la forme des icônes
+  du Samsung (cercle de 176 dp au lieu de 192) ; dans une note, « Enregistrer » collé au-dessus du clavier (un seul toucher) ;
+  le texte de l'appli garde la taille de l'iPhone, même si la police du téléphone est agrandie (plus de mots coupés comme
+  « Recommence / r ») ; les essais sur émulateur signalent tout mot coupé (aucun sur 52 écrans, à 360 et 411 px de large).
 - 26 novembre, 13 h 30 (Elisa : « Oui stp ») : noms des abonnements raccourcis (coupés dans la feuille de Google) : « Premium annuel »
   (fr.requete.app.annuel et fr.requete.app.annuel.bienvenue : pas de « −50 % » dans le nom, qui reste affiché après la 1re année,
   au plein tarif) et « Premium hebdo » (fr.requete.app.hebdo).
