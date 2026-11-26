@@ -63,6 +63,9 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
   (annuel avec essai, hebdo, bienvenue −50 %) ; en test, une année dure 30 min, une semaine 5 min, l'essai 3 min. Carte « toujours
   refusée » : « Le paiement n'a pas abouti… » s'affiche bien ; « Restaurer » sans abonnement : « Aucun abonnement à restaurer sur
   ce compte Google ». Reste l'achat avec la carte « toujours approuvée », puis le vérifier dans RevenueCat.
+- 26 novembre, 13 h 30 (Elisa : « Oui stp ») : noms des abonnements raccourcis (coupés dans la feuille de Google) : « Premium annuel »
+  (fr.requete.app.annuel et fr.requete.app.annuel.bienvenue : pas de « −50 % » dans le nom, qui reste affiché après la 1re année,
+  au plein tarif) et « Premium hebdo » (fr.requete.app.hebdo).
 
 ## Dans l'ordre, ce qu'il reste à faire
 
