@@ -54,7 +54,8 @@ test('les feuilles, la barre des touches SQL et la ligne « Exécuter » suivent
     'la barre des touches SQL se recale quand le clavier de l’app s’annonce ou s’en va');
   assert.ok(html.includes('-IOS_KB_OVERLAY-kbNatif();'), 'la ligne « Exécuter » reste au-dessus du clavier de l’app');
   const kb = cut('/* Dans l’app, le clavier qui ne fait pas rétrécir la page compte aussi (kbNatif, 11 novembre)', '})();');
-  assert.ok(kb.includes('const kb=Math.max(Math.round(window.innerHeight-vv.height-vv.offsetTop),kbNatif());'));
+  /* 26 novembre, 22 h 05 : la hauteur de la vue lue une seule fois (ih) */
+  assert.ok(kb.includes('const ih=window.innerHeight,kb=Math.max(Math.round(ih-vv.height-vv.offsetTop),kbNatif(ih));'));
   assert.ok(html.includes("document.documentElement.style.setProperty('--kb',(kb>60?kb:0)+'px');"), '--kb comme avant (réf. 9 du 31 octobre)');
   assert.ok(kb.includes("document.documentElement.style.setProperty('--kb-flot',(kb>60&&!kbNatH?IOS_KB_OVERLAY:0)+'px');"), 'Safari : les barres qui flottent sur le clavier');
   assert.ok(kb.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre||part||kbAnd);"))   // serre : la vue pas encore revenue (12 novembre, 23 h 26);

@@ -666,6 +666,9 @@ lancement, l’appli passe le clavier en mode `none` (`Keyboard.setResizeMode`, 
 bouge plus, l’appli se cale sur le clavier dès qu’il s’annonce (`--app-h`, `--kb`) et suit son mouvement en 0,26 s (ludique.css,
 « Le clavier qui monte »). Sous le clavier, la couleur du bas de la page (`--fond-clavier`). `capacitor.config.json` garde
 `native` : c’est l’appli qui choisit au lancement, et une mise à jour à distance peut revenir en arrière.
+Du 24 au 26 novembre, ce réglage (et `setScroll`) ne partait plus : une condition pour Android appelait `appAndroid()` à un
+endroit de la page où elle n’existe pas encore, et l’erreur était avalée. La plateforme est lue sur place depuis le 26 novembre
+au soir (v3158), test `retours-2611-2134-android-clavier-dessus` (le début de la page joué pour iOS et Android).
 
 ## Corriger l’appli sans repasser par Apple (13 novembre, 11 h 49)
 

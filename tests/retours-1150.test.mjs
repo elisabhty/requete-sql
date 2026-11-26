@@ -21,7 +21,7 @@ const css = fs.readFileSync(path.join(ROOT, 'ludique.css'), 'utf8');
 const cut = (a, b) => { const i = html.indexOf(a); assert.ok(i >= 0, a); const j = html.indexOf(b, i + a.length); assert.ok(j > i, b); return html.slice(i, j); };
 
 test('l’app tient au-dessus du clavier, que la vue rétrécisse ou non', () => {
-  assert.ok(html.includes("const ka=kbNatif();document.documentElement.style.setProperty('--kb-app',ka+'px');document.documentElement.style.setProperty('--app-h',(window.innerHeight-ka)+'px');"));
+  assert.ok(html.includes("const ka=kbNatif(ih);document.documentElement.style.setProperty('--kb-app',ka+'px');document.documentElement.style.setProperty('--app-h',(ih-ka)+'px');"));   // ih : 26 novembre, 22 h 05
   for (const r of ['html.is-native.kb-ouvert body{min-height:var(--app-h,100dvh)}',
     'html.is-native.kb-ouvert #app{height:var(--app-h,100dvh);min-height:var(--app-h,100dvh)}',
     'html.lq .viz.on{bottom:calc(var(--kb,0px) - var(--kb-app,0px))!important}',

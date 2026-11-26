@@ -73,7 +73,7 @@ test('les marges du haut et du bas suivent Android (variables de Capacitor), et 
     assert.ok(!/(?<!--safe-area-inset-(?:top|right|bottom|left),)env\(safe-area-inset/.test(t.replace(/var\(--safe-area-inset-(top|right|bottom|left),env\(safe-area-inset-\1(,0px)?\)\)/g, '')), 'chaque env() a sa variable devant');
   }
   assert.ok(app.includes('var(--safe-area-inset-top,env(safe-area-inset-top,0px))') && css.includes('var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))'));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=395">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=396">'));
 });
 
 test('le projet Android et sa fabrication sur GitHub', () => {
@@ -118,7 +118,8 @@ test('Android : le clavier, la vue rétrécit d’elle-même (pas de double recu
   assert.equal(android({keyboardHeight: 300}), 0);
   assert.equal(ios({keyboardHeight: 300.4}), 300);
   assert.ok(h.includes('const h=kbHauteurNative(e);') && h.includes('dxClavierApp=typeof kbHauteurNative===\'function\'?kbHauteurNative(e)'));
-  assert.ok(h.includes('var kbScroll=!appAndroid()&&P.Keyboard') && h.includes('var kbMode=!appAndroid()&&P.Keyboard'));
+  /* 26 novembre, 21 h 50 : la plateforme lue sur place au début de la page (appAndroid n’y existe pas encore) */
+  assert.ok(h.includes('var kbScroll=!android&&P.Keyboard') && h.includes('var kbMode=!android&&P.Keyboard'));
   const conf = JSON.parse(lire('capacitor.config.json'));
   assert.deepEqual(conf.plugins.SystemBars, {style: 'LIGHT', initialViewportFitValueHint: 'cover'}, 'icônes foncées sur le fond clair, même téléphone en mode sombre');
 });

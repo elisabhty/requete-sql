@@ -30,7 +30,7 @@ test('carte retournée : un doigt animé montre « Elle t’attend dans tes cart
 
 test('le choix du pays, clavier ouvert : la feuille ne bouge plus, son fond couvre tout, la page derrière garde sa hauteur', () => {
   /* Les trois repères, posés à chaque nouvelle du clavier */
-  assert.ok(html.includes("const vh=Math.max(kbNatBase,window.innerHeight);\n    document.documentElement.style.setProperty('--vue-h',vh+'px');document.documentElement.style.setProperty('--kb-vue',Math.max(0,vh-window.innerHeight)+'px');document.documentElement.style.setProperty('--kb-tot',kbNatH+'px');"));
+  assert.ok(html.includes("const vh=Math.max(kbNatBase,ih);\n    document.documentElement.style.setProperty('--vue-h',vh+'px');document.documentElement.style.setProperty('--kb-vue',Math.max(0,vh-ih)+'px');document.documentElement.style.setProperty('--kb-tot',kbNatH+'px');"));   // ih : la hauteur de la vue lue une fois (26 novembre, 22 h 05)
   /* La feuille : sa hauteur vient de la vue sans clavier, son bas descend sous la vue quand elle rétrécit, la liste gagne la hauteur du clavier */
   assert.ok(!css.includes('html.is-native .pays-feuille{bottom:'), 'la feuille (et son fond) ne monte plus au-dessus du clavier');
   assert.ok(css.includes('html.is-native .pays-feuille .pays-boite{height:min(calc(var(--vue-h,100vh) * .82),760px);max-height:calc(var(--vue-h,100dvh) - var(--safe-top) - 10px);margin-bottom:calc(-1 * var(--kb-vue,0px))}'));
@@ -131,8 +131,8 @@ test('une notification se lit en entier : elle passe à la ligne, et reste plus 
    autre défaut : entre le départ annoncé du clavier et le retour de la vue, kb-ouvert tombait déjà et la barre d’onglets
    réapparaissait au bas de la vue encore rétrécie, juste au-dessus du clavier, le temps d’une image. */
 test('clavier qui part : la mise en page « clavier » tient jusqu’au retour de la vue (la barre d’onglets ne clignote plus au-dessus de lui)', () => {
-  const fit = cut('const fit=()=>{raf=0;const kb=', "\n  const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};");
-  assert.ok(fit.includes("const serre=typeof dxNatif==='function'&&dxNatif()&&!kbNatH&&window.innerHeight<kbNatBase-1;"), 'dans l’app seulement, clavier annoncé parti, vue encore rétrécie');
+  const fit = cut('const fit=()=>{raf=0;const ih=', "\n  const ask=()=>{if(!raf)raf=requestAnimationFrame(fit);};");
+  assert.ok(fit.includes("const serre=typeof dxNatif==='function'&&dxNatif()&&!kbNatH&&ih<kbNatBase-1;"), 'dans l’app seulement, clavier annoncé parti, vue encore rétrécie');
   assert.ok(fit.includes("document.documentElement.classList.toggle('kb-ouvert',kb>60||kbNatH>0||serre||part||kbAnd);"));
   /* La sécurité : si la vue ne revenait pas, sa hauteur du moment est prise pour bonne au bout de 0,6 s */
   assert.ok(fit.includes("clearTimeout(serreT);\n    if(serre)serreT=setTimeout(()=>{ if(!kbNatH&&window.innerHeight<kbNatBase-1){kbNatBase=window.innerHeight;fit();} },600);"));

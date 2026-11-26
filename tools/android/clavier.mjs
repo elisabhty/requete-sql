@@ -59,6 +59,8 @@ function photo(nom) {
 const rapport = {appareil: adb('shell getprop ro.product.model').trim() + ' · Android ' + adb('shell getprop ro.build.version.release').trim(), clavier: adb('shell settings get secure default_input_method').trim(), essais: []};
 
 console.log('Page : ' + await evaluer('navigator.userAgent').catch(e => String(e)));
+// 26 novembre, 21 h 34 : le clavier par-dessus la vue (ClavierPlugin) ou la vue qui rétrécit avec lui (SystemBars)
+console.log('Clavier : ' + await evaluer(`(() => (document.documentElement.classList.contains('clavier-dessus') ? 'par-dessus la vue' : 'la vue rétrécit') + ' · module : ' + (window.__requeteClavier || 'absent') + ' · marges : ' + ['top', 'bottom'].map(c => getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-' + c).trim() || '?').join(' / '))()`).catch(e => String(e)));
 await systemeCalme();
 // L’accueil de l’onboarding simplement caché (pas finishOnboard : l’arrivée dans l’appli, ses autocollants, ses sons et ses
 // confettis faisaient tomber l’émulateur sans carte graphique, 26 novembre) ; l’appli est dessous, déjà dessinée au démarrage.
@@ -96,7 +98,8 @@ const RELEVE = `(() => {
     const nb = document.getElementById('note-body'), act = document.querySelector('#note-body .ne-act'), cs = getComputedStyle(document.documentElement);
     K.images.push({t: maintenant(), ih: innerHeight, vv: vv ? Math.round(vv.height) : 0, kb: document.documentElement.classList.contains('kb-ouvert') ? 1 : 0,
       feuille: R('#note-sheet'), corps: R('#note-body'), cadre: R('#ne-ta'), bouton: R('#note-body .ne-act'), pos: act ? getComputedStyle(act).position.slice(0, 3) : '', glisse: act ? (/matrix\\(1, 0, 0, 1, 0, ([-\\d.]+)\\)/.exec(getComputedStyle(act).transform) || [0, 0])[1] * 1 : 0,
-      defil: nb ? Math.round(nb.scrollTop) : -1, page: Math.round(document.scrollingElement.scrollTop), appli: R('#app'), kbv: cs.getPropertyValue('--kb').trim()});
+      defil: nb ? Math.round(nb.scrollTop) : -1, page: Math.round(document.scrollingElement.scrollTop), appli: R('#app'), kbv: cs.getPropertyValue('--kb').trim(),
+      kn: typeof kbNatH !== 'undefined' ? kbNatH : -1, ah: cs.getPropertyValue('--app-h').trim()});
     if (performance.now() < fin) requestAnimationFrame(image);
   };
   requestAnimationFrame(image);
@@ -137,11 +140,15 @@ async function toucher(sel, dy) {
   adb(`shell input tap ${Math.round(r.x * r.d)} ${Math.round(r.y * r.d + HAUT)}`);
   return true;
 }
-/* Attendre que la hauteur de la vue passe la condition (le clavier là, ou reparti) : l’émulateur sans carte graphique met
-   plusieurs secondes à montrer le clavier */
-async function attendreVue(cond, ms) {
+/* Attendre le clavier (là, ou reparti) : l’émulateur sans carte graphique met plusieurs secondes à le montrer. La vue qui rétrécit
+   (SystemBars), ou, le clavier par-dessus la vue (ClavierPlugin, 26 novembre, 21 h 34), sa hauteur annoncée à la page (kbNatH). */
+async function attendreClavier(la, base, ms) {
   const t0 = Date.now();
-  while (Date.now() - t0 < ms) { const h = await evaluer('innerHeight').catch(() => 0); if (h && cond(h)) return Date.now() - t0; await dormir(150); }
+  while (Date.now() - t0 < ms) {
+    const r = await evaluer(`({h: innerHeight, k: typeof kbNatH !== 'undefined' ? kbNatH : 0})`).catch(() => null);
+    if (r && r.h && (la ? r.k > 0 || r.h < base - 100 : r.k === 0 && r.h >= base - 2)) return Date.now() - t0;
+    await dormir(150);
+  }
   return -1;
 }
 const montrer = (K, titre, de = -1e9, a = 1e9) => {
@@ -165,7 +172,7 @@ const base = await evaluer('innerHeight');
 const f1 = film('note', 60);
 await dormir(1500);
 await toucher('#ne-ta');
-const monte = await attendreVue(h => h < base - 100, 15000);
+const monte = await attendreClavier(true, base, 15000);
 console.log(monte >= 0 ? `\nLe clavier est là ${monte} ms après le toucher (vue : ${base} px avant)` : '\nLe clavier n’est pas venu en 15 s');
 await dormir(2500);
 let K = await evaluer('window.__clavier');
@@ -175,7 +182,7 @@ await dormir(2500);
 K = await evaluer('window.__clavier');
 const t3 = (K.images.slice(-1)[0] || {}).t || 0;
 adb('shell input keyevent KEYCODE_BACK');
-const descend = await attendreVue(h => h >= base - 2, 12000);
+const descend = await attendreClavier(false, base, 12000);
 await dormir(2000);
 K = await evaluer('window.__clavier');
 montrer(K, '1. Note existante, le doigt sur le cadre (ms depuis le toucher)', -300, t2);
@@ -190,7 +197,7 @@ await evaluer(`(() => { try { closeNote(); } catch (e) { document.getElementById
 await dormir(1500);
 await evaluer(RELEVE);
 await evaluer(`(() => { window.__clavier.t0 = performance.now(); openNote(); return true; })()`);
-const seul = await attendreVue(h => h < base - 100, 6000);
+const seul = await attendreClavier(true, base, 6000);
 console.log(seul >= 0 ? `\nNote neuve : le clavier monte de lui-même (${seul} ms)` : '\nNote neuve : le clavier ne monte pas de lui-même (6 s)');
 await dormir(1500);
 K = await evaluer('window.__clavier');

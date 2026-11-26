@@ -109,7 +109,7 @@ test('Le style : le logo n’existe que sur Android ; points et emplacements cac
   // L’ouverture de l’iPhone garde ses règles
   assert.ok(ludique.includes('html.is-native.lq #loader.is-intro.is-play .in-d{opacity:0}'));
   assert.ok(ludique.includes('html.is-native.lq #loader.is-intro.is-play .in-s{animation:introFade 90ms linear var(--t-soude) forwards}'));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=395">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=396">'));
 });
 
 /* ---------- Le clavier d’Android : kb-ouvert ---------- */
@@ -256,5 +256,5 @@ test('Android : l’engagement pris, le halo vert du bouton est un anneau rond �
   // L’iPhone garde l’ombre étalée (le halo collé au rond, 25 novembre)
   assert.ok(vitrine.includes('html #onboarding.ob-vitrine .ob-pact .ob-hold.is-done,html #onboarding.ob-vitrine .ob-hold.is-done{box-shadow:0 0 0 9px rgba(159,240,198,.55),0 6px 0 #5FCB97,0 16px 30px -12px rgba(27,22,64,.6)}'));
   assert.ok(vitrine.indexOf('html.is-android #onboarding.ob-vitrine .ob-hold-zone .ob-hold.is-done{') > vitrine.indexOf('html #onboarding.ob-vitrine .ob-pact .ob-hold.is-done,'), 'après la règle de l’iPhone');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=83">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=84">'));
 });

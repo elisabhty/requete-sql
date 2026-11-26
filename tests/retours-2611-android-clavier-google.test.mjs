@@ -150,8 +150,9 @@ test('Android : « Continuer » touché, le champ a déjà perdu la main ; la vu
 });
 
 test('CSS Android : la page et l’appli changent d’un seul coup avec la vue ; l’iPhone garde ses glissements', () => {
-  assert.ok(cssDepuis.includes('html.is-android #app{transition:none!important}'));
-  assert.ok(cssDepuis.includes('html.is-android #onboarding.ob-vitrine :is(.ob-name,.ob-pseudo)>:is(.ob-lead,.ob-title,.ob-chat){transition:none!important}'));
+  /* 26 novembre, 21 h 34 : seulement quand la vue rétrécit (sans ClavierPlugin) ; le clavier par-dessus la vue suit l’iPhone */
+  assert.ok(cssDepuis.includes('html.is-android:not(.clavier-dessus) #app{transition:none!important}'));
+  assert.ok(cssDepuis.includes('html.is-android:not(.clavier-dessus) #onboarding.ob-vitrine :is(.ob-name,.ob-pseudo)>:is(.ob-lead,.ob-title,.ob-chat){transition:none!important}'));
   const lud = readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
   assert.ok(lud.includes('html.is-native:not([data-motion="reduce"]) #app{transition:height .26s cubic-bezier(.38,.7,.125,1),min-height .26s cubic-bezier(.38,.7,.125,1)}'), 'l’iPhone suit toujours son clavier');
   assert.ok(css.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine :is(.ob-name,.ob-pseudo)>.ob-lead{max-height:9em;overflow:hidden;transition:max-height .26s'));
@@ -222,7 +223,7 @@ test('l’abonnement d’Android : sous le bouton, les phrases des deux offres o
   assert.ok(cssDepuis.includes('html.is-android #onboarding.ob-vitrine .pw-offre:active{transform:none;box-shadow:0 4px 0 var(--v-shadow-lip)}'));
   assert.ok(cssDepuis.includes('html.is-android #onboarding.ob-vitrine .pw-offre.is-on:active{box-shadow:0 4px 0 var(--v-sun-lip),0 0 0 4px rgba(255,200,61,.32),0 12px 28px rgba(27,22,64,.22)}'));
   assert.ok(css.includes('html #onboarding.ob-vitrine .pw-offre:active{transform:translateY(3px);box-shadow:0 1px 0 var(--v-shadow-lip)}'), 'l’iPhone garde son enfoncement');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=83">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=84">'));
 });
 
 /* ---------- 12 h 35 : « les petites notifications comme ça qui partent […] il faut que tu descendes automatiquement, comme si tu

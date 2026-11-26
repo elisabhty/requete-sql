@@ -173,7 +173,8 @@ test('notes, Android : « Enregistrer » collé en permanence (rien ne change de
   assert.ok(ludique.indexOf('html.lq.is-android:not(.kb-ouvert)') > ludique.indexOf('html.lq.kb-ouvert body:not(.kbar-on) #note-body .ne-act{'));
 });
 test('notes, Android : quand la vue change de hauteur avec le clavier, « Enregistrer » glisse au lieu de sauter', () => {
-  const debut = "(function(){\n  if(typeof window==='undefined'||typeof document==='undefined'||typeof appAndroid!=='function'||!appAndroid())return;\n  let place=null";
+  /* 26 novembre, 21 h 34 : seulement quand la vue rétrécit avec le clavier (sans ClavierPlugin : clavierDessus) */
+  const debut = "(function(){\n  if(typeof window==='undefined'||typeof document==='undefined'||typeof appAndroid!=='function'||!appAndroid())return;\n  /* Le clavier par-dessus la vue";
   const src = entre(app, debut, '\n})();\n');
   assert.ok(app.indexOf(debut) > app.indexOf("['keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide','resize'].forEach(n=>window.addEventListener(n,fit));"), 'après fit : la mise en page du clavier est déjà faite');
   let barTop = 541, ih = 914, android = true;
@@ -200,12 +201,15 @@ test('notes, Android : quand la vue change de hauteur avec le clavier, « Enregi
   // Sur l’iPhone : rien de tout ça
   android = false; for (const k in ecoute) delete ecoute[k]; lancer();
   assert.equal(ecoute.resize, undefined);
+  // Le clavier par-dessus la vue (ClavierPlugin, 26 novembre, 21 h 34) : la feuille suit l’appli, rien ne glisse ici
+  vm.runInNewContext(src, {appAndroid: () => true, clavierDessus: () => true, window: {addEventListener: (n, f) => { ecoute[n] = f; }}, document: {addEventListener: (n, f) => { ecouteDoc[n] = f; }}});
+  assert.equal(ecoute.resize, undefined);
 });
 
 /* 21 h 01, sur la version 44 : « il y a encore le saut quand on commence à mettre la sélection sur la note, quand on écrit sur le
    cadre fait pour ça, ça saute, ça saute, ça saute […] pour les nouvelles notes en tout cas » */
 const ouvrirNote = entre(app, 'function openNote(id,pre){', '\n}\n');
-const corpsGrow = entre(ouvrirNote, '  const grow=()=>{\n    if(!neAndroid)', '\n  };');
+const corpsGrow = entre(ouvrirNote, '  const neBas=()=>{', 'if(neCorps&&neCorps.scrollTop!==defile)neCorps.scrollTop=defile;\n  };');   // neBas : 26 novembre, 21 h 34
 function cadre({android = true, clavier = true, contenu = 400, defile = 0} = {}) {
   const style = {};
   const corps = {scrollTop: defile, getBoundingClientRect: () => ({bottom: 534}), querySelector: () => ({offsetHeight: 78})};
