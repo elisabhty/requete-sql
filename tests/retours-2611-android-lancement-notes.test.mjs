@@ -3,7 +3,8 @@
    - « je crois qu’il y a eu un bug […] Ça a fait comme un flash » (sa photo : le logo rond d’Android par-dessus les cases de l’ouverture)
    - « Ça a fait un flash au début quand j’ai écrit une note, quand j’ai ouvert le clavier. Ouais, ça saute quand on écrit pour la
      première fois sur le clavier de notes. Et quand on veut enregistrer la note, il faut cliquer 2 fois. »
-   - sa photo du bilan : « Recommence / r » */
+   - sa photo du bilan : « Recommence / r »
+   - 15 h 28 : « Pas de terme coupé stp et le souci au début c’est que le logo est coupé en haut ou bas » */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -52,14 +53,14 @@ function lancer(plateforme, {calme = false} = {}) {
 
 test('Android : la page commence par le logo d’Android (même image, même place), sans points ni emplacements', () => {
   const o = lancer('android');
-  assert.ok(o.html().includes('<img class="in-and" src="assets/lancement-android.webp" width="194" height="194" alt="" aria-hidden="true" draggable="false">'));
+  assert.ok(o.html().includes('<img class="in-and" src="assets/lancement-android.webp" width="178" height="178" alt="" aria-hidden="true" draggable="false">'));
   assert.ok(o.L.classList.contains('is-and'));
   assert.ok(o.L.classList.contains('is-intro'));
-  // Le logo, tiré de splash_icone (xxxhdpi, 1 152 px pour 288 dp) : les 776 px du centre, soit 194 dp autour du cercle de 192 dp.
+  // Le logo, tiré de splash_icone (xxxhdpi, 1 152 px pour 288 dp) : les 712 px du centre, soit 178 dp autour du cercle de 176 dp.
   const w = readFileSync(new URL('../assets/lancement-android.webp', import.meta.url));
   assert.equal(w.toString('latin1', 0, 4), 'RIFF'); assert.equal(w.toString('latin1', 8, 16), 'WEBPVP8L');
   const v = w.readUInt32LE(21);
-  assert.deepEqual([(v & 0x3fff) + 1, ((v >> 14) & 0x3fff) + 1], [776, 776]);
+  assert.deepEqual([(v & 0x3fff) + 1, ((v >> 14) & 0x3fff) + 1], [712, 712]);
   assert.ok(existsSync(new URL('../android/app/src/main/res/drawable-xxxhdpi/splash_icone.png', import.meta.url)));
   assert.ok(lire('scripts/build-www.mjs').includes("for (const dir of ['assets', 'vendor']) cpSync(join(root, dir), join(out, dir), {recursive: true"), 'assets/ part dans l’appli');
 });
@@ -99,7 +100,7 @@ test('Android en mouvement réduit : le logo reste, puis la page s’efface d’
 
 test('Le style : le logo n’existe que sur Android ; points et emplacements cachés jusqu’au départ', () => {
   const bloc = entre(ludique, 'html.is-native.lq #loader.is-intro .in-and{display:none}', '@keyframes introAndPoints{from{opacity:0}}');
-  for (const r of ['html.is-native.is-android.lq #loader.is-intro.is-and .in-and{display:block;position:absolute;z-index:3;left:50%;top:50%;width:194px;height:194px;margin:-97px 0 0 -97px;',
+  for (const r of ['html.is-native.is-android.lq #loader.is-intro.is-and .in-and{display:block;position:absolute;z-index:3;left:50%;top:50%;width:178px;height:178px;margin:-89px 0 0 -89px;',
     'html.is-native.is-android.lq #loader.is-intro.is-and:not(.is-and-part) :is(.in-d,.in-s){opacity:0}',
     'html.is-native.is-android.lq #loader.is-intro.is-and.is-and-part .in-and{animation:introAndLogo .28s cubic-bezier(.35,0,.65,1) both}',
     'html.is-native.is-android.lq #loader.is-intro.is-and.is-and-part:not(.is-play) :is(.in-d,.in-s){animation:introAndPoints .2s ease-out both}',
@@ -200,4 +201,45 @@ test('Android : les noms des tuiles rapetissent ensemble jusqu’à ce que le pl
   assert.ok(r.includes('overflow-wrap:normal;word-break:normal;hyphens:manual;font-size:var(--bt-taille,13px)!important'));
   assert.ok(ludique.includes('@media (max-width:360px){html.lq.is-android #scr-lesson .bravo-wrap .bravo-suite .bravo-tool .bt{font-size:var(--bt-taille,12.5px)!important}}'));
   assert.ok(app.includes('if(lessonStep===3){ bravoTuilesAjuster(); requestAnimationFrame(bravoTuilesAjuster);'));
+});
+
+/* ---------- 15 h 28 : le logo du lancement entier, et la taille du texte de l’iPhone ---------- */
+test('Android : le cercle du logo de lancement fait 176 dp (la forme des icônes d’un Samsung ne le rogne plus)', async () => {
+  const {inflateSync} = await import('node:zlib');
+  // Les PNG de l’icône : les lignes où le cercle commence et finit, sur la colonne du milieu, décodées à la main (filtres PNG)
+  const bornes = f => {
+    const b = readFileSync(new URL('../android/app/src/main/res/' + f, import.meta.url));
+    const w = b.readUInt32BE(16), h = b.readUInt32BE(20);
+    assert.equal(b[25], 6, 'RGBA');
+    const idat = []; for (let i = 8; i < b.length;) { const n = b.readUInt32BE(i), t = b.toString('latin1', i + 4, i + 8); if (t === 'IDAT') idat.push(b.subarray(i + 8, i + 8 + n)); i += 12 + n; }
+    const d = inflateSync(Buffer.concat(idat)), L = w * 4, px = Buffer.alloc(h * L);
+    for (let y = 0; y < h; y++) {
+      const f0 = d[y * (L + 1)], ligne = d.subarray(y * (L + 1) + 1, (y + 1) * (L + 1)), out = px.subarray(y * L, (y + 1) * L), haut = y ? px.subarray((y - 1) * L, y * L) : Buffer.alloc(L);
+      for (let x = 0; x < L; x++) {
+        const a = x >= 4 ? out[x - 4] : 0, c = x >= 4 ? haut[x - 4] : 0, u = haut[x];
+        const pp = () => { const q = a + u - c, pa = Math.abs(q - a), pb = Math.abs(q - u), pc = Math.abs(q - c); return pa <= pb && pa <= pc ? a : pb <= pc ? u : c; };
+        out[x] = (ligne[x] + [0, a, u, (a + u) >> 1, pp()][f0]) & 255;
+      }
+    }
+    let y0 = -1, y1 = -1; const cx = (w >> 1) * 4 + 3;
+    for (let y = 0; y < h; y++) if (px[y * L + cx] > 127) { if (y0 < 0) y0 = y; y1 = y; }   // le bord du cercle : à mi-opacité
+    return [w, y0, y1];
+  };
+  for (const [d, k] of Object.entries({mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4})) {
+    const [w, y0, y1] = bornes(`drawable-${d}/splash_icone.png`);
+    assert.equal(w, 288 * k, d);
+    const diametre = (y1 - y0 + 1) / k;
+    assert.ok(diametre >= 174 && diametre <= 178, `${d} : cercle de ${diametre} dp`);
+  }
+  const styles = lire('android/app/src/main/res/values/styles.xml');
+  assert.ok(styles.includes('<item name="windowSplashScreenAnimatedIcon">@drawable/splash_icone</item>'));
+});
+
+test('Android : le texte de l’appli garde la taille prévue (le réglage de police du téléphone ne coupe plus les mots)', () => {
+  const m = lire('android/app/src/main/java/fr/requete/app/MainActivity.java');
+  assert.ok(m.includes('public class MainActivity extends BridgeActivity {'));
+  assert.ok(m.includes('super.onCreate(savedInstanceState);\n        WebView vue = getBridge() != null ? getBridge().getWebView() : null;\n        if (vue != null) vue.getSettings().setTextZoom(100);'));
+  // Les essais sur émulateur signalent tout mot coupé au milieu
+  const parcours = lire('tools/android/parcours.mjs');
+  assert.ok(parcours.includes("soucis.push({type: 'mot coupé', mot: m[0], texte: txt(el)})"));
 });

@@ -92,6 +92,17 @@ const VERIFS = `(() => {
     if (w > 8 && h > 8) soucis.push({type: 'boutons superposés', a: txt(a.e), b: txt(b.e)});
   }
   if (document.documentElement.scrollWidth > W + 1) soucis.push({type: 'la page déborde sur le côté', largeur: document.documentElement.scrollWidth, ecran: W});
+  // 26 novembre, 15 h 28 (Elisa : « Pas de terme coupé stp ») : un mot coupé au milieu, sur deux lignes (« Recommence / r »)
+  const marche = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n; (n = marche.nextNode());) {
+    const t = n.textContent, el = n.parentElement;
+    if (!t || t.trim().length < 4 || !el || el.closest('pre,code,textarea,svg,#loader') || !vis(el) || !p(el)) continue;
+    const re = /[\\p{L}\\p{N}’'_]{4,}/gu;
+    for (let m; (m = re.exec(t));) {
+      const rg = document.createRange(); rg.setStart(n, m.index); rg.setEnd(n, m.index + m[0].length);
+      if (new Set([...rg.getClientRects()].filter(r => r.width > .5).map(r => Math.round(r.top / 4))).size > 1) soucis.push({type: 'mot coupé', mot: m[0], texte: txt(el)});
+    }
+  }
   const vus = new Set(); return soucis.filter(s => { const k = JSON.stringify(s); if (vus.has(k)) return false; vus.add(k); return true; });
 })()`;
 
