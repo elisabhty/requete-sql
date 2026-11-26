@@ -49,9 +49,12 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
   fr.requete.app.annuel.bienvenue:annuel) rattachés à « premium » et aux paquets bienvenue, $rc_annual et $rc_weekly de l'offre
   « default ». Clé publique Android dans achat.js (RC_CLE_ANDROID). Le paquet d'essai de l'émulateur (GitHub) la retire pour
   garder le passe du paywall (l'émulateur n'a pas Google Play) ; requete.aab la garde (vérifié à la fabrication).
-  Reste à Elisa : la clé JSON du compte de service (Google Cloud › Comptes de service › revenuecat › Clés › Ajouter une clé ›
-  JSON), à déposer dans RevenueCat (Requête (Play Store) › Service Account Credentials JSON), puis les notifications en temps
-  réel (Connect to Google dans RevenueCat, sujet Pub/Sub à coller dans Play Console › Monétiser › Configuration).
+  Clé JSON du compte de service créée et déposée par Elisa dans RevenueCat : « Valid credentials ». Notifications en temps réel :
+  sujet projects/requete-514506/topics/Play-Store-Notifications (créé par RevenueCat), collé dans Play Console › Monétiser ›
+  Configuration de la monétisation ; la notification de test de Google est bien arrivée dans RevenueCat.
+- 26 novembre, 2 h : liste de testeurs « Testeurs Requête » (Elisa seule) en test interne et en test de licence (achats d'essai
+  avec les cartes de test de Google, sans paiement). Version 32 (1.0, achat branché) publiée en test interne (privée, Elisa
+  seule) ; lien pour rejoindre le test : https://play.google.com/apps/internaltest/4699686658901540417
 
 ## Dans l'ordre, ce qu'il reste à faire
 
