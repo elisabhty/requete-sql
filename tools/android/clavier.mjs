@@ -78,7 +78,7 @@ const RELEVE = `(() => {
   const R = s => { const e = document.querySelector(s); if (!e) return null; const r = e.getBoundingClientRect(); return [Math.round(r.top), Math.round(r.bottom)]; };
   const vv = window.visualViewport;
   const repere = document.getElementById('clavier-repere') || Object.assign(document.createElement('div'), {id: 'clavier-repere'});
-  repere.style.cssText = 'position:fixed;left:0;top:0;width:22px;height:22px;z-index:2147483647;background:#E5484D;pointer-events:none';
+  repere.style.cssText = 'position:fixed;left:0;top:0;width:48px;height:48px;z-index:2147483647;background:#E5484D;pointer-events:none';
   document.body.appendChild(repere);
   const evt = (nom, plus) => K.evts.push([maintenant(), nom, plus == null ? '' : plus]);
   addEventListener('touchstart', () => { if (!K.t0) { K.t0 = performance.now(); repere.style.background = '#2EB872'; } evt('toucher'); }, {capture: true, passive: true});
@@ -111,12 +111,15 @@ function lignes(K, de, a) {
 }
 const film = (nom, s) => { const p = spawn('adb', ['shell', 'screenrecord', '--time-limit', String(s), '--bit-rate', '6000000', '/sdcard/' + nom + '.mp4'], {stdio: 'ignore'});
   p.fini = new Promise(r => { p.on('exit', r); p.on('error', r); setTimeout(r, (s + 6) * 1000); }); return p; };
-function planche(nom, debut, duree, fps) {
+/* Le film arrêté proprement (SIGINT sur le téléphone : le fichier est refermé), puis attendu */
+async function couper(f) { adb('shell pkill -INT screenrecord'); await f.fini; await dormir(1500); }
+/* Les images du film où l’écran change (détection de changement d’image de ffmpeg) : le doigt (le repère passe au vert), le
+   clavier qui monte, ce qui bouge dans la page ; l’heure du film sur chacune. */
+function planche(nom, seuil = 0.001) {
   try {
     adb(`pull /sdcard/${nom}.mp4 captures/${nom}.mp4`);
     if (!existsSync(`captures/${nom}.mp4`)) return console.log('   (pas de film)');
-    const nb = Math.round(duree * fps), col = Math.min(nb, 8), rang = Math.ceil(nb / col);
-    execSync(`ffmpeg -y -loglevel error -ss ${debut} -t ${duree} -i captures/${nom}.mp4 -vf "fps=${fps},scale=150:-2,drawtext=text='%{n}':x=4:y=h-22:fontsize=16:fontcolor=yellow:box=1:boxcolor=black@0.6,tile=${col}x${rang}:padding=2" -frames:v 1 -q:v 6 captures/${nom}-planche.jpg`, {stdio: 'inherit', timeout: 120000});
+    execSync(`ffmpeg -y -loglevel error -i captures/${nom}.mp4 -vf "select='gt(scene\\,${seuil})',scale=150:-2,drawtext=text='%{pts\\:hms}':x=4:y=h-22:fontsize=14:fontcolor=yellow:box=1:boxcolor=black@0.6,tile=8x4:padding=2" -fps_mode vfr -frames:v 1 -q:v 6 captures/${nom}-planche.jpg`, {stdio: 'inherit', timeout: 180000});
     const b = readFileSync(`captures/${nom}-planche.jpg`).toString('base64');
     console.log(`=== PLANCHE ${nom} ${b.length} ===`);
     for (let i = 0; i < b.length; i += 3000) console.log('PL ' + b.slice(i, i + 3000));
@@ -130,73 +133,65 @@ async function toucher(sel, dy) {
   adb(`shell input tap ${Math.round(r.x * r.d)} ${Math.round(r.y * r.d + HAUT)}`);
   return true;
 }
+/* Attendre que la hauteur de la vue passe la condition (le clavier là, ou reparti) : l’émulateur sans carte graphique met
+   plusieurs secondes à montrer le clavier */
+async function attendreVue(cond, ms) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) { const h = await evaluer('innerHeight').catch(() => 0); if (h && cond(h)) return Date.now() - t0; await dormir(150); }
+  return -1;
+}
+const montrer = (K, titre, de = -1e9, a = 1e9) => {
+  console.log('\n--- ' + titre + ' ---');
+  console.log(K.evts.filter(e => e[0] >= de && e[0] <= a).map(e => String(e[0]).padStart(6) + '  ' + e[1] + ' ' + e[2]).join('\n'));
+  console.log('--- images (celles où quelque chose change) ---');
+  console.log(lignes(K, de, a).join('\n'));
+};
 
 // Les animations d’Android remises (le clavier monte comme sur un vrai téléphone)
 for (const s of ['window_animation_scale', 'transition_animation_scale', 'animator_duration_scale']) adb(`shell settings put global ${s} 1`);
 await dormir(1500);
 
-// 1. Une note déjà écrite : le doigt sur le cadre d’écriture
+// 1. Une note déjà écrite : le doigt sur le cadre d’écriture, le clavier monte ; 2. une lettre ; 3. le retour d’Android le referme
 await evaluer(`(() => { state.notes = [{id: 'nk1', txt: 'Une idée à garder : GROUP BY avant HAVING.', sql: 'SELECT ville, COUNT(*)\\nFROM clients\\nGROUP BY ville;', ctx: '', ts: Date.now() - 3600e3, pin: false}]; save(); openNote('nk1'); return true; })()`);
 await dormir(2000);
 await systemeCalme();
 photo('avant');
 await evaluer(RELEVE);
-const f1 = film('note', 7);
+const base = await evaluer('innerHeight');
+const f1 = film('note', 60);
 await dormir(1500);
 await toucher('#ne-ta', 40);
+const monte = await attendreVue(h => h < base - 100, 15000);
+console.log(monte >= 0 ? `\nLe clavier est là ${monte} ms après le toucher (vue : ${base} px avant)` : '\nLe clavier n’est pas venu en 15 s');
 await dormir(2500);
 let K = await evaluer('window.__clavier');
-console.log('\n--- 1. Note existante, le doigt sur le cadre d’écriture (ms depuis le toucher) ---');
-console.log(K.evts.filter(e => e[0] <= 2500).map(e => String(e[0]).padStart(6) + '  ' + e[1] + ' ' + e[2]).join('\n'));
-console.log('--- images ---'); console.log(lignes(K, -200, 2500).join('\n'));
-rapport.essais.push({nom: 'note existante, toucher', evts: K.evts, images: K.images.filter(s => s.t <= 2500)});
-// 2. La première lettre
-const t2 = K.images.length ? K.images[K.images.length - 1].t : 0;
+const t2 = (K.images.slice(-1)[0] || {}).t || 0;
 adb('shell input text a');
-await dormir(1500);
-K = await evaluer('window.__clavier');
-console.log('\n--- 2. La première lettre tapée (ms depuis le premier toucher) ---');
-console.log(K.evts.filter(e => e[0] > t2 && e[0] <= t2 + 1500).map(e => String(e[0]).padStart(6) + '  ' + e[1] + ' ' + e[2]).join('\n'));
-console.log('--- images ---'); console.log(lignes(K, t2, t2 + 1500).join('\n'));
-await f1.fini;
-await dormir(1000);
-planche('note', 0.8, 4.0, 8);
-// 3. Le clavier qui redescend (retour d’Android)
-const t3 = (await evaluer('window.__clavier')).images.slice(-1)[0]?.t || 0;
-adb('shell input keyevent KEYCODE_BACK');
-await dormir(1500);
-K = await evaluer('window.__clavier');
-console.log('\n--- 3. Le clavier refermé (retour) ---');
-console.log(K.evts.filter(e => e[0] > t3 && e[0] <= t3 + 1500).map(e => String(e[0]).padStart(6) + '  ' + e[1] + ' ' + e[2]).join('\n'));
-console.log('--- images ---'); console.log(lignes(K, t3, t3 + 1500).join('\n'));
-rapport.essais.push({nom: 'lettre et retour', evts: K.evts.filter(e => e[0] > t2), images: K.images.filter(s => s.t > t2)});
-
-// 4. Une note neuve (« + ») : le cadre prend la main tout seul (focus 260 ms après l’ouverture) ; le clavier monte-t-il ?
-await evaluer(`(() => { try { closeNote(); } catch (e) { document.getElementById('note-sheet')?.classList.remove('on'); } return true; })()`).catch(() => null);
-await dormir(1000);
-await evaluer(RELEVE);
-const f4 = film('neuve', 7);
-await dormir(1200);
-await evaluer(`(() => { window.__clavier.t0 = performance.now(); document.getElementById('clavier-repere').style.background = '#2EB872'; openNote(); return true; })()`);
 await dormir(2500);
 K = await evaluer('window.__clavier');
-console.log('\n--- 4. Note neuve, sans toucher (ms depuis l’ouverture) ---');
-console.log(K.evts.filter(e => e[0] >= 0 && e[0] <= 2500).map(e => String(e[0]).padStart(6) + '  ' + e[1] + ' ' + e[2]).join('\n'));
-console.log('--- images ---'); console.log(lignes(K, 0, 2500).join('\n'));
-const clavierLa = await evaluer(`document.documentElement.classList.contains('kb-ouvert')`);
-if (!clavierLa) {
-  const t5 = K.images.slice(-1)[0]?.t || 0;
-  await toucher('#ne-ta', 40);
-  await dormir(2000);
-  K = await evaluer('window.__clavier');
-  console.log('\n--- 5. Note neuve, le doigt sur le cadre ---');
-  console.log(K.evts.filter(e => e[0] > t5 && e[0] <= t5 + 2000).map(e => String(e[0]).padStart(6) + '  ' + e[1] + ' ' + e[2]).join('\n'));
-  console.log('--- images ---'); console.log(lignes(K, t5, t5 + 2000).join('\n'));
-}
-await f4.fini;
-await dormir(1000);
-planche('neuve', 0.8, 5.6, 5);
-rapport.essais.push({nom: 'note neuve', evts: K.evts, images: K.images.slice(-200)});
+const t3 = (K.images.slice(-1)[0] || {}).t || 0;
+adb('shell input keyevent KEYCODE_BACK');
+const descend = await attendreVue(h => h >= base - 2, 12000);
+await dormir(2000);
+K = await evaluer('window.__clavier');
+montrer(K, '1. Note existante, le doigt sur le cadre (ms depuis le toucher)', -300, t2);
+montrer(K, '2. La première lettre tapée', t2, t3);
+montrer(K, `3. Le retour d’Android (clavier parti ${descend} ms après)`, t3);
+rapport.essais.push({nom: 'note existante', base, monte, descend, t2, t3, evts: K.evts, images: K.images});
+await couper(f1);
+planche('note');
+
+// 4. Une note neuve (« + ») : le cadre prend la main tout seul (260 ms après l’ouverture) ; le clavier monte-t-il de lui-même ?
+await evaluer(`(() => { try { closeNote(); } catch (e) { document.getElementById('note-sheet')?.classList.remove('on'); } return true; })()`).catch(() => null);
+await dormir(1500);
+await evaluer(RELEVE);
+await evaluer(`(() => { window.__clavier.t0 = performance.now(); openNote(); return true; })()`);
+const seul = await attendreVue(h => h < base - 100, 6000);
+console.log(seul >= 0 ? `\nNote neuve : le clavier monte de lui-même (${seul} ms)` : '\nNote neuve : le clavier ne monte pas de lui-même (6 s)');
+await dormir(1500);
+K = await evaluer('window.__clavier');
+montrer(K, '4. Note neuve, sans toucher (ms depuis l’ouverture)', 0);
+rapport.essais.push({nom: 'note neuve', seul, evts: K.evts, images: K.images});
 rapport.erreurs = erreurs;
 writeFileSync('captures/clavier.json', JSON.stringify(rapport, null, 1));
 console.log('\nErreurs de la page : ' + (erreurs.length ? erreurs.slice(0, 5).join(' | ') : 'aucune'));
