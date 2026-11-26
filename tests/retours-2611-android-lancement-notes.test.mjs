@@ -172,7 +172,8 @@ test('Dans une note, « Enregistrer » se colle au-dessus du clavier (kb-ouvert)
   assert.ok(ludique.includes('html.lq.kb-ouvert body:not(.kbar-on) #note-body .ne-act{position:sticky;bottom:0;z-index:3;'));
   const ouvrir = entre(app, 'function openNote(id,pre){', '\n}\n');
   assert.ok(ouvrir.includes("if(typeof appAndroid==='function'&&appAndroid()){\n    const nb=document.getElementById('note-body'),prim=nb&&nb.querySelector('.ne-act .prim');\n    if(prim)prim.addEventListener('mousedown',ev=>{const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName)&&nb.contains(a))ev.preventDefault();});\n  }"));
-  assert.ok(ouvrir.indexOf("prim.addEventListener('mousedown'") < ouvrir.indexOf('if(!n)setTimeout(()=>ta.focus(),260);'));
+  // (21 h 01 : la note neuve prend la main plus tard sur Android, voir retours-2611-1727-android ; l’iPhone garde ses 260 ms)
+  assert.ok(ouvrir.indexOf("prim.addEventListener('mousedown'") < ouvrir.indexOf('else setTimeout(()=>ta.focus(),260);'));
 });
 
 /* ---------- Le bilan : « Recommencer » entier ---------- */

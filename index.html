@@ -46181,10 +46181,31 @@ function openNote(id,pre){
       <button class="prim" type="button" onclick="saveNote()">Enregistrer</button>
     </div>${n?`
     <div class="ne-row ne-row-del"><button class="del" type="button" onclick="deleteNote('${e.id}')">Supprimer</button></div>`:''}`;
-  const ta=document.getElementById('ne-ta');
+  const ta=document.getElementById('ne-ta'),neCorps=document.getElementById('note-body'),neAndroid=typeof appAndroid==='function'&&appAndroid();
   ta.value=e.txt||'';
-  const grow=()=>{ta.style.height='auto';ta.style.height=Math.max(160,Math.min(ta.scrollHeight,320))+'px'};grow();
+  /* 26 novembre, 21 h 01 (Elisa, sur son Samsung, version 44 : « il y a encore le saut […] quand on écrit sur le cadre fait pour ça,
+     ça saute, ça saute, ça saute […] pour les nouvelles notes en tout cas ») : sur Android, deux choses dans le cadre d’écriture.
+     1. Il grandissait avec le texte jusque sous « Enregistrer », collé au-dessus du clavier : la fin de ce qu’on tapait passait
+        dessous, puis la WebView faisait défiler la note pour la montrer. Clavier ouvert, il s’arrête maintenant au-dessus du bouton
+        et défile en lui-même (la ligne qu’on tape reste en vue) ; clavier fermé, il reprend sa taille.
+     2. Pour se mesurer, il reprenait à chaque lettre sa hauteur naturelle : la note, plus courte un instant, revenait vers le haut
+        si elle avait défilé (un saut à chaque lettre). La position de la note est maintenant gardée.
+     Le cadre se recale aussi quand la vue change de hauteur avec le clavier (ta._cadre, plus bas, après « Clavier ouvert »). */
+  const grow=()=>{
+    if(!neAndroid){ta.style.height='auto';ta.style.height=Math.max(160,Math.min(ta.scrollHeight,320))+'px';return;}
+    const defile=neCorps?neCorps.scrollTop:0,barre=neCorps&&neCorps.querySelector('.ne-act');
+    let max=320;
+    if(barre&&document.documentElement.classList.contains('kb-ouvert'))
+      max=Math.max(96,Math.min(320,Math.floor(neCorps.getBoundingClientRect().bottom-barre.offsetHeight-12-ta.getBoundingClientRect().top)));
+    const min=Math.min(160,max);
+    ta.style.minHeight=min+'px';
+    ta.style.height='auto';
+    ta.style.height=Math.max(min,Math.min(ta.scrollHeight,max))+'px';
+    if(neCorps&&neCorps.scrollTop!==defile)neCorps.scrollTop=defile;
+  };
+  grow();
   ta.addEventListener('input',grow);
+  if(neAndroid)ta._cadre=grow;
   const sq=document.getElementById('ne-sql');
   sq.value=e.sql||'';
   setupEditor('ne-sql','hl-ne-sql');
@@ -46198,7 +46219,12 @@ function openNote(id,pre){
     const nb=document.getElementById('note-body'),prim=nb&&nb.querySelector('.ne-act .prim');
     if(prim)prim.addEventListener('mousedown',ev=>{const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA)$/.test(a.tagName)&&nb.contains(a))ev.preventDefault();});
   }
-  if(!n)setTimeout(()=>ta.focus(),260);
+  /* Une note neuve : le cadre prend la main tout seul. Sur Android (21 h 01), une fois la feuille posée (son arrivée dure 0,35 s) :
+     le clavier montait pendant qu’elle glissait encore, et tout bougeait en même temps ; et sans faire défiler la note. */
+  if(!n){
+    if(neAndroid)setTimeout(()=>{if(document.getElementById('ne-ta')===ta&&noteView==='edit'){try{ta.focus({preventScroll:true});}catch(x){ta.focus();}}},420);
+    else setTimeout(()=>ta.focus(),260);
+  }
   document.getElementById('note-body').scrollTop=0;
 }
 function collectNote(){
@@ -53533,6 +53559,8 @@ if(typeof document!=='undefined'&&typeof window!=='undefined'){
     const h=window.innerHeight,l=window.innerWidth,ecart=Math.abs(h-vueH);vueH=h;
     if(l!==vueL){vueL=l;place=null;return;}
     const b=barre();if(!b){place=null;return;}
+    /* Le cadre d’écriture se recale d’abord sur la nouvelle hauteur (au-dessus de « Enregistrer », clavier ouvert : openNote) */
+    const cadre=document.getElementById('ne-ta');if(cadre&&typeof cadre._cadre==='function')cadre._cadre();
     const avant=place,apres=mesure(b);place=apres;
     if(avant==null||ecart<120||(typeof prefersReduceMotion==='function'&&prefersReduceMotion()))return;
     const d=Math.round(avant-apres);if(Math.abs(d)<2||Math.abs(d)>500)return;

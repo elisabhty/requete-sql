@@ -201,3 +201,39 @@ test('notes, Android : quand la vue change de hauteur avec le clavier, « Enregi
   android = false; for (const k in ecoute) delete ecoute[k]; lancer();
   assert.equal(ecoute.resize, undefined);
 });
+
+/* 21 h 01, sur la version 44 : « il y a encore le saut quand on commence à mettre la sélection sur la note, quand on écrit sur le
+   cadre fait pour ça, ça saute, ça saute, ça saute […] pour les nouvelles notes en tout cas » */
+const ouvrirNote = entre(app, 'function openNote(id,pre){', '\n}\n');
+const corpsGrow = entre(ouvrirNote, '  const grow=()=>{\n    if(!neAndroid)', '\n  };');
+function cadre({android = true, clavier = true, contenu = 400, defile = 0} = {}) {
+  const style = {};
+  const corps = {scrollTop: defile, getBoundingClientRect: () => ({bottom: 534}), querySelector: () => ({offsetHeight: 78})};
+  const ta = {style, getBoundingClientRect: () => ({top: 234}),
+    get scrollHeight() { if (style.height === 'auto') corps.scrollTop = Math.min(corps.scrollTop, 5); return contenu; }};   // la note raccourcie un instant revient vers le haut
+  const ctx = {ta, neCorps: corps, neAndroid: android, Math, document: {documentElement: {classList: {contains: c => c === 'kb-ouvert' && clavier}}}};
+  vm.runInNewContext(corpsGrow + '\n  grow();', ctx);
+  return {style, corps};
+}
+test('notes, Android : clavier ouvert, le cadre s’arrête au-dessus de « Enregistrer » et défile en lui-même', () => {
+  // 534 (bas de la vue) − 78 (le bouton) − 12 − 234 (haut du cadre) = 210
+  assert.equal(cadre({contenu: 400}).style.height, '210px', 'la ligne qu’on tape reste au-dessus du bouton');
+  assert.equal(cadre({contenu: 180}).style.height, '180px', 'en dessous, il suit le texte');
+  assert.equal(cadre({contenu: 60}).style.height, '160px', 'au moins sa taille d’origine');
+  assert.equal(cadre({clavier: false, contenu: 400}).style.height, '320px', 'clavier fermé : jusqu’à 320 comme avant');
+  assert.equal(cadre({android: false, contenu: 400}).style.height, '320px', 'iPhone : comme avant');
+  assert.equal(cadre({android: false, contenu: 400}).style.minHeight, undefined);
+});
+test('notes, Android : se mesurer ne fait plus remonter la note (plus de saut à chaque lettre)', () => {
+  assert.equal(cadre({defile: 103}).corps.scrollTop, 103, 'la position de la note est gardée');
+  assert.equal(cadre({android: false, defile: 103}).corps.scrollTop, 5, 'l’iPhone ne change pas (ce que faisait aussi Android)');
+  // Le cadre se recale quand la vue change de hauteur (le clavier), avant que « Enregistrer » ne glisse
+  assert.ok(ouvrirNote.includes('  grow();\n  ta.addEventListener(\'input\',grow);\n  if(neAndroid)ta._cadre=grow;'));
+  const glisse = entre(app, "    const b=barre();if(!b){place=null;return;}\n", 'const avant=place,apres=mesure(b);');
+  assert.ok(glisse.includes("const cadre=document.getElementById('ne-ta');if(cadre&&typeof cadre._cadre==='function')cadre._cadre();"));
+});
+test('notes, Android : une note neuve prend la main une fois sa feuille posée (0,35 s), sans faire défiler la note', () => {
+  assert.ok(app.includes('  .viz.on{display:flex;animation:slideUp .35s var(--spring-ios)}'));
+  assert.ok(ouvrirNote.includes("if(neAndroid)setTimeout(()=>{if(document.getElementById('ne-ta')===ta&&noteView==='edit'){try{ta.focus({preventScroll:true});}catch(x){ta.focus();}}},420);"));
+  assert.ok(ouvrirNote.includes('else setTimeout(()=>ta.focus(),260);'), 'l’iPhone garde ses 260 ms');
+});
