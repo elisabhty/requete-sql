@@ -12,6 +12,8 @@ adb shell pm grant fr.requete.app android.permission.POST_NOTIFICATIONS 2>/dev/n
 adb shell settings put global anr_show_background 0 || true
 # Le clavier à l’écran même si l’émulateur se croit un clavier physique
 adb shell settings put secure show_ime_with_hard_keyboard 1 || true
+# L’appli en français, comme sur le téléphone d’Elisa
+adb shell cmd locale set-app-locales fr.requete.app --locales fr-FR || true
 adb shell wm size; adb shell wm density
 echo "Clavier : $(adb shell settings get secure default_input_method | tr -d '\r')"
 adb logcat -c || true

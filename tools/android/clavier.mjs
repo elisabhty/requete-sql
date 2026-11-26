@@ -33,10 +33,35 @@ const evaluer = async expr => {
 await envoyer('Runtime.enable'); await envoyer('Page.enable');
 await envoyer('Fetch.enable', {patterns: [{urlPattern: '*supabase.co*'}]});
 const HAUT = Number(process.env.ESSAI_HAUT || 0);
+/* Une fenêtre d’Android devant l’appli (« … ne répond pas ») : celle d’une autre appli est fermée, celle de Requête attend. */
+function fenetreSysteme() {
+  const f = adb('shell dumpsys window').split('\n').find(l => /mCurrentFocus/.test(l)) || '';
+  if (!/Not Responding|ne répond pas|Application Error/i.test(f)) return '';
+  adb('shell uiautomator dump /sdcard/anr.xml');
+  const x = adb('shell cat /sdcard/anr.xml');
+  const ici = /fr\.requete\.app/.test(f);
+  const m = x.match(new RegExp('text="(' + (ici ? 'Wait|Attendre' : 'Close app|Fermer l’application|Fermer') + ')"[^>]*bounds="\\[(\\d+),(\\d+)\\]\\[(\\d+),(\\d+)\\]"'));
+  if (m) adb(`shell input tap ${(+m[2] + +m[4]) >> 1} ${(+m[3] + +m[5]) >> 1}`); else adb('shell input keyevent KEYCODE_BACK');
+  return f.trim().slice(0, 120);
+}
+async function systemeCalme() { for (let i = 0; i < 4; i++) { const f = fenetreSysteme(); if (!f) return; console.log('   fenêtre d’Android refermée : ' + f); await dormir(1500); } }
+/* Une photo de l’écran, petite, dans le journal (même format que les planches) */
+function photo(nom) {
+  try {
+    execSync(`adb exec-out screencap -p > captures/${nom}.png`, {timeout: 30000});
+    execSync(`ffmpeg -y -loglevel error -i captures/${nom}.png -vf scale=300:-2 -q:v 6 captures/${nom}-petit.jpg`, {timeout: 60000});
+    const b = readFileSync(`captures/${nom}-petit.jpg`).toString('base64');
+    console.log(`=== PLANCHE ${nom} ${b.length} ===`);
+    for (let i = 0; i < b.length; i += 3000) console.log('PL ' + b.slice(i, i + 3000));
+    console.log(`=== FIN PLANCHE ${nom} ===`);
+  } catch (e) { console.log('   ! photo : ' + String(e).slice(0, 160)); }
+}
 const rapport = {appareil: adb('shell getprop ro.product.model').trim() + ' · Android ' + adb('shell getprop ro.build.version.release').trim(), clavier: adb('shell settings get secure default_input_method').trim(), essais: []};
 
-// Droit dans l’appli (onboarding sauté), puis les pages d’arrivée (autocollants) refermées
-console.log('Onboarding sauté : ' + await evaluer(`(() => { try { draft.name = draft.name || 'Elisa'; finishOnboard('home'); return true; } catch (e) { return String(e); } })()`).catch(e => String(e)));
+console.log('Page : ' + await evaluer('navigator.userAgent').catch(e => String(e)));
+await systemeCalme();
+// Droit dans l’appli (onboarding sauté, un pseudo déjà choisi : pas de page du pseudo), puis les pages d’arrivée refermées
+console.log('Onboarding sauté : ' + await evaluer(`(() => { try { state.salle = Object.assign({}, state.salle || {}, {pseudo: 'testclavier' + Math.floor(Math.random() * 9000 + 1000)}); draft.name = draft.name || 'Elisa'; finishOnboard('home'); return true; } catch (e) { return String(e); } })()`).catch(e => String(e)));
 await dormir(5000);
 for (let i = 0; i < 6; i++) {
   const f = await evaluer(`(() => { const m = document.querySelector('.mu'); if (m && typeof moduleUpClose === 'function') { moduleUpClose(true); return 'page'; }
@@ -98,6 +123,7 @@ function planche(nom, debut, duree, fps) {
   } catch (e) { console.log('   ! planche : ' + String(e).slice(0, 200)); }
 }
 async function toucher(sel, dy) {
+  await systemeCalme();
   const r = await evaluer(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; const b = e.getBoundingClientRect(); return {x: b.left + b.width / 2, y: b.top + ${dy}, d: devicePixelRatio}; })()`);
   if (!r) return false;
   adb(`shell input tap ${Math.round(r.x * r.d)} ${Math.round(r.y * r.d + HAUT)}`);
@@ -111,6 +137,8 @@ await dormir(1500);
 // 1. Une note déjà écrite : le doigt sur le cadre d’écriture
 await evaluer(`(() => { state.notes = [{id: 'nk1', txt: 'Une idée à garder : GROUP BY avant HAVING.', sql: 'SELECT ville, COUNT(*)\\nFROM clients\\nGROUP BY ville;', ctx: '', ts: Date.now() - 3600e3, pin: false}]; save(); openNote('nk1'); return true; })()`);
 await dormir(2000);
+await systemeCalme();
+photo('avant');
 await evaluer(RELEVE);
 const f1 = film('note', 7);
 await dormir(1500);
