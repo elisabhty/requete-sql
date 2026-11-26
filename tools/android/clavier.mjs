@@ -131,7 +131,8 @@ function planche(nom, seuil = 0.001) {
 }
 async function toucher(sel, dy) {
   await systemeCalme();
-  const r = await evaluer(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; const b = e.getBoundingClientRect(); return {x: b.left + b.width / 2, y: b.top + ${dy}, d: devicePixelRatio}; })()`);
+  // Au milieu du cadre par défaut : le doigt tombe dedans même si le haut de la vue sur l’écran n’a pas pu être lu (± 60 px)
+  const r = await evaluer(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; const b = e.getBoundingClientRect(); return {x: b.left + b.width / 2, y: b.top + ${dy == null ? 'b.height / 2' : dy}, d: devicePixelRatio}; })()`);
   if (!r) return false;
   adb(`shell input tap ${Math.round(r.x * r.d)} ${Math.round(r.y * r.d + HAUT)}`);
   return true;
@@ -163,7 +164,7 @@ await evaluer(RELEVE);
 const base = await evaluer('innerHeight');
 const f1 = film('note', 60);
 await dormir(1500);
-await toucher('#ne-ta', 40);
+await toucher('#ne-ta');
 const monte = await attendreVue(h => h < base - 100, 15000);
 console.log(monte >= 0 ? `\nLe clavier est là ${monte} ms après le toucher (vue : ${base} px avant)` : '\nLe clavier n’est pas venu en 15 s');
 await dormir(2500);

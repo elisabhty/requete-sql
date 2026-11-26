@@ -27,8 +27,12 @@ for essai in 1 2; do
   SOCK=$(adb shell cat /proc/net/unix | tr -d "\r" | grep -o "webview_devtools_remote_$PID" | head -1 || true)
   adb forward --remove-all || true
   adb forward tcp:9222 "localabstract:${SOCK:-webview_devtools_remote_$PID}"
-  adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 || true
-  HAUT=$(adb shell cat /sdcard/ui.xml 2>/dev/null | tr -d "\r" | grep -o 'class="android.webkit.WebView"[^>]*bounds="\[[0-9]*,[0-9]*\]' | head -1 | sed 's/.*\[[0-9]*,\([0-9]*\)\]$/\1/' || true)
+  HAUT=""
+  for t in 1 2 3; do
+    adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 || true
+    HAUT=$(adb shell cat /sdcard/ui.xml 2>/dev/null | tr -d "\r" | grep -o 'class="android.webkit.WebView"[^>]*bounds="\[[0-9]*,[0-9]*\]' | head -1 | sed 's/.*\[[0-9]*,\([0-9]*\)\]$/\1/' || true)
+    [ -n "$HAUT" ] && break; sleep 3
+  done
   echo "Essai $essai. Haut de la vue de l’appli : ${HAUT:-?} px"
   if ESSAI_HAUT="${HAUT:-0}" timeout 600 node tools/android/clavier.mjs; then break; fi
   echo "La mesure s’est arrêtée en erreur (essai $essai)"
