@@ -60,9 +60,10 @@ const rapport = {appareil: adb('shell getprop ro.product.model').trim() + ' · A
 
 console.log('Page : ' + await evaluer('navigator.userAgent').catch(e => String(e)));
 await systemeCalme();
-// Droit dans l’appli (onboarding sauté, un pseudo déjà choisi : pas de page du pseudo), puis les pages d’arrivée refermées
-console.log('Onboarding sauté : ' + await evaluer(`(() => { try { state.salle = Object.assign({}, state.salle || {}, {pseudo: 'testclavier' + Math.floor(Math.random() * 9000 + 1000)}); draft.name = draft.name || 'Elisa'; finishOnboard('home'); return true; } catch (e) { return String(e); } })()`).catch(e => String(e)));
-await dormir(5000);
+// L’accueil de l’onboarding simplement caché (pas finishOnboard : l’arrivée dans l’appli, ses autocollants, ses sons et ses
+// confettis faisaient tomber l’émulateur sans carte graphique, 26 novembre) ; l’appli est dessous, déjà dessinée au démarrage.
+console.log('Onboarding caché : ' + await evaluer(`(() => { try { const o = document.getElementById('onboarding'); if (o) { o.classList.remove('on'); o.style.display = 'none'; } document.body.classList.remove('ob-on'); return true; } catch (e) { return String(e); } })()`).catch(e => String(e)));
+await dormir(3000);
 for (let i = 0; i < 6; i++) {
   const f = await evaluer(`(() => { const m = document.querySelector('.mu'); if (m && typeof moduleUpClose === 'function') { moduleUpClose(true); return 'page'; }
     const b = [...document.querySelectorAll('button')].find(b => b.offsetParent && /Récupérer|Plus tard|Fermer|Compris|C’est parti/i.test(b.innerText || b.getAttribute('aria-label') || '')); if (b) { b.click(); return b.innerText.trim().slice(0, 20); } return null; })()`).catch(() => null);

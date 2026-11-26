@@ -18,12 +18,18 @@ on:
         description: "Les essais sur émulateur : tout, maj (la mise à jour à distance seulement) ou clavier (le clavier dans une note seulement)"
         required: false
         default: tout
+      essai_de:
+        description: "Pour « clavier » : l’identifiant (run id) d’un passage précédent dont reprendre l’appli d’essai, sans la refaire"
+        required: false
+        default: ""
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   android:
+    if: ${{ inputs.essai_de == '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -341,7 +347,7 @@ jobs:
   # des mesures, lues dans le journal.
   clavier:
     needs: android
-    if: ${{ inputs.travaux == 'clavier' || inputs.travaux == 'tout' }}
+    if: ${{ !cancelled() && (inputs.travaux == 'clavier' || inputs.travaux == 'tout') && (needs.android.result == 'success' || inputs.essai_de != '') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -357,6 +363,8 @@ jobs:
         with:
           name: essai
           path: essai
+          run-id: ${{ inputs.essai_de || github.run_id }}
+          github-token: ${{ github.token }}
       - name: Bundletool et ffmpeg (les images du film)
         env:
           GH_TOKEN: ${{ github.token }}
