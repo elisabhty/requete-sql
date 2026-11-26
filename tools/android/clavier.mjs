@@ -62,7 +62,10 @@ console.log('Page : ' + await evaluer('navigator.userAgent').catch(e => String(e
 await systemeCalme();
 // L’accueil de l’onboarding simplement caché (pas finishOnboard : l’arrivée dans l’appli, ses autocollants, ses sons et ses
 // confettis faisaient tomber l’émulateur sans carte graphique, 26 novembre) ; l’appli est dessous, déjà dessinée au démarrage.
-console.log('Onboarding caché : ' + await evaluer(`(() => { try { const o = document.getElementById('onboarding'); if (o) { o.classList.remove('on'); o.style.display = 'none'; } document.body.classList.remove('ob-on'); return true; } catch (e) { return String(e); } })()`).catch(e => String(e)));
+// Les écrans de l’appli et la barre d’onglets cachés aussi : seule la feuille de la note (dans #app) reste à dessiner (l’émulateur
+// tombait aussi en dessinant l’accueil, 26 novembre, 17 h 34 et 17 h 41).
+console.log('Onboarding caché : ' + await evaluer(`(() => { try { const o = document.getElementById('onboarding'); if (o) { o.classList.remove('on'); o.style.display = 'none'; } document.body.classList.remove('ob-on');
+  document.querySelectorAll('#app > .screen, #app > .tabbar, #loader').forEach(e => { e.style.display = 'none'; }); return true; } catch (e) { return String(e); } })()`).catch(e => String(e)));
 await dormir(3000);
 for (let i = 0; i < 6; i++) {
   const f = await evaluer(`(() => { const m = document.querySelector('.mu'); if (m && typeof moduleUpClose === 'function') { moduleUpClose(true); return 'page'; }
