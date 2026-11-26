@@ -3337,6 +3337,11 @@ html.is-native.is-android.lq #loader.is-intro.is-and.is-and-part .in-and{animati
 html.is-native.is-android.lq #loader.is-intro.is-and.is-and-part:not(.is-play) :is(.in-d,.in-s){animation:introAndPoints .2s ease-out both}
 @keyframes introAndLogo{to{opacity:0;transform:scale(.6)}}
 @keyframes introAndPoints{from{opacity:0}}
+/* 26 novembre, 17 h 27 (Elisa, sur Android : après la déconnexion, Mon compte revenait 2 s sous le chat qui part) : le voile posé sous
+   « À bientôt ! » (index.html, deconnexionCouvrir), la première image de la page qui se recharge : le fond clair et le logo rond, à la
+   place et à la taille de .in-and. */
+html.is-android #deco-voile{position:fixed;inset:0;z-index:9980;background:#F4F2FC;pointer-events:none}
+html.is-android #deco-voile img{position:absolute;left:50%;top:50%;width:178px;height:178px;margin:-89px 0 0 -89px;-webkit-user-drag:none;user-select:none}
 /* Le vol d’une case : du point (sa taille, sa couleur, à angle droit) à sa place, en accélérant puis en freinant ; elle se pose aux
    82 % (un peu grande), puis se tasse */
 /* 12 novembre, 17 h 51 (« j’ai l’impression que ça bug au début ») : le vol, la soudure et les lettres n’animent plus que transform
@@ -5843,12 +5848,22 @@ html.lq .room-level .room-lv-auto{position:absolute;top:-9px;left:50%;translate:
 .lst-go svg{width:22px;height:22px;animation:lstArrow 1.6s ease-in-out infinite}
 @keyframes lstIn{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
 @keyframes lstOut{to{opacity:0;transform:scale(.98)}}
+/* 26 novembre, 17 h 27 (Elisa, sur Android : en rouvrant une leçon déjà faite, « une page avec la note et tout » apparaît un instant
+   avant la leçon ; et du bilan, « Continuer » montre « une feuille… 2 secondes ») : cette page arrivait en fondu (lstIn, 0,32 s)
+   par-dessus l’écran du cours, déjà dessiné dessous : le bilan d’une leçon validée (ses étoiles, « Donne ton avis ») ou la leçon
+   suivante. Sur le téléphone, on les voyait le temps du fondu. Sur Android, la page couvre l’écran dès sa première image ; seul son
+   contenu arrive (la carte, le plan, le bouton), sans rester figé après (backwards : le bouton garde son enfoncement). */
+html.is-android .lst{animation:none}
+html.is-android .lst>*{animation:lstIn .32s cubic-bezier(.2,.8,.3,1.15) backwards}
+html.is-android .lst.is-out{animation:lstOut .22s ease both}
 @keyframes lstStk{0%,100%{translate:0 0;rotate:6deg}50%{translate:0 -6px;rotate:2deg}}
 @keyframes lstSp{0%,100%{opacity:.35;scale:.7}50%{opacity:1;scale:1}}
 @keyframes lstArrow{0%,100%{transform:none}50%{transform:translateX(4px)}}
 @media (min-width:700px){.lst{padding-left:calc(50% - 300px);padding-right:calc(50% - 300px)}}
 @media (prefers-reduced-motion:reduce){.lst,.lst.is-out,.lst-stk,.lst-sp,.lst-go svg{animation:none}}
 html[data-motion="reduce"] .lst,html[data-motion="reduce"] .lst-stk,html[data-motion="reduce"] .lst-sp,html[data-motion="reduce"] .lst-go svg{animation:none!important}
+@media (prefers-reduced-motion:reduce){html.is-android .lst.is-out,html.is-android .lst>*{animation:none}}
+html.is-android[data-motion="reduce"] .lst.is-out,html.is-android[data-motion="reduce"] .lst>*{animation:none!important}
 .lst{justify-content:flex-start;overflow-y:auto}
 .lst-plan{display:flex;flex-direction:column;gap:10px;margin:8px 0 0;padding:0;list-style:none}
 .lst-plan li{display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid var(--line,#E6E1F6);border-radius:18px;background:#fff;box-shadow:0 3px 0 var(--lip,#DCD5F2);

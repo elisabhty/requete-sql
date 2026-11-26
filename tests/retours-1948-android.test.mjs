@@ -62,9 +62,9 @@ test('connexion : Google seul sur Android, avec le client web ; achats : la clé
   assert.ok(c.includes("o.google = android ? {webClientId: GOOGLE_WEB, mode: 'online', skipAuthOnlyAuthorizationAfterSignIn: true} : {iOSClientId: GOOGLE_IOS, iOSServerClientId: GOOGLE_WEB, mode: 'online'};"));
   const a = lire('achat.js');
   assert.ok(a.includes("var ANDROID = typeof C.getPlatform === 'function' && C.getPlatform() === 'android';") && a.includes('var CLE = ANDROID ? RC_CLE_ANDROID : RC_CLE_IOS;') && a.includes('P.configure({apiKey: CLE})'));
-  assert.ok(app.includes('<script src="connexion.js?v=5"></script>') && app.includes('<script src="achat.js?v=10"></script>'));
+  assert.ok(app.includes('<script src="connexion.js?v=5"></script>') && app.includes('<script src="achat.js?v=11"></script>'));
   const sw = lire('sw.js');
-  assert.ok(sw.includes("'./connexion.js?v=5',") && sw.includes("'./achat.js?v=10',"));
+  assert.ok(sw.includes("'./connexion.js?v=5',") && sw.includes("'./achat.js?v=11',"));
 });
 
 test('les marges du haut et du bas suivent Android (variables de Capacitor), et l’iPhone garde env()', () => {
@@ -73,7 +73,7 @@ test('les marges du haut et du bas suivent Android (variables de Capacitor), et 
     assert.ok(!/(?<!--safe-area-inset-(?:top|right|bottom|left),)env\(safe-area-inset/.test(t.replace(/var\(--safe-area-inset-(top|right|bottom|left),env\(safe-area-inset-\1(,0px)?\)\)/g, '')), 'chaque env() a sa variable devant');
   }
   assert.ok(app.includes('var(--safe-area-inset-top,env(safe-area-inset-top,0px))') && css.includes('var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))'));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=394">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=395">'));
 });
 
 test('le projet Android et sa fabrication sur GitHub', () => {

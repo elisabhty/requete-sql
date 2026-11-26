@@ -183,7 +183,7 @@ test('l’achat de l’offre passe le produit de bienvenue, et la vue ne survit 
   assert.match(bloc, /stat\('achat',null,\{o:'bienvenue'\}\)/);
   assert.match(html, /if\(obPwSortie&&\(slide!=='paywall'\|\|!obSortieInfo\(\)\)\)obPwSortie=false;/);
   assert.match(html, /if\(obPwSortie\)\{html=obSortieHTML\(\);obSortiePied\(\);\}\s*else\{html=obPaywallHTML\(\);obPaywallPied\(\);\}/);
-  assert.match(html, /function obPaywallEntrer\(\)\{obPwSortie=false;/);
+  assert.match(html, /function obPaywallEntrer\(\)\{obPwEntreeA=Date\.now\(\);obPwSortie=false;/);
   assert.match(html, /classList\.toggle\('ob-sortie-step',slide==='paywall'&&!obLegalMode&&obPwSortie\)/);
 });
 

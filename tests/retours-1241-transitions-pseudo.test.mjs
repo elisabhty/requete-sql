@@ -62,5 +62,5 @@ test('13 h 04 (« un trait en bas quand je soumets mon prénom, clavier ») : da
   const lq = readFileSync(new URL('../ludique.css', import.meta.url), 'utf8');
   assert.ok(lq.includes('html.lq.is-native:has(#onboarding.on) body{background:#4529CC!important}'));
   assert.ok(lq.indexOf('html.lq.is-native:has(#onboarding.on) body{background:#4529CC!important}') > lq.indexOf('html.lq:has(#onboarding.on) body{background:#6E50F6!important}'), 'après la règle du violet clair, qu’elle remplace dans l’app');
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=394">'), 'la feuille change d’adresse (le cache de l’appli la reprend)');
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=395">'), 'la feuille change d’adresse (le cache de l’appli la reprend)');
 });

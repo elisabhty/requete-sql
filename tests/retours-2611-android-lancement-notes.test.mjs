@@ -109,7 +109,7 @@ test('Le style : le logo n’existe que sur Android ; points et emplacements cac
   // L’ouverture de l’iPhone garde ses règles
   assert.ok(ludique.includes('html.is-native.lq #loader.is-intro.is-play .in-d{opacity:0}'));
   assert.ok(ludique.includes('html.is-native.lq #loader.is-intro.is-play .in-s{animation:introFade 90ms linear var(--t-soude) forwards}'));
-  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=394">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="ludique.css?v=395">'));
 });
 
 /* ---------- Le clavier d’Android : kb-ouvert ---------- */

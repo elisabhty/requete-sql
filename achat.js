@@ -265,6 +265,27 @@
     .catch(function(){});
   demarre.then(chargerOffres, function(){ prixRate = true; direPrix(); });   /* RevenueCat ne démarre pas : pas de prix, le paywall le dit */
 
+  /* 26 novembre, 17 h 27 (Elisa, sur Android : « il n'a pas reconnu l'abonnement que j'avais sur mon compte. Je me suis connectée
+     avec Google, il n'a pas reconnu. Et quand j'ai fait restaurer, il a trouvé. Mais normalement, ça doit reconnaître, non ?
+     Directement. ») : RevenueCat ne connaît un abonnement de Google Play que s'il lui a été envoyé depuis cette installation de
+     l'appli ; réinstallée, ou repartie de zéro, elle ne le voyait plus. Sur Android, quand RevenueCat ne voit pas d'abonnement
+     actif, l'appli lui envoie d'elle-même ce que Google Play sait du compte Google du téléphone, comme « Restaurer » (rien ne
+     s'affiche sur Android) : au démarrage, à chaque vérification (après une connexion) et au retour dans l'appli, une fois par
+     minute au plus. Un abonnement retrouvé ferme le paywall (index.html, obGardeDemarrer). iOS ne change pas. */
+  var relieEn = null, relieA = 0;
+  function relierGoogle(){
+    if (!ANDROID || su === true || typeof P.restorePurchases !== 'function') return Promise.resolve(etat());
+    if (relieEn) return relieEn;
+    var t = Date.now();
+    if (t - relieA < 60000) return Promise.resolve(etat());
+    relieA = t;
+    relieEn = pret.then(function(){ return P.restorePurchases(); }).then(noterClient).catch(function(){})
+      .then(function(){ relieEn = null; return etat(); });
+    return relieEn;
+  }
+  function relierSiBesoin(){ return ANDROID && su !== true ? relierGoogle() : etat(); }
+  pret.then(relierSiBesoin);
+
   function rechargerPrix(){
     if (!prixConnus()) prixRate = false;   /* tout de suite « attente » : le paywall se repeint avant la réponse */
     return pret.then(function(){ return prixConnus() ? null : chargerOffres(); }).then(prixEtat, prixEtat);
@@ -272,7 +293,7 @@
   /* De retour dans l'app (abonnement annulé ou repris dans les réglages Apple) : on relit le droit ; et les prix, s'ils manquent. */
   document.addEventListener('visibilitychange', function(){
     if (document.visibilityState !== 'visible') return;
-    pret.then(function(){ return P.getCustomerInfo(); }).then(noterClient).catch(function(){});
+    pret.then(function(){ return P.getCustomerInfo(); }).then(noterClient).catch(function(){}).then(relierSiBesoin);
     if (!prixConnus() && prixRate) rechargerPrix();
   });
   /* Le réseau revient : les prix qui manquaient sont redemandés. */
@@ -289,7 +310,7 @@
     restaurer: function(){ return pret.then(function(){ return P.restorePurchases(); }).then(noterClient); },
     actif: function(){ return actifConnu; },
     etat: etat,
-    verifier: function(){ return pret.then(function(){ return P.getCustomerInfo(); }).then(noterClient).catch(function(){}).then(etat); },
+    verifier: function(){ return pret.then(function(){ return P.getCustomerInfo(); }).then(noterClient).catch(function(){}).then(relierSiBesoin); },
     suivre: function(fn){ if (typeof fn === 'function') suiveurs.push(fn); },
     essaiDispo: function(offre){ return essais[offre] !== false; },
     essai: function(offre){ return essaiDe(offre); },

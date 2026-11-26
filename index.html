@@ -6843,7 +6843,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 </style>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="ludique.css?v=394">
+<link rel="stylesheet" href="ludique.css?v=395">
 <link rel="stylesheet" href="memo-collection.css?v=5">
 <link rel="stylesheet" href="onboarding-vitrine.css?v=83">
 <style id="lesson-video-css">
@@ -47480,6 +47480,10 @@ function obGardeDemarrer(lancee){
   if(!obGardeSuivie){
     obGardeSuivie=true;
     try{if(typeof a.suivre==='function')a.suivre(voir);}catch(e){}
+    /* Android (26 novembre, 17 h 27 : l’abonnement de Google Play pas reconnu après la connexion, retrouvé par « Restaurer ») :
+       achat.js le retrouve maintenant tout seul ; s’il revient pendant que le paywall de l’onboarding est ouvert, on entre, comme
+       après « Restaurer ». */
+    try{if(typeof a.suivre==='function'&&typeof appAndroid==='function'&&appAndroid())a.suivre(e=>{if(e==='oui')obPaywallAbonneEntrer();});}catch(e){}
     try{if(typeof a.verifier==='function')Promise.resolve(a.verifier()).then(voir,()=>{});}catch(e){}
   }
   voir();
@@ -47814,7 +47818,17 @@ function obPaywallChoisir(k){
   obPaywallPied();
 }
 function obPaywallPasser(){if(!obPaywallOuvert())return;if(typeof stat==='function'&&!obEssaiAndroid())stat('paywall_passe',null,{o:draft.offre==='semaine'?'semaine':'an',par:'continuer'});obPaywallEntrer();}
-function obPaywallEntrer(){obPwSortie=false;if(typeof buzz==='function')buzz('success');
+/* Le paywall de l’onboarding est ouvert (pas la garde, ni un achat en cours) et l’abonnement vient d’être retrouvé tout seul
+   (Android, achat.js) : on entre. Pas deux fois : une entrée de moins de 5 s (« Restaurer », un achat) suffit. */
+let obPwEntreeA=0;
+function obPaywallAbonneEntrer(){
+  const root=typeof document!=='undefined'&&document.getElementById('onboarding');
+  if(!root||!root.classList.contains('on')||OB_SLIDES[obStep]!=='paywall'||obPwBusy||obGarde||Date.now()-obPwEntreeA<5000)return false;
+  if(obGardeEtat()!=='oui')return false;
+  obPaywallEntrer();
+  return true;
+}
+function obPaywallEntrer(){obPwEntreeA=Date.now();obPwSortie=false;if(typeof buzz==='function')buzz('success');
   /* La garde de l’abonnement : l’appli est derrière, telle qu’on l’avait laissée ; surtout pas finishOnboard, qui referait le planning */
   if(typeof obEntry!=='undefined'&&obEntry==='paywall'&&state.onboarded){if(typeof obGardeFermer==='function')obGardeFermer();return;}
   finishOnboard(draft.finVoulue||draft.finConnexion||'home');}
@@ -54521,6 +54535,22 @@ async function seDeconnecter(){
 }
 /* L’écran de chargement, remis sous le chat : quand il s’en va, plus rien du compte quitté, jusqu’au redémarrage (18 novembre). */
 function deconnexionCouvrir(){
+  /* 26 novembre, 17 h 27 (Elisa, sur Android : « quand on se déconnecte, on revoit un peu comme la page du compte après quand il
+     part », « essaye d’enlever cette page de 2 secondes ») : sur Android, l’écran de chargement remis là ne couvrait rien. Après
+     l’ouverture animée, il garde sa classe de sortie (is-sortie : remontré, il s’efface aussitôt en 0,4 s), et la page met environ
+     2 s à se recharger sur le téléphone : Mon compte revenait sous le chat qui part. Un voile à part, posé sous le chat : la toute
+     première image de la page qui revient (le fond clair et le logo rond, à la place qu’ils ont dans l’ouverture d’Android). Le chat
+     part sur lui, et la page rechargée commence par la même image. */
+  if(typeof appAndroid==='function'&&appAndroid()){
+    try{
+      if(!document.getElementById('deco-voile')){
+        const v=document.createElement('div');v.id='deco-voile';v.setAttribute('aria-hidden','true');
+        v.innerHTML='<img src="assets/lancement-android.webp" width="178" height="178" alt="" draggable="false">';
+        document.body.appendChild(v);
+      }
+    }catch(e){}
+    return;
+  }
   try{const L=document.getElementById('loader');if(L){L.classList.remove('fade-out','is-recharge');L.style.display='';L.style.zIndex='9980';}}catch(e){}
 }
 /* Chaque projet de l’appareil (hors bases de démo) est sur ce compte, tel qu’il est ici, historique compris (19 novembre) */
@@ -54653,6 +54683,9 @@ async function compteSupprimer(){
   try{const idb=await dbsIdb();await new Promise(ok=>{const tx=idb.transaction(DBS_STORE,'readwrite');tx.objectStore(DBS_STORE).clear();tx.oncomplete=ok;tx.onerror=ok;tx.onabort=ok;});}catch(e){}
   try{localStorage.clear();}catch(e){}
   try{sessionStorage.clear();}catch(e){}
+  /* Android (26 novembre, 17 h 27, comme pour la déconnexion) : la page met 2 s à se recharger ; Mon compte, déjà vidé, ne reste pas
+     à l’écran pendant ce temps : le voile de la première image (deconnexionCouvrir). */
+  if(typeof appAndroid==='function'&&appAndroid())deconnexionCouvrir();
   location.reload();
 }
 /* Les deux confirmations dans la DA de l’appli (Elisa, 31 octobre, 16 h 49 : « faire une notif in-app avec la même DA que le site,
@@ -54950,7 +54983,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 </script>
 <script src="onboarding-focus.js"></script>
 <script src="multiplayer-security.js?v=12"></script>
-<script src="achat.js?v=10"></script>
+<script src="achat.js?v=11"></script>
 <script src="compte-moteurs.js?v=3"></script>
 <script src="connexion.js?v=5"></script>
 </body>
