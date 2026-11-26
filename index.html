@@ -6845,7 +6845,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=393">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=81">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=82">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -47733,6 +47733,9 @@ function pwConfianceLignes(){
   const c=typeof document!=='undefined'&&document.querySelector('#ob-foot-note .pw-confiance');if(!c)return;
   let haut=null;
   [...c.children].forEach(x=>{const t=x.offsetTop;x.classList.toggle('is-debut',haut!==null&&t>haut+2);haut=t;});
+  /* 26 novembre, 12 h 35 (Elisa, sa capture de l’offre de bienvenue) : rangées une fois, elles pouvaient changer de ligne ensuite (la
+     police qui arrive, la page qui se met à sa taille) ; elles se rangent de nouveau dès que leur bloc change de taille. */
+  if(typeof ResizeObserver==='function'&&!c._lignes){c._lignes=new ResizeObserver(()=>{if(c.isConnected)pwConfianceLignes();});c._lignes.observe(c);}
 }
 /* Les prix de la boutique viennent d’arriver (ou de manquer) : le paywall ouvert se repeint, sans rejouer son entrée. */
 function obPaywallPrix(){
@@ -47771,7 +47774,7 @@ async function obPaywallAcheter(){
     if(ok){if(typeof stat==='function')stat(essai?'essai':'achat',null,{o});obPaywallEntrer();return;}
     /* La feuille d’Apple refermée sans payer : une fois, l’offre de bienvenue (si la boutique la donne à ce compte). */
     if(obSortieProposer())return;}
-  catch(e){obPwBusy=false;if(live)live.textContent=`Le paiement n’a pas abouti. Tu n’as pas été ${typeof accord==='function'?accord('débitée','débité','débité·e'):'débité·e'}, réessaie.`;}
+  catch(e){obPwBusy=false;if(live)pwMessage(`Le paiement n’a pas abouti. Tu n’as pas été ${typeof accord==='function'?accord('débitée','débité','débité·e'):'débité·e'}, réessaie.`);}
   obPaywallPied();
 }
 /* ---------- L’offre de bienvenue (Elisa, 12 novembre, 16 h 03 : « est-ce qu’on peut avoir une offre à −50 ? » ; 16 h 34 : « fais-le
@@ -47851,6 +47854,9 @@ function obSortiePied(){
   const legal=confiance+natifTexte(`<b class="pw-sans"${obNt()}>${obPh('{intro} aujourd’hui pour la première année, puis {plein} par an.',{intro:x.intro,plein:x.plein})}</b> Pas d’essai gratuit sur cette offre. Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `)
     +`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener"${obNt()}>${obLangue()?obPh('Conditions d’utilisation'):'Conditions'}</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
   obSetFooter(`J’en profite à −${x.pct}\u00a0%`,obSortieAcheter,obPwBusy?'':'Non merci',obSortieRefuser,{html:legal},obPwBusy);
+  /* 26 novembre, 12 h 35 (Elisa, sa capture de l’offre de bienvenue sur Android : « | Données protégées » en début de ligne) : comme
+     sous le paywall, une garantie passée à la ligne ne commence plus par un trait. */
+  if(typeof appAndroid==='function'&&appAndroid()&&typeof requestAnimationFrame==='function')requestAnimationFrame(pwConfianceLignes);
 }
 function obSortieRefuser(){if(obPwBusy)return;if(typeof buzz==='function')buzz('light');obPaywallVue(false);}
 async function obSortieAcheter(){
@@ -47858,16 +47864,44 @@ async function obSortieAcheter(){
   const live=document.getElementById('pw-live');obPwBusy=true;obSortiePied();if(live)live.textContent='';
   try{const ok=await window.REQUETE_ACHAT.acheter('bienvenue');obPwBusy=false;
     if(ok){if(typeof stat==='function')stat('achat',null,{o:'bienvenue'});obPaywallEntrer();return;}}
-  catch(e){obPwBusy=false;if(live)live.textContent=`Le paiement n’a pas abouti. Tu n’as pas été ${typeof accord==='function'?accord('débitée','débité','débité·e'):'débité·e'}, réessaie.`;}
+  catch(e){obPwBusy=false;if(live)pwMessage(`Le paiement n’a pas abouti. Tu n’as pas été ${typeof accord==='function'?accord('débitée','débité','débité·e'):'débité·e'}, réessaie.`);}
   if(obPwSortie)obSortiePied();
+}
+/* 26 novembre, 12 h 35 (Elisa, sur son Samsung, ses captures de « Le paiement n’a pas abouti » et de « Aucun abonnement à restaurer
+   sur ce compte Google ») : « les petites notifications comme ça qui partent […] il faut que tu descendes automatiquement, comme si
+   tu scrollais toi, pour que la personne elle le voit, parce que ça part direct ». Le message s’ajoute en bas de la page, sous les
+   offres ; la page, déjà à la taille de l’écran, le laissait derrière le bouton jaune. Sur Android, elle descend maintenant d’elle-
+   même, en douceur, juste assez pour le montrer en entier au-dessus du bouton ; quand il s’efface (« Restaurer », au bout de 6 s),
+   elle remonte d’abord, puis il part : rien ne saute. L’iPhone ne change pas (le message, puis son effacement). */
+let pwMessageT=0;
+function pwDefiler(cadre,haut){
+  if(typeof prefersReduceMotion==='function'&&prefersReduceMotion()){cadre.scrollTop=haut;return;}
+  try{cadre.scrollTo({top:haut,behavior:'smooth'});}catch(e){cadre.scrollTop=haut;}
+}
+function pwMessage(t,duree){
+  const live=typeof document!=='undefined'&&document.getElementById('pw-live');if(!live)return;
+  clearTimeout(pwMessageT);
+  live.textContent=t;
+  const body=document.getElementById('ob-body'),cadre=body&&body.parentElement;
+  const android=!!(t&&cadre&&typeof appAndroid==='function'&&appAndroid()&&typeof requestAnimationFrame==='function');
+  const avant=android?cadre.scrollTop:null;
+  if(android)requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(live.isConnected===false||live.textContent!==t)return;
+    const b=cadre.getBoundingClientRect(),r=live.getBoundingClientRect(),d=Math.min(r.bottom+12-b.bottom,r.top-12-b.top);
+    if(d>1)pwDefiler(cadre,cadre.scrollTop+d);
+  }));
+  if(duree)pwMessageT=setTimeout(()=>{
+    if(live.isConnected===false||live.textContent!==t)return;
+    if(android&&Math.abs(cadre.scrollTop-avant)>1){pwDefiler(cadre,avant);pwMessageT=setTimeout(()=>{if(live.textContent===t)live.textContent='';},380);}
+    else live.textContent='';
+  },duree);
 }
 async function obPaywallRestaurer(){
   const live=document.getElementById('pw-live');
   if(!window.REQUETE_ACHAT||typeof window.REQUETE_ACHAT.restaurer!=='function')return;
   /* 11 novembre, 19 h 02 : la réponse de « Restaurer » restait sous les offres jusqu’à la fin, comme si elle faisait partie de la
      page ; elle s’efface au bout de 6 secondes. */
-  const dire=t=>{if(!live)return;live.textContent=t;clearTimeout(obPaywallRestaurer.t);
-    obPaywallRestaurer.t=setTimeout(()=>{if(live.textContent===t)live.textContent='';},6000);};
+  const dire=t=>{if(live)pwMessage(t,6000);};
   try{const ok=await window.REQUETE_ACHAT.restaurer();if(ok){if(typeof stat==='function')stat('restaure');obPaywallEntrer();return;}dire(natifTexte('Aucun abonnement à restaurer sur ce compte Apple.'));}
   catch(e){dire('La restauration n’a pas abouti, réessaie.');}
 }
@@ -50171,7 +50205,9 @@ function obFit(){
   /* ob-fit-5 (3 novembre) : un palier de plus, pour l’engagement seulement. */
   const C=['ob-fit-1','ob-fit-2','ob-fit-3','ob-fit-4','ob-fit-5'];
   const metZ=z=>{const v=String(Math.round(z*1000)/1000);if(root.style.getPropertyValue('--obz')!==v)root.style.setProperty('--obz',v);};
-  const apres=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{obFitChips();obChampEnVue();}));
+  /* 26 novembre, 12 h 35 (Android) : les garanties du paywall et de l’offre de bienvenue se rangent de nouveau une fois la page à sa
+     taille (les paliers changent la taille de leur texte) : plus de trait en début de ligne, ni de trait manquant au milieu. */
+  const apres=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{obFitChips();obChampEnVue();if(typeof appAndroid==='function'&&appAndroid()&&typeof pwConfianceLignes==='function')pwConfianceLignes();}));
   const screen=body.firstElementChild,cadre=body.parentElement,foot=root.querySelector('.ob-foot');
   /* Conditions et confidentialité : un long texte qui défile, à sa taille. */
   if(obLegalMode||!screen||!cadre){root.classList.remove(...C,'ob-fit-defile','ob-jauge');metZ(1);apres();return;}
@@ -50322,6 +50358,11 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
   document.addEventListener('focusout',e=>{if(obChampTexte(e.target)&&!obAndroid())obClavier(false);});
   window.addEventListener('keyboardWillHide',()=>{if(!obAndroid())obClavier(false);});
   ['resize','keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide'].forEach(n=>window.addEventListener(n,obVueClavier));
+  /* 26 novembre, 12 h 35 (Elisa, sa capture du paywall qu’elle avait fait défiler : sous l’heure, le bas des lettres de « Retour » et
+     de « Restaurer », en pointillés ; sur l’offre de bienvenue, la pointe de la bulle du chat sans la bulle) : sur Android, une page
+     qui a défilé s’estompe à son bord haut au lieu d’y couper net ce qui passe dessous (is-defilee, onboarding-vitrine.css). */
+  document.addEventListener('scroll',e=>{const t=e.target;if(!t||!t.classList||!t.classList.contains('ob-slides')||!obAndroid())return;
+    t.classList.toggle('is-defilee',t.scrollTop>2);},{capture:true,passive:true});
 }
 /* Même capture : dans la bulle, « Salut ! Comment dois-je t’appeler » puis « ? » seul sur la ligne d’en dessous. Les espaces avant
    « ? ! ; » deviennent des fines insécables, celles avant « : » et « » » et après « « » des insécables : la ponctuation ne part plus

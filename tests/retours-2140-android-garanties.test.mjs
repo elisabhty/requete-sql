@@ -12,7 +12,8 @@ const css = fs.readFileSync(new URL('../onboarding-vitrine.css', import.meta.url
 test('Android seulement : les garanties plus serrées, sans trait en début de ligne', () => {
   assert.ok(css.includes('html.is-android #onboarding.ob-vitrine.ob-paywall-step #ob-foot-note .pw-confiance{font-size:min(11.4px,2.62vw)!important}'));
   assert.ok(css.includes('html.is-android #onboarding.ob-vitrine .pw-confiance>span{padding:0 4px}'));
-  assert.ok(css.includes('html.is-android #onboarding.ob-vitrine .pw-confiance>span.is-debut{border-left:0}'));
+  /* 26 novembre : le trait reste, invisible (sa largeur ne fait plus changer la ligne quand il part) */
+  assert.ok(css.includes('html.is-android #onboarding.ob-vitrine .pw-confiance>span.is-debut{border-left-color:transparent}'));
   assert.ok(app.includes("if(typeof appAndroid==='function'&&appAndroid()&&typeof requestAnimationFrame==='function')requestAnimationFrame(pwConfianceLignes);"));
 });
 

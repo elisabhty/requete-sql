@@ -35,7 +35,7 @@ test('clavier ouvert : le champ où l’on tape revient en vue, avec l’accueil
   assert.equal(ecran({ champ: [60, 120], st: 100 }), 48, 'passé au-dessus du bord (défilé de 100) : il redescend');
   assert.equal(ecran({ champ: [200, 260] }), 0, 'déjà en vue : rien ne bouge');
   assert.equal(ecran({ actif: 'BUTTON' }), 0, 'seulement quand on tape dans un champ');
-  assert.ok(fn('obFit', 'function obFitChips(').includes('const apres=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{obFitChips();obChampEnVue();}));') && /\n  metZ\(z\);\n  noter\(\);\n  obFitMemo\[cle\]=[^\n]+\n  apres\(\);\n\}/.test(fn('obFit', 'function obFitChips(')), 'obFit le ramène en vue après avoir mis la page à l’échelle (l’image suivante)');
+  assert.ok(fn('obFit', 'function obFitChips(').includes('const apres=()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{obFitChips();obChampEnVue();if(typeof appAndroid===\'function\'&&appAndroid()&&typeof pwConfianceLignes===\'function\')pwConfianceLignes();}));') && /\n  metZ\(z\);\n  noter\(\);\n  obFitMemo\[cle\]=[^\n]+\n  apres\(\);\n\}/.test(fn('obFit', 'function obFitChips(')), 'obFit le ramène en vue après avoir mis la page à l’échelle (l’image suivante)');
 });
 
 test('obFit suit la vraie taille de l’onboarding et se relance pendant que le clavier s’ouvre ou se ferme', () => {

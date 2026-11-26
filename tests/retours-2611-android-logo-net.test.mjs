@@ -39,5 +39,5 @@ test('Android : les boutons du bas posés à 20 px de la barre d’Android, la p
   // Les écrans qui ont leur propre bas le gardent : leurs règles pèsent plus que :where(.ob-foot).
   assert.ok(css.includes('html #onboarding.ob-vitrine.ob-paywall-step .ob-foot{padding-top:10px!important;padding-bottom:calc(var(--safe-bottom,0px) + 12px)!important}'));
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-  assert.ok(html.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=81">'));
+  assert.ok(html.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=82">'));
 });

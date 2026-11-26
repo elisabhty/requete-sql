@@ -222,5 +222,62 @@ test('l’abonnement d’Android : sous le bouton, les phrases des deux offres o
   assert.ok(cssDepuis.includes('html.is-android #onboarding.ob-vitrine .pw-offre:active{transform:none;box-shadow:0 4px 0 var(--v-shadow-lip)}'));
   assert.ok(cssDepuis.includes('html.is-android #onboarding.ob-vitrine .pw-offre.is-on:active{box-shadow:0 4px 0 var(--v-sun-lip),0 0 0 4px rgba(255,200,61,.32),0 12px 28px rgba(27,22,64,.22)}'));
   assert.ok(css.includes('html #onboarding.ob-vitrine .pw-offre:active{transform:translateY(3px);box-shadow:0 1px 0 var(--v-shadow-lip)}'), 'l’iPhone garde son enfoncement');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=81">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=82">'));
+});
+
+/* ---------- 12 h 35 : « les petites notifications comme ça qui partent […] il faut que tu descendes automatiquement, comme si tu
+   scrollais toi, pour que la personne elle le voit, parce que ça part direct » ; « regarde les captures pour voir si tu vois quelque
+   chose d’anormal » (ses captures du paywall et de l’offre de bienvenue, achats d’essai refusés, « Restaurer ») ---------- */
+const MSG = cut('let pwMessageT=0;', 'async function obPaywallRestaurer(){');
+function message({android = true} = {}) {
+  const timers = [], defile = [];
+  const cadre = {scrollTop: 0, getBoundingClientRect: () => ({top: 28, bottom: 702}),
+    scrollTo({top}) { defile.push(top); this.scrollTop = top; }};
+  const live = {textContent: '', isConnected: true, getBoundingClientRect: () => ({top: 684 - cadre.scrollTop, bottom: 741 - cadre.scrollTop})};
+  const ctx = vm.createContext({appAndroid: () => android, prefersReduceMotion: () => false, requestAnimationFrame: f => f(),
+    setTimeout: (f, ms) => { timers.push([f, ms]); return timers.length; }, clearTimeout() {},
+    document: {getElementById: id => (id === 'pw-live' ? live : id === 'ob-body' ? {parentElement: cadre} : null)}});
+  vm.runInContext(MSG, ctx);
+  return {ctx, timers, defile, cadre, live};
+}
+
+test('Android : le message sous les offres fait descendre la page jusqu’à lui, au-dessus du bouton ; elle remonte avant qu’il parte', () => {
+  const m = message();
+  m.ctx.pwMessage('Aucun abonnement à restaurer sur ce compte Google.', 6000);
+  assert.equal(m.live.textContent, 'Aucun abonnement à restaurer sur ce compte Google.');
+  assert.deepEqual(m.defile, [51], 'juste assez pour le voir en entier, 12 px au-dessus du bord du bouton (741 + 12 − 702)');
+  const [part, ms] = m.timers.at(-1); assert.equal(ms, 6000);
+  part();
+  assert.deepEqual(m.defile, [51, 0], 'au bout de 6 s, la page remonte d’abord');
+  assert.equal(m.live.textContent, 'Aucun abonnement à restaurer sur ce compte Google.', 'le message est encore là pendant qu’elle remonte');
+  m.timers.at(-1)[0]();
+  assert.equal(m.live.textContent, '', 'puis il part : rien ne saute');
+  /* Un échec de paiement : la page descend, le message reste jusqu’au prochain essai */
+  const p = message();
+  p.ctx.pwMessage('Le paiement n’a pas abouti. Tu n’as pas été débité·e, réessaie.');
+  assert.deepEqual(p.defile, [51]); assert.equal(p.timers.length, 0);
+  /* Un message déjà en vue : la page ne bouge pas */
+  const v = message(); v.live.getBoundingClientRect = () => ({top: 600, bottom: 640});
+  v.ctx.pwMessage('Aucun abonnement à restaurer sur ce compte Google.', 6000); assert.deepEqual(v.defile, []);
+  v.timers.at(-1)[0](); assert.equal(v.live.textContent, '');
+});
+
+test('iPhone : le message, puis son effacement au bout de 6 s, comme avant ; la page ne défile pas', () => {
+  const m = message({android: false});
+  m.ctx.pwMessage('Aucun abonnement à restaurer sur ce compte Apple.', 6000);
+  assert.deepEqual(m.defile, []);
+  m.timers.at(-1)[0](); assert.equal(m.live.textContent, '');
+  assert.ok(app.includes("const dire=t=>{if(live)pwMessage(t,6000);};"));
+  assert.equal((app.match(/if\(live\)pwMessage\(`Le paiement n’a pas abouti\. Tu n’as pas été /g) || []).length, 2, 'le paywall et l’offre de bienvenue');
+});
+
+test('Android : la page défilée s’estompe à son bord haut ; un peu de place sous le message ; les garanties toujours bien rangées', () => {
+  assert.ok(cssDepuis.includes('html.is-android #onboarding.ob-vitrine:not(.ob-compte-feuille) .ob-slides.is-defilee{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 24px);mask-image:linear-gradient(to bottom,transparent 0,#000 24px)}'));
+  assert.ok(app.includes("document.addEventListener('scroll',e=>{const t=e.target;if(!t||!t.classList||!t.classList.contains('ob-slides')||!obAndroid())return;\n    t.classList.toggle('is-defilee',t.scrollTop>2);},{capture:true,passive:true});"));
+  assert.ok(cssDepuis.includes("html.is-android #onboarding.ob-vitrine .ob-screen.ob-paywall:has(>.ob-compte-msg:not(:empty))::after{content:'';display:block;flex:none;height:12px}"));
+  /* L’offre de bienvenue range ses garanties comme le paywall ; et de nouveau dès que leur bloc change de taille, ou que la page se met à sa taille */
+  const pied = cut('function obSortiePied(){', '\nfunction obSortieRefuser(){');
+  assert.ok(pied.includes("if(typeof appAndroid==='function'&&appAndroid()&&typeof requestAnimationFrame==='function')requestAnimationFrame(pwConfianceLignes);"));
+  assert.ok(app.includes("if(typeof ResizeObserver==='function'&&!c._lignes){c._lignes=new ResizeObserver(()=>{if(c.isConnected)pwConfianceLignes();});c._lignes.observe(c);}"));
+  assert.ok(app.includes("obFitChips();obChampEnVue();if(typeof appAndroid==='function'&&appAndroid()&&typeof pwConfianceLignes==='function')pwConfianceLignes();"));
 });

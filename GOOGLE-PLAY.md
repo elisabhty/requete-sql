@@ -59,6 +59,10 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
   d'Android Studio sur le Mac d'Elisa se fige (Android 17 très lent ; Pixel 8 Android 15 créé, il se bloque pendant la
   connexion Google). À faire sur un vrai téléphone Android avant la production : le Samsung SM-A528B lié au compte, ou le
   téléphone d'un proche ajouté à la liste « Testeurs Requête » (test interne + test de licence, achats avec la carte de test).
+- 26 novembre, midi : sur le Samsung d'Elisa (version 33/34 de Google Play), la feuille de Google s'ouvre pour les trois offres
+  (annuel avec essai, hebdo, bienvenue −50 %) ; en test, une année dure 30 min, une semaine 5 min, l'essai 3 min. Carte « toujours
+  refusée » : « Le paiement n'a pas abouti… » s'affiche bien ; « Restaurer » sans abonnement : « Aucun abonnement à restaurer sur
+  ce compte Google ». Reste l'achat avec la carte « toujours approuvée », puis le vérifier dans RevenueCat.
 
 ## Dans l'ordre, ce qu'il reste à faire
 
