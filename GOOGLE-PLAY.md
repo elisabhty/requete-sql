@@ -55,6 +55,10 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
 - 26 novembre, 2 h : liste de testeurs « Testeurs Requête » (Elisa seule) en test interne et en test de licence (achats d'essai
   avec les cartes de test de Google, sans paiement). Version 32 (1.0, achat branché) publiée en test interne (privée, Elisa
   seule) ; lien pour rejoindre le test : https://play.google.com/apps/internaltest/4699686658901540417
+- 26 novembre, matin : achat d'essai pas encore fait. RevenueCat lit les 3 abonnements (« Published »), mais l'émulateur
+  d'Android Studio sur le Mac d'Elisa se fige (Android 17 très lent ; Pixel 8 Android 15 créé, il se bloque pendant la
+  connexion Google). À faire sur un vrai téléphone Android avant la production : le Samsung SM-A528B lié au compte, ou le
+  téléphone d'un proche ajouté à la liste « Testeurs Requête » (test interne + test de licence, achats avec la carte de test).
 
 ## Dans l'ordre, ce qu'il reste à faire
 
