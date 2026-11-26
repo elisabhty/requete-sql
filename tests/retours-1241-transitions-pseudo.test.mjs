@@ -54,7 +54,7 @@ test('CSS : plus de fondu de sortie ; pas de transition tant que la page se pose
   assert.ok(ob.includes('html:not([data-motion="reduce"]) #onboarding.ob-vitrine.ob-clavier .ob-pseudo>.ob-chat{max-height:0;opacity:0;margin-top:0!important;margin-bottom:0!important}'));
   assert.ok(ob.includes('html[data-motion="reduce"] #onboarding.ob-vitrine.ob-clavier .ob-pseudo>.ob-chat{display:none!important}'));
   assert.ok(ob.includes('html #onboarding.ob-vitrine.ob-clavier .ob-pseudo .ps-etat{margin-top:8px!important}') && ob.includes('html #onboarding.ob-vitrine.ob-clavier .ob-pseudo .ps-idees{margin-top:6px!important}'), 'clavier ouvert, les pseudos libres tiennent au-dessus du bouton');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=82">') && sw.includes("'./onboarding-vitrine.css?v=82',"));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=83">') && sw.includes("'./onboarding-vitrine.css?v=83',"));
   assert.ok(sw.includes("const CACHE = 'requete-2026-11-25-module-v3156';"), 'le cache de l’appli change');
 });
 

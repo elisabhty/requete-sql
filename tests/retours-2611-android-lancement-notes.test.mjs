@@ -243,3 +243,17 @@ test('Android : le texte de l’appli garde la taille prévue (le réglage de po
   const parcours = lire('tools/android/parcours.mjs');
   assert.ok(parcours.includes("soucis.push({type: 'mot coupé', mot: m[0], texte: txt(el)})"));
 });
+
+/* ---------- 16 h 58 : le halo du bouton à l’empreinte, rond ---------- */
+test('Android : l’engagement pris, le halo vert du bouton est un anneau rond à part (plus l’ombre étalée, dessinée en carré)', () => {
+  const vitrine = lire('onboarding-vitrine.css');
+  const android = vitrine.slice(vitrine.indexOf('/* 6. 16 h 58 (Elisa, sur son Samsung : « là où on met le doigt pour s’engager'));
+  for (const r of ['html.is-android #onboarding.ob-vitrine .ob-hold-zone .ob-hold::after{content:\'\';position:absolute;inset:-9px;box-sizing:border-box;border:10px solid rgba(159,240,198,.55);border-radius:50%;opacity:0;pointer-events:none;transition:opacity .2s}',
+    'html.is-android #onboarding.ob-vitrine .ob-hold-zone .ob-hold.is-done::after{opacity:1}',
+    'html.is-android #onboarding.ob-vitrine .ob-hold-zone .ob-hold.is-done{box-shadow:0 6px 0 #5FCB97,0 16px 30px -12px rgba(27,22,64,.6)}'])
+    assert.ok(android.includes(r), r);
+  // L’iPhone garde l’ombre étalée (le halo collé au rond, 25 novembre)
+  assert.ok(vitrine.includes('html #onboarding.ob-vitrine .ob-pact .ob-hold.is-done,html #onboarding.ob-vitrine .ob-hold.is-done{box-shadow:0 0 0 9px rgba(159,240,198,.55),0 6px 0 #5FCB97,0 16px 30px -12px rgba(27,22,64,.6)}'));
+  assert.ok(vitrine.indexOf('html.is-android #onboarding.ob-vitrine .ob-hold-zone .ob-hold.is-done{') > vitrine.indexOf('html #onboarding.ob-vitrine .ob-pact .ob-hold.is-done,'), 'après la règle de l’iPhone');
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=83">'));
+});

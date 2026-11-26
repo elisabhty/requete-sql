@@ -222,7 +222,7 @@ test('l’abonnement d’Android : sous le bouton, les phrases des deux offres o
   assert.ok(cssDepuis.includes('html.is-android #onboarding.ob-vitrine .pw-offre:active{transform:none;box-shadow:0 4px 0 var(--v-shadow-lip)}'));
   assert.ok(cssDepuis.includes('html.is-android #onboarding.ob-vitrine .pw-offre.is-on:active{box-shadow:0 4px 0 var(--v-sun-lip),0 0 0 4px rgba(255,200,61,.32),0 12px 28px rgba(27,22,64,.22)}'));
   assert.ok(css.includes('html #onboarding.ob-vitrine .pw-offre:active{transform:translateY(3px);box-shadow:0 1px 0 var(--v-shadow-lip)}'), 'l’iPhone garde son enfoncement');
-  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=82">'));
+  assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=83">'));
 });
 
 /* ---------- 12 h 35 : « les petites notifications comme ça qui partent […] il faut que tu descendes automatiquement, comme si tu

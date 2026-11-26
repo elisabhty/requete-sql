@@ -71,6 +71,8 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
   du Samsung (cercle de 176 dp au lieu de 192) ; dans une note, « Enregistrer » collé au-dessus du clavier (un seul toucher) ;
   le texte de l'appli garde la taille de l'iPhone, même si la police du téléphone est agrandie (plus de mots coupés comme
   « Recommence / r ») ; les essais sur émulateur signalent tout mot coupé (aucun sur 52 écrans, à 360 et 411 px de large).
+- Version 38 (Android seulement) : l'engagement pris (onboarding), le halo vert du bouton à l'empreinte est rond (un anneau à part ;
+  l'ombre étalée d'avant était dessinée en carré par la WebView du Samsung).
 - 26 novembre, 13 h 30 (Elisa : « Oui stp ») : noms des abonnements raccourcis (coupés dans la feuille de Google) : « Premium annuel »
   (fr.requete.app.annuel et fr.requete.app.annuel.bienvenue : pas de « −50 % » dans le nom, qui reste affiché après la 1re année,
   au plein tarif) et « Premium hebdo » (fr.requete.app.hebdo).
