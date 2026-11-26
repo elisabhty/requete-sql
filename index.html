@@ -6845,7 +6845,7 @@ html[data-motion="reduce"] #lesson-body .ls-nav .ls-next[data-jc-gate],html[data
 <link rel="preload" href="assets/fonts/bricolage-grotesque-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="ludique.css?v=393">
 <link rel="stylesheet" href="memo-collection.css?v=5">
-<link rel="stylesheet" href="onboarding-vitrine.css?v=80">
+<link rel="stylesheet" href="onboarding-vitrine.css?v=81">
 <style id="lesson-video-css">
 /* ---------- Cours en vidéo : plein écran (mode immersion) ---------- */
 .lv{position:fixed;inset:0;z-index:2000;display:flex;flex-direction:column;background:#F4F2FC;
@@ -47248,9 +47248,16 @@ function obGoto(target){
   const body=document.getElementById('ob-body'),root=document.getElementById('onboarding');
   if(root)root.dataset.obDir=cible>obStep?'fwd':'back';
   const champ=document.activeElement,clavier=!!(champ&&champ.tagName&&/^(INPUT|TEXTAREA)$/.test(champ.tagName)&&typeof body.contains==='function'&&body.contains(champ));
+  /* 26 novembre, 11 h 40 (Elisa, sur son Samsung : « quelques sauts avec le clavier avant la partie « Tu vis où ? » ») : sur Android,
+     toucher « Continuer » retire déjà le champ (le bouton prend la main) et le clavier commence à descendre : la page suivante était
+     peinte tout de suite, dans la vue encore rétrécie (« Tu vis où ? » à l’échelle 0,8), puis remise à sa taille un instant après,
+     d’un bond. La vue encore rétrécie par le clavier (ob-clavier, posé tant qu’elle l’est : obVueClavier) compte maintenant comme un
+     champ ouvert : la page d’avant reste figée, la suivante est peinte une fois la vue revenue à sa hauteur. */
+  const vueClavier=!clavier&&typeof appAndroid==='function'&&appAndroid()&&!!(root&&root.classList&&root.classList.contains('ob-clavier'));
+  const figer=clavier||vueClavier;
   const t0=Date.now();
   const peindre=()=>{
-    if(clavier){try{body.style.height='';}catch(e){}}
+    if(figer){try{body.style.height='';}catch(e){}}
     if(root&&root.classList)root.classList.remove('ob-clavier');
     obStep=cible;obLock=false;obLegalMode=null;obAuthMessage='';obJustEntered=true;obPeinteLe=Date.now();paintOb();
   };
@@ -47260,8 +47267,8 @@ function obGoto(target){
      ce qui y était déjà animé (le pourcentage, les lignes, le graphique) restait non repeint, violet, le temps du fondu. Plus de
      fondu de sortie : la page suivante est peinte tout de suite et apparaît en fondu (ob-enter), sans rien créer sur l’ancienne.
      Clavier ouvert, la page d’avant reste telle quelle (figée, sans fondu) le temps que la vue reprenne sa hauteur. */
-  if(!clavier){peindre();return;}
-  try{body.style.height=body.offsetHeight+'px';champ.blur();}catch(e){}
+  if(!figer){peindre();return;}
+  try{body.style.height=body.offsetHeight+'px';if(clavier)champ.blur();}catch(e){}
   body.classList.add('out');
   const attendre=()=>{
     if(root&&obHPleine>0&&root.clientHeight<obHPleine-60&&Date.now()-t0<OB_CLAVIER_MS){setTimeout(attendre,30);return;}
@@ -47699,10 +47706,20 @@ function obPaywallPied(){
     return;
   }
   /* 14 novembre, 19 h 12 : sans réponse de la boutique sur l’essai, ni « 0 € » ni « … aujourd’hui » : le prix et le renouvellement. */
-  const texte=natifTexte(essai?`<b class="pw-sans"${obNt()}>${obPh('{essai}, puis {prix} {par} à partir du {date}.',{essai:obPh(`${obEssaiTexte(essai)} d’essai`),prix,par:obPh(o.par),date:obDateApresEssai(essai)})}</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
+  const texteDe=k=>{const o=OB_OFFRES[k],essai=obEssai(k),prix=obPrixTexte(k);
+    return natifTexte(essai?`<b class="pw-sans"${obNt()}>${obPh('{essai}, puis {prix} {par} à partir du {date}.',{essai:obPh(`${obEssaiTexte(essai)} d’essai`),prix,par:obPh(o.par),date:obDateApresEssai(essai)})}</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
     :obEssaiConnu(k)?`<b class="pw-sans"${obNt()}>${obPh('{prix} aujourd’hui, puis {quand}.',{prix,quand:obPh(k==='an'?'chaque année':'chaque semaine')})}</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `
-    :`<b class="pw-sans"${obNt()}>${prix} ${obPh(o.par)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `);
-  const legal=confiance+texte+`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener"${obNt()}>${obLangue()?obPh('Conditions d’utilisation'):'Conditions'}</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
+    :`<b class="pw-sans"${obNt()}>${prix} ${obPh(o.par)}.</b> Renouvellement automatique, sauf annulation 24&nbsp;h avant (réglages Apple). `);};
+  const liens=`<a class="ob-legal-link" href="${escAttr(legalUrl('terms'))}" target="_blank" rel="noopener"${obNt()}>${obLangue()?obPh('Conditions d’utilisation'):'Conditions'}</a> · <a class="ob-legal-link" href="${escAttr(legalUrl('privacy'))}" target="_blank" rel="noopener">Confidentialité</a>`;
+  /* 26 novembre, 11 h 56 (Elisa, sur son Samsung : « quand on passe d’un plan à un autre sur la page abonnement, il faut pas que ça
+     saute ») : sur Android, la phrase de l’autre offre est posée sous celle de l’offre choisie, invisible (onboarding-vitrine.css,
+     pw-note-duo) : le pied a la hauteur de la plus longue des deux, quelle que soit l’offre, et la page ne se remet pas à l’échelle
+     quand on change d’offre. L’iPhone ne change pas. */
+  const autre=k==='an'?'semaine':'an';
+  const corps=typeof appAndroid==='function'&&appAndroid()&&OB_OFFRES[autre]
+    ?`<span class="pw-note-duo"><span>${texteDe(k)}${liens}</span><span class="is-ombre" aria-hidden="true">${texteDe(autre)}${liens.replace(/<a /g,'<a tabindex="-1" ')}</span></span>`
+    :texteDe(k)+liens;
+  const legal=confiance+corps;
   /* 25 novembre, 16 h 35 (Elisa, sur l’émulateur Android : « laisse-moi rentrer dans l’application avec un bouton », « avec le paywall
      je ne peux pas rentrer ») : dans l’appli d’essai Android seulement (obEssaiAndroid), tant que l’achat n’est pas branché, le
      paywall ne dit plus « Les offres ne se chargent pas » (obPrixEtat) : il montre les offres, et son bouton dit ce qu’il fait,
@@ -50285,9 +50302,26 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
   };
   const obChampTexte=t=>{const b=document.getElementById('ob-body');return !!(b&&t&&b.contains(t)&&/^(INPUT|TEXTAREA)$/.test(t.tagName)&&!/^(checkbox|radio|range|button|submit|reset|file|color)$/i.test(t.type||''));};
   const obTactile=()=>{try{return typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches;}catch(e){return false;}};
-  document.addEventListener('focusin',e=>{if(obChampTexte(e.target)&&obTactile())obClavier(true);});
-  document.addEventListener('focusout',e=>{if(obChampTexte(e.target))obClavier(false);});
-  window.addEventListener('keyboardWillHide',()=>obClavier(false));
+  /* 26 novembre, 11 h 40 (Elisa, sur son Samsung : « Il y a aussi quelques sauts avec le clavier avant la partie « Tu vis où ? » »).
+     Sur Android, la vue de l’appli rétrécit d’un coup au-dessus du clavier dès qu’il commence à monter (Capacitor 8, SystemBars), et
+     reprend sa hauteur d’un coup dès qu’il commence à descendre. ob-clavier était posé au toucher du champ, avant que la vue ne
+     rétrécisse : le bouton jaune descendait de 58 px, puis remontait au-dessus du clavier. Sur Android, ob-clavier suit la vue :
+     posé dans l’image où elle rétrécit (un champ de la page touché), retiré dans celle où elle reprend sa hauteur (pas pendant un
+     changement de page : la page qui part reste telle quelle, obGoto retire la classe en peignant la suivante). Tout change d’un
+     seul coup avec la vue (onboarding-vitrine.css). L’iPhone ne change pas. */
+  const obAndroid=()=>typeof appAndroid==='function'&&appAndroid();
+  let obVueH=window.innerHeight||0,obVueL=window.innerWidth||0;
+  const obVueClavier=()=>{
+    const r=document.getElementById('onboarding');if(!r||!obAndroid())return;
+    const l=window.innerWidth,h=window.innerHeight;
+    if(l!==obVueL){obVueL=l;obVueH=h;}else if(h>obVueH)obVueH=h;
+    if(h<obVueH-120){if(r.classList.contains('ob-clavier')||(obChampTexte(document.activeElement)&&obTactile()))obClavier(true);}
+    else if(r.classList.contains('ob-clavier')&&!(typeof obLock!=='undefined'&&obLock)){clearTimeout(obClavierAttente);r.classList.remove('ob-clavier');}
+  };
+  document.addEventListener('focusin',e=>{if(obChampTexte(e.target)&&obTactile()){if(obAndroid())obVueClavier();else obClavier(true);}});
+  document.addEventListener('focusout',e=>{if(obChampTexte(e.target)&&!obAndroid())obClavier(false);});
+  window.addEventListener('keyboardWillHide',()=>{if(!obAndroid())obClavier(false);});
+  ['resize','keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide'].forEach(n=>window.addEventListener(n,obVueClavier));
 }
 /* Même capture : dans la bulle, « Salut ! Comment dois-je t’appeler » puis « ? » seul sur la ligne d’en dessous. Les espaces avant
    « ? ! ; » deviennent des fines insécables, celles avant « : » et « » » et après « « » des insécables : la ponctuation ne part plus
@@ -54804,6 +54838,6 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 <script src="multiplayer-security.js?v=12"></script>
 <script src="achat.js?v=10"></script>
 <script src="compte-moteurs.js?v=3"></script>
-<script src="connexion.js?v=4"></script>
+<script src="connexion.js?v=5"></script>
 </body>
 </html>

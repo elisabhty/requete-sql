@@ -59,12 +59,12 @@ test('le bouton Retour d’Android : la fenêtre, puis Échap, l’onboarding, l
 test('connexion : Google seul sur Android, avec le client web ; achats : la clé Android de RevenueCat', () => {
   const c = lire('connexion.js');
   assert.ok(c.includes("var fournisseurs = android ? (avecGoogle ? ['google'] : []) : (avecGoogle ? ['apple', 'google'] : ['apple']);"));
-  assert.ok(c.includes("o.google = android ? {webClientId: GOOGLE_WEB, mode: 'online'} : {iOSClientId: GOOGLE_IOS, iOSServerClientId: GOOGLE_WEB, mode: 'online'};"));
+  assert.ok(c.includes("o.google = android ? {webClientId: GOOGLE_WEB, mode: 'online', skipAuthOnlyAuthorizationAfterSignIn: true} : {iOSClientId: GOOGLE_IOS, iOSServerClientId: GOOGLE_WEB, mode: 'online'};"));
   const a = lire('achat.js');
   assert.ok(a.includes("var ANDROID = typeof C.getPlatform === 'function' && C.getPlatform() === 'android';") && a.includes('var CLE = ANDROID ? RC_CLE_ANDROID : RC_CLE_IOS;') && a.includes('P.configure({apiKey: CLE})'));
-  assert.ok(app.includes('<script src="connexion.js?v=4"></script>') && app.includes('<script src="achat.js?v=10"></script>'));
+  assert.ok(app.includes('<script src="connexion.js?v=5"></script>') && app.includes('<script src="achat.js?v=10"></script>'));
   const sw = lire('sw.js');
-  assert.ok(sw.includes("'./connexion.js?v=4',") && sw.includes("'./achat.js?v=10',"));
+  assert.ok(sw.includes("'./connexion.js?v=5',") && sw.includes("'./achat.js?v=10',"));
 });
 
 test('les marges du haut et du bas suivent Android (variables de Capacitor), et l’iPhone garde env()', () => {

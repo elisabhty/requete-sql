@@ -2654,3 +2654,34 @@ html #onboarding.ob-vitrine .ob-stats-btn:active{transform:translateY(3px);box-s
 html #onboarding.ob-vitrine .ob-stats-btn:focus-visible{outline:3px solid var(--v-sun);outline-offset:3px}
 html #onboarding.ob-vitrine:is(.ob-fit-3,.ob-fit-4,.ob-fit-5) .ob-stats-chat{width:min(30vw,112px);margin-bottom:8px}
 html #onboarding.ob-vitrine:is(.ob-fit-4,.ob-fit-5) .ob-stats-l{gap:9px;margin-top:16px;padding:12px 14px}
+
+/* ---------- 26 novembre, 11 h 40 à 11 h 56 (Elisa, sur son Samsung ; « sur iPhone c’est ok, quand je te parle d’une correction là
+   c’est que Android ») : Android seulement (html.is-android) ----------
+   1. « Quelques sauts avec le clavier avant la partie « Tu vis où ? » » : la vue d’Android rétrécit d’un coup au-dessus du clavier, et
+      ob-clavier la suit maintenant dans la même image (index.html, obVueClavier). La page se resserre donc d’un coup avec elle, sans
+      glisser 0,26 s après ; l’appli (#app) ne glisse plus vers sa nouvelle hauteur (ce glissement suit le clavier de l’iPhone, dont la
+      vue ne change pas de taille ; sur Android, le bouton jaune remontait depuis sous le clavier). */
+html.is-android #app{transition:none!important}
+html.is-android #onboarding.ob-vitrine :is(.ob-name,.ob-pseudo)>:is(.ob-lead,.ob-title,.ob-chat){transition:none!important}
+/* 2. « L’emoji monde qui bug » : les trois globes (Europe, Amériques, Asie) se relaient toutes les 0,3 s ; entre deux, il restait des
+      images où le globe s’effaçait à moitié, ou une image sans globe (l’anneau seul) : un clignotement. Chacun reste maintenant entier
+      jusqu’à ce que le suivant soit là (ils se chevauchent 6 ms, le suivant par-dessus). */
+@media (prefers-reduced-motion:no-preference){
+  html.is-android:not([data-motion="reduce"]) #onboarding.ob-vitrine .ob-pays-carte.is-cherche .ob-pays-globe i{animation-name:obvPaysGlobeA}
+}
+@keyframes obvPaysGlobeA{0%,34%{opacity:1}34.01%,100%{opacity:0}}
+/* 3. Le rappel (« le ne pas autoriser, il est à la limite du débordement du texte ») : la fenêtre en aperçu s’élargit, chaque bouton
+      garde de la marge autour de son texte ; avec une grande taille de texte (réglages du téléphone), il passe à la ligne plutôt
+      que de déborder. */
+html.is-android #onboarding.ob-vitrine .ob-rappel-step .ob-notif{width:min(304px,100%)}
+html.is-android #onboarding.ob-vitrine.ob-fit-3 .ob-rappel-step .ob-notif{width:min(284px,100%)}
+html.is-android #onboarding.ob-vitrine .ob-rappel-step .ob-notif-btns button{white-space:normal;text-wrap:balance}
+/* 4. L’abonnement (« quand on passe d’un plan à un autre, il faut pas que ça saute ; c’est comme si ça baissait quand on clique sur
+      s’abonner à 5,99 ») : la carte touchée ne s’enfonce plus (3 px vers le bas, son ombre aplatie) ; le choix se voit à son cadre
+      jaune. Sous le bouton, la phrase de l’offre choisie et celle de l’autre occupent la même place (la plus haute des deux,
+      obPaywallPied) : la page ne se remet plus à l’échelle d’une offre à l’autre. */
+html.is-android #onboarding.ob-vitrine .pw-offre:active{transform:none;box-shadow:0 4px 0 var(--v-shadow-lip)}
+html.is-android #onboarding.ob-vitrine .pw-offre.is-on:active{box-shadow:0 4px 0 var(--v-sun-lip),0 0 0 4px rgba(255,200,61,.32),0 12px 28px rgba(27,22,64,.22)}
+html.is-android #onboarding.ob-vitrine.ob-paywall-step .pw-note-duo{display:grid}
+html.is-android #onboarding.ob-vitrine.ob-paywall-step .pw-note-duo>span{grid-area:1/1;min-width:0}
+html.is-android #onboarding.ob-vitrine.ob-paywall-step .pw-note-duo>.is-ombre{visibility:hidden}

@@ -88,6 +88,9 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
    paquet fr.requete.app, empreinte SHA-1 de la clé de signature d'application (Play Console › Tester et publier › Intégrité de
    l'appli). Un 2e client avec la SHA-1 de la clé d'envoi (affichée par l'étape 2) pour les versions installées hors Play.
    L'APK d'essai de GitHub est signé à chaque fois par une clé jetable : la connexion Google n'y marche pas, c'est normal.
+   26 novembre : la connexion Google échouait sur le Samsung d'Elisa (version Play) : connexion.js passait des scopes au login, que
+   le plugin refuse sur Android tant que MainActivity n'est pas modifiée. Android : pas de scopes, et
+   skipAuthOnlyAuthorizationAfterSignIn (le jeton d'identité suffit à Supabase). Corrigé à partir de la version 34.
 7. **La fiche** (textes ci-dessous), les visuels, puis les questionnaires (plus bas) ; envoi en production quand Elisa le dit.
 
 Pas encore sur Android : la connexion avec Apple (les comptes créés avec Apple sur iPhone ne se retrouvent pas sur Android pour

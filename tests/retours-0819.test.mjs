@@ -67,7 +67,9 @@ test('obFit suit la vraie taille de l’onboarding et se relance pendant que le 
   timers.length = 0; dl.focusin.forEach(f => { f({ target: { tagName: 'BUTTON', dedans: true } }); f({ target: { tagName: 'INPUT', dedans: false } }); });
   assert.equal(timers.length, 0, 'un bouton, ou un champ hors de l’onboarding : rien');
   for (const n of ['keyboardWillShow', 'keyboardDidShow', 'keyboardWillHide', 'keyboardDidHide']) assert.equal(typeof wl[n], 'function', n);
-  assert.equal(typeof wl.resize, 'undefined', 'le resize reste celui d’avant (une seule écoute)');
+  /* 26 novembre (Android, le clavier du prénom) : le resize de ce bloc est celui qui fait suivre la vue d’Android à ob-clavier
+     (obVueClavier) ; il ne remesure rien : obFit garde sa seule écoute, celle d’avant. */
+  const avant = fits; wl.resize(); assert.equal(fits, avant, 'le resize du bloc ne relance pas obFit');
   assert.ok(app.includes("window.addEventListener('resize',()=>{const r=document.getElementById('onboarding');if(r&&r.classList.contains('on'))obFit();});"));
 });
 

@@ -73,7 +73,10 @@
   function initialiser(){
     if (!pret) {
       var o = android ? {} : {apple: {clientId: APP_ID}};
-      if (avecGoogle) o.google = android ? {webClientId: GOOGLE_WEB, mode: 'online'} : {iOSClientId: GOOGLE_IOS, iOSServerClientId: GOOGLE_WEB, mode: 'online'};
+      /* 26 novembre, 11 h 56 (Elisa, sur son Samsung, la page « Ton parcours est prêt » : « On peut pas se connecter avec Google ? ») :
+         sur Android, le plugin passe par une étape d'autorisation après le choix du compte, que l'activité de Capacitor (BridgeActivity,
+         non modifiée) ne sait pas montrer. Le jeton d'identité suffit à Supabase : l'étape est sautée (skipAuthOnlyAuthorizationAfterSignIn). */
+      if (avecGoogle) o.google = android ? {webClientId: GOOGLE_WEB, mode: 'online', skipAuthOnlyAuthorizationAfterSignIn: true} : {iOSClientId: GOOGLE_IOS, iOSServerClientId: GOOGLE_WEB, mode: 'online'};
       pret = Promise.resolve(SL.initialize(o)).catch(function(e){ pret = null; throw e; });
     }
     return pret;
@@ -152,7 +155,10 @@
       .then(function(){ return fournisseur === 'apple' ? nonceApple() : null; })
       .then(function(n){
         nonce = n;
-        var options = fournisseur === 'apple' ? {scopes: ['email', 'name']} : {scopes: ['email', 'profile']};
+        /* 26 novembre, 11 h 56 : sur Android, le plugin refuse toute connexion Google qui donne une liste de scopes (« You CANNOT use
+           scopes without modifying the main activity »), même ['email', 'profile'] : l'e-mail et le profil sont déjà demandés d'office.
+           Android : pas de liste. L'iPhone ne change pas. */
+        var options = fournisseur === 'apple' ? {scopes: ['email', 'name']} : android ? {} : {scopes: ['email', 'profile']};
         if (nonce) options.nonce = nonce.hache;
         return Promise.resolve(SL.login({provider: fournisseur, options: options})).catch(function(e){
           if (annulee(e)) return null;
