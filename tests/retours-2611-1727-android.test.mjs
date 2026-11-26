@@ -162,3 +162,42 @@ test('abonnement, Android : retrouvé pendant le paywall de l’onboarding, on e
   assert.ok(a.includes('verifier: function(){ return pret.then(function(){ return P.getCustomerInfo(); }).then(noterClient).catch(function(){}).then(relierSiBesoin); },'));
   assert.ok(a.includes('.then(noterClient).catch(function(){}).then(relierSiBesoin);\n    if (!prixConnus() && prixRate) rechargerPrix();'));
 });
+
+/* ---------- La note : plus de saut quand le clavier arrive (« Quand on clique sur le carré, le cadre pour écrire, ça saute au
+   début ») ; filmé sur un émulateur Android (tools/android/clavier.mjs) ---------- */
+test('notes, Android : « Enregistrer » collé en permanence (rien ne change de forme quand le clavier arrive), ombre clavier ouvert', () => {
+  assert.ok(ludique.includes('html.lq.is-android body:not(.kbar-on) #note-body .ne-act{position:sticky;bottom:0;z-index:3;margin:8px -18px 0;padding:12px 18px;background:var(--bg)}'));
+  assert.ok(ludique.includes('html.lq.is-android:not(.kb-ouvert) body:not(.kbar-on) #note-body .ne-act{box-shadow:none}'));
+  // La même forme que celle du clavier ouvert (iPhone et Android), qui garde son ombre
+  assert.ok(ludique.includes('html.lq.kb-ouvert body:not(.kbar-on) #note-body .ne-act{position:sticky;bottom:0;z-index:3;margin:8px -18px 0;padding:12px 18px;background:var(--bg);box-shadow:0 -12px 18px -14px rgba(27,22,64,.28)}'));
+  assert.ok(ludique.indexOf('html.lq.is-android:not(.kb-ouvert)') > ludique.indexOf('html.lq.kb-ouvert body:not(.kbar-on) #note-body .ne-act{'));
+});
+test('notes, Android : quand la vue change de hauteur avec le clavier, « Enregistrer » glisse au lieu de sauter', () => {
+  const debut = "(function(){\n  if(typeof window==='undefined'||typeof document==='undefined'||typeof appAndroid!=='function'||!appAndroid())return;\n  let place=null";
+  const src = entre(app, debut, '\n})();\n');
+  assert.ok(app.indexOf(debut) > app.indexOf("['keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide','resize'].forEach(n=>window.addEventListener(n,fit));"), 'après fit : la mise en page du clavier est déjà faite');
+  let barTop = 541, ih = 914, android = true;
+  const style = {}, ecoute = {}, ecouteDoc = {}, raf = [], minuteurs = [];
+  const bar = {style, getBoundingClientRect: () => ({top: barTop}), get offsetHeight() { return 78; }};
+  const feuille = {classList: {contains: c => c === 'on'}, querySelector: () => bar, getBoundingClientRect: () => ({top: 48})};
+  const lancer = () => vm.runInNewContext(src, {appAndroid: () => android, prefersReduceMotion: () => false, Math,
+    window: {get innerHeight() { return ih; }, innerWidth: 411, addEventListener: (n, f) => { ecoute[n] = f; }},
+    document: {getElementById: id => id === 'note-sheet' ? feuille : null, addEventListener: (n, f) => { ecouteDoc[n] = f; }},
+    requestAnimationFrame: f => raf.push(f), setTimeout: f => minuteurs.push(f)});
+  lancer();
+  ecouteDoc.focusin({target: {closest: s => s === '#note-body' ? {} : null}});   // le doigt sur le cadre : la place est notée
+  ih = 584; barTop = 506; ecoute.resize();                                         // la vue rétrécit d’un coup, la barre est collée plus haut
+  assert.equal(style.transform, 'translateY(35px)', 'elle reste d’abord où elle était');
+  assert.equal(style.transition, 'none');
+  raf.shift()();
+  assert.equal(style.transform, ''); assert.equal(style.transition, 'transform .26s cubic-bezier(.38,.7,.125,1)');
+  minuteurs.shift()(); assert.equal(style.transition, '');
+  ih = 914; barTop = 541; ecoute.resize();                                         // le clavier repart
+  assert.equal(style.transform, 'translateY(-35px)');
+  raf.shift()(); minuteurs.shift()();
+  ih = 900; barTop = 541; ecoute.resize();                                         // un petit changement de hauteur : rien
+  assert.equal(style.transform, ''); assert.equal(raf.length, 0);
+  // Sur l’iPhone : rien de tout ça
+  android = false; for (const k in ecoute) delete ecoute[k]; lancer();
+  assert.equal(ecoute.resize, undefined);
+});

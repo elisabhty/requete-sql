@@ -95,7 +95,7 @@ const RELEVE = `(() => {
   const image = () => {
     const nb = document.getElementById('note-body'), act = document.querySelector('#note-body .ne-act'), cs = getComputedStyle(document.documentElement);
     K.images.push({t: maintenant(), ih: innerHeight, vv: vv ? Math.round(vv.height) : 0, kb: document.documentElement.classList.contains('kb-ouvert') ? 1 : 0,
-      feuille: R('#note-sheet'), corps: R('#note-body'), cadre: R('#ne-ta'), bouton: R('#note-body .ne-act'), pos: act ? getComputedStyle(act).position[1] : '',
+      feuille: R('#note-sheet'), corps: R('#note-body'), cadre: R('#ne-ta'), bouton: R('#note-body .ne-act'), pos: act ? getComputedStyle(act).position.slice(0, 3) : '', glisse: act ? (/matrix\\(1, 0, 0, 1, 0, ([-\\d.]+)\\)/.exec(getComputedStyle(act).transform) || [0, 0])[1] * 1 : 0,
       defil: nb ? Math.round(nb.scrollTop) : -1, page: Math.round(document.scrollingElement.scrollTop), appli: R('#app'), kbv: cs.getPropertyValue('--kb').trim()});
     if (performance.now() < fin) requestAnimationFrame(image);
   };

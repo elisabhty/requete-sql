@@ -53511,6 +53511,36 @@ if(typeof document!=='undefined'&&typeof window!=='undefined'){
   ['keyboardWillShow','keyboardDidShow','keyboardWillHide','keyboardDidHide','resize'].forEach(n=>window.addEventListener(n,fit));
   fit();
 })();
+/* 26 novembre, 17 h 27 (Elisa, sur son Samsung : « Ça a continué à sauter au niveau de la prise de notes. Quand on clique sur le
+   carré, le cadre pour écrire, ça saute au début. ») : filmé sur un émulateur Android de la taille de son téléphone
+   (tools/android/clavier.mjs). Le clavier qui monte fait d’abord rétrécir la vue d’un coup ; « Enregistrer » devenait alors collant
+   (kb-ouvert) : il changeait de place et de forme, et la WebView redessinait toute la note en blanc le temps d’une image. Sur
+   Android, il est maintenant collant en permanence (ludique.css, 48d quater) : rien ne change de forme quand le clavier arrive. Et
+   quand la vue change de hauteur avec le clavier (il monte ou descend), il glisse de son ancienne place à la nouvelle (0,26 s, la
+   courbe du clavier) au lieu d’y sauter. Sa place est notée par rapport au haut de la feuille (qui ne bouge pas avec la vue, même
+   pendant son arrivée). */
+(function(){
+  if(typeof window==='undefined'||typeof document==='undefined'||typeof appAndroid!=='function'||!appAndroid())return;
+  let place=null,vueH=window.innerHeight,vueL=window.innerWidth;
+  const barre=()=>{const s=document.getElementById('note-sheet');return s&&s.classList.contains('on')?s.querySelector('#note-body .ne-act'):null;};
+  const mesure=b=>{const s=document.getElementById('note-sheet');return b.getBoundingClientRect().top-s.getBoundingClientRect().top;};
+  const noter=()=>{const b=barre();place=b?mesure(b):null;};
+  const dans=e=>!!(e&&e.target&&e.target.closest&&e.target.closest('#note-body'));
+  document.addEventListener('focusin',e=>{if(dans(e))noter();},true);
+  document.addEventListener('input',e=>{if(dans(e))requestAnimationFrame(noter);},true);
+  document.addEventListener('scroll',e=>{if(e.target&&e.target.id==='note-body')noter();},true);
+  window.addEventListener('resize',()=>{
+    const h=window.innerHeight,l=window.innerWidth,ecart=Math.abs(h-vueH);vueH=h;
+    if(l!==vueL){vueL=l;place=null;return;}
+    const b=barre();if(!b){place=null;return;}
+    const avant=place,apres=mesure(b);place=apres;
+    if(avant==null||ecart<120||(typeof prefersReduceMotion==='function'&&prefersReduceMotion()))return;
+    const d=Math.round(avant-apres);if(Math.abs(d)<2||Math.abs(d)>500)return;
+    b.style.transition='none';b.style.transform=`translateY(${d}px)`;void b.offsetHeight;
+    requestAnimationFrame(()=>{b.style.transition='transform .26s cubic-bezier(.38,.7,.125,1)';b.style.transform='';
+      setTimeout(()=>{if(!b.style.transform)b.style.transition='';},320);});
+  });
+})();
 /* Niveau SQL : cinq paliers. Les quatre premiers sont les quatre étapes de l’onboarding (« Où en es-tu avec SQL ? » : SELECT,
    Filtres & tris, Jointures, Analyses), le cinquième le parcours maîtrisé. On y monte avec ses leçons validées, tout le monde à
    partir du palier 1 (Elisa, 6 novembre, 12 h 28) ; le niveau choisi à l’onboarding donne le niveau de défi conseillé (jeuNivAuto). */

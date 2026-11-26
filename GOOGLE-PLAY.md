@@ -73,6 +73,14 @@ Elisa avant tout envoi). La fiche App Store : APP-STORE-FR.md et APP-STORE-EN.md
   « Recommence / r ») ; les essais sur émulateur signalent tout mot coupé (aucun sur 52 écrans, à 360 et 411 px de large).
 - Version 38 (Android seulement) : l'engagement pris (onboarding), le halo vert du bouton à l'empreinte est rond (un anneau à part ;
   l'ombre étalée d'avant était dessinée en carré par la WebView du Samsung).
+- Version suivante (Android seulement ; retours d'Elisa du 26 novembre, 17 h 27, sur la 37 ; les passages 39 à 43 n'étaient que des
+  mesures du clavier sur émulateur, rien à envoyer) : l'abonnement de Google Play reconnu sans « Restaurer » (quand RevenueCat ne
+  voit rien, l'appli lui envoie elle-même ce que Google Play sait du compte, au démarrage, après une connexion et au retour dans
+  l'appli) ; la page de départ d'un cours couvre l'écran dès sa première image (plus de bilan ni de leçon suivante entrevus à
+  travers) ; après la déconnexion et la suppression du compte, plus de Mon compte pendant le rechargement (un voile clair avec le
+  logo rond) ; dans une note, « Enregistrer » ne saute plus quand le clavier arrive (collé en bas en permanence, il glisse avec
+  la vue). Le travail « clavier » (travaux = clavier) filme et mesure le clavier dans une note sur un émulateur de la taille du
+  Samsung.
 - 26 novembre, 13 h 30 (Elisa : « Oui stp ») : noms des abonnements raccourcis (coupés dans la feuille de Google) : « Premium annuel »
   (fr.requete.app.annuel et fr.requete.app.annuel.bienvenue : pas de « −50 % » dans le nom, qui reste affiché après la 1re année,
   au plein tarif) et « Premium hebdo » (fr.requete.app.hebdo).
