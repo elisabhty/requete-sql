@@ -47291,17 +47291,48 @@ function statOuverture(){
     localStorage.setItem(STAT_SERIE,String(n));
   }catch(e){}
 }
-/* Les erreurs de l'app : le message seulement (100 caractères), cinq au plus par session */
-function statErreur(m){
+/* Les erreurs de l'app : le message seulement (100 caractères), cinq au plus par session.
+   27 novembre, 23 h 33 (Elisa : « ok », pour savoir d'où viennent les « Load failed ») : aussi l'endroit (o, 60 caractères), rien
+   sur la personne. Pour un appel réseau coupé, le chemin appelé, sans les paramètres et sans ce qui suit le 4e segment
+   (« requeteapp.com/maj/version.json », « supabase/rest/v1/rpc/jeu_identite_v2 ») ; sinon le fichier et la ligne du code
+   (« index.html:29327 »). */
+function statErreur(m,o){
   if(statErreurs>=5)return;statErreurs++;
-  stat('erreur',null,{m:String(m||'?').replace(/\s+/g,' ').slice(0,100)});
+  stat('erreur',null,{m:String(m||'?').replace(/\s+/g,' ').slice(0,100),...(o?{o:String(o).replace(/\s+/g,' ').slice(0,60)}:{})});
+}
+function statErreurChemin(entree){
+  try{
+    const brut=typeof entree==='string'?entree:(entree&&typeof entree.url==='string'?entree.url:String(entree||''));
+    const u=new URL(brut,location.href);
+    const hote=/\.supabase\.co$/.test(u.hostname)?'supabase':(u.hostname===location.hostname?'':u.hostname);
+    const chemin=u.pathname.split('/').filter(Boolean).slice(0,4).map(s=>s.slice(0,40)).join('/');
+    return (hote?hote+'/':'')+chemin;
+  }catch(e){return '';}
+}
+function statErreurLieu(r){
+  if(!r||typeof r!=='object')return '';
+  if(r.requeteChemin)return r.requeteChemin;
+  const m=String(r.stack||'').match(/([^\/@\s()]+\.(?:html|m?js)):(\d+)/);
+  return m?m[1]+':'+m[2]:'';
+}
+/* Chaque appel réseau qui échoue garde le chemin appelé, pour statErreurLieu. Rien ne change pour l'appel lui-même. */
+if(typeof window!=='undefined'&&typeof window.fetch==='function'&&!window.fetch.requeteChemin){
+  const fetchDOrigine=window.fetch;
+  const marquer=(e,entree)=>{try{if(e&&typeof e==='object'&&!e.requeteChemin)e.requeteChemin=statErreurChemin(entree);}catch(x){}};
+  const fetchSuivi=function(entree){
+    let p;
+    try{p=fetchDOrigine.apply(window,arguments);}catch(e){marquer(e,entree);throw e;}
+    return p&&typeof p.then==='function'?p.then(null,e=>{marquer(e,entree);throw e;}):p;
+  };
+  fetchSuivi.requeteChemin=true;
+  window.fetch=fetchSuivi;
 }
 if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
   window.addEventListener('load',()=>setTimeout(()=>{try{statOuverture();statEnvoyer();}catch(e){}},3000));
   document.addEventListener('visibilitychange',()=>{try{if(document.visibilityState==='visible')statOuverture();else statEnvoyer();}catch(e){}});
   window.addEventListener('online',()=>{try{statEnvoyer();}catch(e){}});
-  window.addEventListener('error',e=>{try{if(e&&e.message)statErreur(e.message);}catch(x){}});
-  window.addEventListener('unhandledrejection',e=>{try{const r=e&&e.reason;statErreur(r&&r.message?r.message:String(r));}catch(x){}});
+  window.addEventListener('error',e=>{try{if(e&&e.message)statErreur(e.message,statErreurLieu(e.error)||(e.filename?String(e.filename).split('/').pop()+':'+(e.lineno||0):''));}catch(x){}});
+  window.addEventListener('unhandledrejection',e=>{try{const r=e&&e.reason;statErreur(r&&r.message?r.message:String(r),statErreurLieu(r));}catch(x){}});
 }
 if(typeof window!=='undefined'&&typeof window.addEventListener==='function'){
   window.addEventListener('load',()=>setTimeout(()=>{try{obCompteEnvoyer();}catch(e){}},5000));
@@ -55055,7 +55086,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-26-module-v3158';
+  const SW_CACHE='requete-2026-11-27-module-v3159';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{

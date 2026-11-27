@@ -53,5 +53,5 @@ test('chaque script de la page se lit (une même variable déclarée deux fois c
   const re = /<script(?![^>]*src)[^>]*>([\s\S]*?)<\/script>/g; let m, n = 0;
   while ((m = re.exec(app))) { n++; assert.doesNotThrow(() => new Function(m[1]), `script ${n}`); }
   assert.ok(n >= 5);
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-26-module-v3158';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-27-module-v3159';"), 'le cache de l’appli change');
 });

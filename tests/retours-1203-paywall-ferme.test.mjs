@@ -63,5 +63,5 @@ test('le paywall : « Continuer » seulement hors de l’app iPhone ; le bouton 
   assert.ok(app.includes("else if(slide==='paywall'){if(obPaywallOuvert())obPaywallPasser();}"));
   assert.ok(!app.includes("if(!obAchatPret())obPaywallPasser()"));
   assert.ok(cut('function obGardeEtat(){', '\n}').includes("if(!obAchatPret())return 'oui';"), 'une abonnée déjà entrée n’est pas bloquée par une panne du module');
-  assert.ok(sw.includes("const CACHE = 'requete-2026-11-26-module-v3158';"), 'le cache de l’appli change');
+  assert.ok(sw.includes("const CACHE = 'requete-2026-11-27-module-v3159';"), 'le cache de l’appli change');
 });
