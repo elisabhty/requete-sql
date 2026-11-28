@@ -3151,6 +3151,8 @@ window.REQUETE_LANGUE && window.REQUETE_LANGUE.charger('en', {
     "Le paiement n’a pas abouti. Tu n’as pas été débitée, réessaie.": "The payment didn’t go through. You haven’t been charged, try again.",
     "Le paiement n’a pas abouti. Tu n’as pas été débité, réessaie.": "The payment didn’t go through. You haven’t been charged, try again.",
     "Le paiement n’a pas abouti. Tu n’as pas été débité·e, réessaie.": "The payment didn’t go through. You haven’t been charged, try again.",
+    "Ton paiement attend une validation. Requête se débloque dès qu’il est accepté.": "Your payment is awaiting approval. Requête unlocks as soon as it’s accepted.",
+    "Ton achat est passé, mais sa confirmation tarde. Dans un instant, touche « Restaurer » en haut de l’écran.": "Your purchase went through, but its confirmation is taking a while. In a moment, tap “Restore” at the top of the screen.",
     "Ton accès annuel : {intro} au lieu de {plein} pour la première année, puis {plein} par an. Résiliable à tout moment.": "Your yearly access: {intro} instead of {plein} for the first year, then {plein} per year. Cancel anytime.",
     "au lieu de": "instead of",
     "pour la première année, puis {plein}/an.": "for the first year, then {plein}/year.",

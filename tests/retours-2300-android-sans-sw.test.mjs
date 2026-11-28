@@ -18,7 +18,7 @@ async function jouer({natif, controleur, deja = 0}) {
   const ctx = {
     window: {}, Promise,
     navigator: {serviceWorker: {controller: controleur ? {} : null, getRegistrations: async () => [{unregister: async () => { j.retires++; return true; }}]}},
-    caches: {keys: async () => ['requete-2026-11-27-module-v3159'], delete: async k => { j.effaces.push(k); return true; }},
+    caches: {keys: async () => ['requete-2026-11-28-module-v3160'], delete: async k => { j.effaces.push(k); return true; }},
     sessionStorage: {getItem: k => j.store[k] ?? null, setItem: (k, v) => { j.store[k] = v; }},
     location: {reload: () => { j.recharge++; }}
   };
@@ -32,7 +32,7 @@ async function jouer({natif, controleur, deja = 0}) {
 
 test('dans l’appli : le worker déjà là est retiré avec ses fichiers, la page rechargée une fois', async () => {
   const a = await jouer({natif: true, controleur: true});
-  assert.equal(a.sansSW, 1); assert.equal(a.retires, 1); assert.deepEqual(a.effaces, ['requete-2026-11-27-module-v3159']); assert.equal(a.recharge, 1);
+  assert.equal(a.sansSW, 1); assert.equal(a.retires, 1); assert.deepEqual(a.effaces, ['requete-2026-11-28-module-v3160']); assert.equal(a.recharge, 1);
   const b = await jouer({natif: true, controleur: false});
   assert.equal(b.retires, 1); assert.equal(b.recharge, 0, 'sans worker aux commandes, pas de rechargement');
   const c = await jouer({natif: true, controleur: true, deja: 2});

@@ -49,7 +49,8 @@ test('le genre : un texte inclusif s’accorde (accordTexte), le pluriel reste',
 test('le genre : débutante, débitée, invitée ; et leur traduction', () => {
   assert.ok(app.includes("const debLabel=accord('Débutante','Débutant','Débutant·e'),nivLabel={debutant:debLabel,bases:'Bases',inter:'Analyste'}[draft.niveau]||debLabel;"));
   assert.ok(!app.includes('Tu n’as pas été débité·e, réessaie.\''));
-  assert.equal(app.split("accord('débitée','débité','débité·e')").length - 1, 2, 'les deux achats');
+  assert.equal(app.split("accord('débitée','débité','débité·e')").length - 1, 1, 'les deux achats passent par pwEchecTexte (28 novembre)');
+  assert.equal(app.split('pwMessage(pwEchecTexte(e))').length - 1, 2, 'les deux achats');
   assert.ok(app.includes("`Tu es ${typeof accord==='function'?accord('invitée','invité','invité·e'):'invité·e'}`} à un défi SQL"));
   for (const k of ['"Débutante · {1} min par séance"', '"Débutant·e · {1} min par séance"', '"{prenom}, tu es prêt·e à atteindre <1>ton objectif</1> !"'])
     assert.ok(en.includes(k), k);

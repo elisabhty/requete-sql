@@ -58,7 +58,7 @@
 <!-- Elisa, 13 novembre, 12 h 30 : « un truc en place pour faciliter la traduction dans plusieurs langues, en premier anglais ».
      langues.js : les textes restent écrits en français ici ; dans une autre langue, il les remplace à l’affichage par ceux du
      fichier de la langue (langue-en.js), chargé avant le reste de la page. En français, il ne fait rien. Voir LANGUES.md. -->
-<script src="langues.js?v=56feb894" data-defis></script>
+<script src="langues.js?v=78031d13" data-defis></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <!-- 22 h 44 (« ça le fait pendant 1 s ») : Safari 26 reconnu dès la première image, avant le gros du chargement, comme dans
      safari-surface.js ; les repères de couleur des barres (en tête de <body>) s’appliquent ainsi tout de suite. -->
@@ -47934,8 +47934,17 @@ async function obPaywallAcheter(){
     if(ok){if(typeof stat==='function')stat(essai?'essai':'achat',null,{o});obPaywallEntrer();return;}
     /* La feuille d’Apple refermée sans payer : une fois, l’offre de bienvenue (si la boutique la donne à ce compte). */
     if(obSortieProposer())return;}
-  catch(e){obPwBusy=false;if(live)pwMessage(`Le paiement n’a pas abouti. Tu n’as pas été ${typeof accord==='function'?accord('débitée','débité','débité·e'):'débité·e'}, réessaie.`);}
+  catch(e){obPwBusy=false;if(live)pwMessage(pwEchecTexte(e));}
   obPaywallPied();
+}
+/* 28 novembre (audit des abonnements) : le message quand l’achat ne s’est pas terminé normalement. Un paiement en attente
+   (« Demander l’autorisation d’achat », validation de la banque) n’est pas un échec ; un achat passé que RevenueCat ne montre pas
+   encore comme abonnement non plus : « Restaurer » le retrouve. Sinon, le message d’avant. (achat.js, raison) */
+function pwEchecTexte(e){
+  const r=window.REQUETE_ACHAT&&typeof window.REQUETE_ACHAT.raison==='function'?window.REQUETE_ACHAT.raison(e):'';
+  if(r==='attente')return 'Ton paiement attend une validation. Requête se débloque dès qu’il est accepté.';
+  if(r==='non_confirme')return 'Ton achat est passé, mais sa confirmation tarde. Dans un instant, touche « Restaurer » en haut de l’écran.';
+  return `Le paiement n’a pas abouti. Tu n’as pas été ${typeof accord==='function'?accord('débitée','débité','débité·e'):'débité·e'}, réessaie.`;
 }
 /* ---------- L’offre de bienvenue (Elisa, 12 novembre, 16 h 03 : « est-ce qu’on peut avoir une offre à −50 ? » ; 16 h 34 : « fais-le
    pour le −50 ») ----------
@@ -48024,7 +48033,7 @@ async function obSortieAcheter(){
   const live=document.getElementById('pw-live');obPwBusy=true;obSortiePied();if(live)live.textContent='';
   try{const ok=await window.REQUETE_ACHAT.acheter('bienvenue');obPwBusy=false;
     if(ok){if(typeof stat==='function')stat('achat',null,{o:'bienvenue'});obPaywallEntrer();return;}}
-  catch(e){obPwBusy=false;if(live)pwMessage(`Le paiement n’a pas abouti. Tu n’as pas été ${typeof accord==='function'?accord('débitée','débité','débité·e'):'débité·e'}, réessaie.`);}
+  catch(e){obPwBusy=false;if(live)pwMessage(pwEchecTexte(e));}
   if(obPwSortie)obSortiePied();
 }
 /* 26 novembre, 12 h 35 (Elisa, sur son Samsung, ses captures de « Le paiement n’a pas abouti » et de « Aucun abonnement à restaurer
@@ -55086,7 +55095,7 @@ function lqChampSousBarre(){
 if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   /* Même identifiant que CACHE dans sw.js : le paramètre force le navigateur
      à retélécharger le worker quand on déploie, sans attendre l’expiration. */
-  const SW_CACHE='requete-2026-11-27-module-v3159';
+  const SW_CACHE='requete-2026-11-28-module-v3160';
   /* Exposée pour l’indicateur « Version » de la page Mon compte. */
   window.APP_VERSION=SW_CACHE;
   window.addEventListener('load',()=>{
@@ -55130,7 +55139,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 </script>
 <script src="onboarding-focus.js"></script>
 <script src="multiplayer-security.js?v=12"></script>
-<script src="achat.js?v=11"></script>
+<script src="achat.js?v=12"></script>
 <script src="compte-moteurs.js?v=3"></script>
 <script src="connexion.js?v=5"></script>
 </body>

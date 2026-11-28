@@ -39,5 +39,5 @@ test('plus d’élastique sous le doigt, sauf si la page ne tient vraiment pas',
 
 test('la nouvelle feuille de style arrive sur les iPhone', () => {
   assert.ok(app.includes('<link rel="stylesheet" href="onboarding-vitrine.css?v=84">'));
-  assert.ok(sw.includes("'./onboarding-vitrine.css?v=84',") && sw.includes("const CACHE = 'requete-2026-11-27-module-v3159';"));
+  assert.ok(sw.includes("'./onboarding-vitrine.css?v=84',") && sw.includes("const CACHE = 'requete-2026-11-28-module-v3160';"));
 });

@@ -16,7 +16,7 @@
   CACHE change à chaque déploiement des ressources. APP_VERSION concerne
   les données utilisateur : ne pas le modifier pour un rafraîchissement. */
 
-const CACHE = 'requete-2026-11-27-module-v3159';
+const CACHE = 'requete-2026-11-28-module-v3160';
 
 /* 25 novembre, 23 h : dans l’appli Android (https://localhost, sans port), pas de service worker. Il gardait les anciens
    fichiers (maj.js) et cassait la mise à jour à distance (voir le haut de index.html). Un worker installé là ne range rien,
@@ -30,12 +30,12 @@ const PRECACHE = [
   './responsive.css?v=1',
   './onboarding-focus.js',
   './maj.js?v=3',
-  './langues.js?v=56feb894',
-  './langue-en.js?v=a7542906',
+  './langues.js?v=78031d13',
+  './langue-en.js?v=6a8260c0',
   './langue-en-defis.js?v=45bd0376',
   './langue-en-entretien.js?v=91e56a7f',
   './multiplayer-security.js?v=12',
-  './achat.js?v=11',
+  './achat.js?v=12',
   './compte-moteurs.js?v=3',
   './connexion.js?v=5',
   './memo-collection.css?v=5',

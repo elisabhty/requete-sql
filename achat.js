@@ -113,7 +113,8 @@
   var C = window.Capacitor;
   var natif = !!(C && typeof C.isNativePlatform === 'function' && C.isNativePlatform());
   var P = natif && C.Plugins && C.Plugins.Purchases;
-  var ANDROID = typeof C.getPlatform === 'function' && C.getPlatform() === 'android';
+  /* 28 novembre (audit des abonnements) : sans Capacitor (hors de l'app), C n'existe pas ; on ne lit plus C.getPlatform dans ce cas. */
+  var ANDROID = !!(C && typeof C.getPlatform === 'function' && C.getPlatform() === 'android');
   var CLE = ANDROID ? RC_CLE_ANDROID : RC_CLE_IOS;
   if (!CLE || !P) return;
 
@@ -248,8 +249,29 @@
     if (!unAn || (i.cycles != null && Number(i.cycles) !== 1)) return null;
     return {prix: i.price, texte: i.priceString};
   }
+  /* 28 novembre (audit des abonnements, Elisa : « oui […] corrige les erreurs ») : la feuille d'Apple ou de Google refermée se
+     reconnaît à son code seulement (RevenueCat : « 1 », PURCHASE_CANCELLED_ERROR ; Capacitor range les détails sous data), plus à
+     un message qui contiendrait « cancel ». Un paiement en attente (« Demander l'autorisation d'achat », validation de la banque)
+     a son code à lui (« 20 », PAYMENT_PENDING_ERROR) : ce n'est ni une annulation ni un échec. Et un achat passé que RevenueCat ne
+     montre pas encore comme abonnement n'est plus pris pour une feuille refermée (voir acheter). raison(e) le dit au paywall. */
+  function codeErreur(e){
+    if (!e) return '';
+    var c = e.code != null ? e.code : (e.data && e.data.code);
+    return c == null ? '' : String(c);
+  }
   function annule(e){
-    return !!(e && (e.userCancelled || e.code === '1' || e.code === 1 || /cancel/i.test(String(e.message || ''))));
+    return !!(e && (e.userCancelled === true || (e.data && e.data.userCancelled === true) || codeErreur(e) === '1'));
+  }
+  function raison(e){
+    var c = codeErreur(e);
+    if (c === '20') return 'attente';
+    if (c === 'NON_CONFIRME') return 'non_confirme';
+    return '';
+  }
+  function nonConfirme(){
+    var e = new Error('achat passé, abonnement pas encore confirmé par RevenueCat');
+    e.code = 'NON_CONFIRME';
+    return e;
   }
 
   /* 13 novembre, 2 h 41 : les prix se lisent en même temps que l'abonnement, dès que RevenueCat a démarré ; acheter, restaurer et
@@ -304,10 +326,19 @@
       return pret.then(function(){ return paquets[offre] ? null : chargerOffres(); }).then(function(){
         var pq = paquets[offre];
         if (!pq) throw new Error('offre indisponible');
-        return P.purchasePackage({aPackage: pq}).then(noterClient, function(e){ if (annule(e)) return false; throw e; });
+        return P.purchasePackage({aPackage: pq}).then(function(r){
+          if (noterClient(r)) return true;
+          /* L'achat est passé, mais RevenueCat ne montre pas encore l'abonnement : on relit une fois, 2 s plus tard. Toujours
+             rien : une erreur à part (le paywall dit de toucher « Restaurer »), jamais l'offre de bienvenue d'une feuille refermée. */
+          return new Promise(function(ok){ setTimeout(ok, 2000); })
+            .then(function(){ return P.getCustomerInfo(); })
+            .then(noterClient, function(){ return false; })
+            .then(function(a){ if (a) return true; throw nonConfirme(); });
+        }, function(e){ if (annule(e)) return false; throw e; });
       });
     },
     restaurer: function(){ return pret.then(function(){ return P.restorePurchases(); }).then(noterClient); },
+    raison: raison,
     actif: function(){ return actifConnu; },
     etat: etat,
     verifier: function(){ return pret.then(function(){ return P.getCustomerInfo(); }).then(noterClient).catch(function(){}).then(relierSiBesoin); },

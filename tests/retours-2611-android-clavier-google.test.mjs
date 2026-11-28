@@ -269,7 +269,8 @@ test('iPhone : le message, puis son effacement au bout de 6 s, comme avant ; la 
   assert.deepEqual(m.defile, []);
   m.timers.at(-1)[0](); assert.equal(m.live.textContent, '');
   assert.ok(app.includes("const dire=t=>{if(live)pwMessage(t,6000);};"));
-  assert.equal((app.match(/if\(live\)pwMessage\(`Le paiement n’a pas abouti\. Tu n’as pas été /g) || []).length, 2, 'le paywall et l’offre de bienvenue');
+  assert.equal((app.match(/if\(live\)pwMessage\(pwEchecTexte\(e\)\)/g) || []).length, 2, 'le paywall et l’offre de bienvenue (28 novembre : le texte est dans pwEchecTexte)');
+  assert.ok(app.includes('return `Le paiement n’a pas abouti. Tu n’as pas été '));
 });
 
 test('Android : la page défilée s’estompe à son bord haut ; un peu de place sous le message ; les garanties toujours bien rangées', () => {
